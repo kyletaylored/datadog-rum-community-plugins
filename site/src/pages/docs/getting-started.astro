@@ -10,6 +10,12 @@ import { url } from '../../lib/url'
     arrive. Budget an hour, most of which is waiting for a real order to come through.
   </p>
 
+  <p>
+    Before installing anything, <a href={url('/sandbox/')}>the sandbox</a> runs these adapters
+    against recorded platform payloads in your browser and shows every RUM call they make. It is the
+    quickest way to see what a plugin will and will not send.
+  </p>
+
   <h2>1. Add RUM</h2>
   <p>
     If RUM is already on the site, skip this. These plugins never call <code>init</code> themselves, so your

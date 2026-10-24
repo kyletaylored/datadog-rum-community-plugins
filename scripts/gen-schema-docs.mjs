@@ -2,8 +2,10 @@
 /**
  * Generates the site's data files from the repo itself, so the docs cannot drift from the code:
  *
- *   site/src/data/schema.json   every family, action and attribute, from the core's schemas
- *   site/src/data/plugins.json  every plugin.json, plus the events its fixture run produced
+ *   site/src/data/schema.json     every family, action and attribute, from the core's schemas
+ *   site/src/data/plugins.json    every plugin.json, plus the events its fixture run produced
+ *   site/src/data/scenarios.json  the recorded fixtures, so the sandbox replays the same payloads
+ *                                 the test suite does rather than a hand-written imitation
  *
  * "Events this plugin sends" comes from `fixtures/.generated/events.json`, which the adapter's
  * own snapshot test writes during its fixture run. Nothing here is hand-written.
@@ -67,10 +69,25 @@ for (const dir of readdirSync(fromRoot('packages')).sort()) {
     console.warn(`${dir}: no fixture event report; run the test suite so the gallery can show what it sends`)
   }
 
+  // The sandbox replays these in the browser. Reading the same files the tests do is the point:
+  // a hand-written demo payload would drift from what the adapter is actually tested against.
+  const fixturesDir = fromRoot('packages', dir, 'fixtures')
+  const fixtures = existsSync(fixturesDir)
+    ? readdirSync(fixturesDir)
+        .filter((file) => file.endsWith('.json'))
+        .sort()
+        .flatMap((file) => {
+          const parsed = JSON.parse(readFileSync(join(fixturesDir, file), 'utf8'))
+          const list = Array.isArray(parsed) ? parsed : parsed.fixtures
+          return list.map((fixture) => ({ ...fixture, file, source: parsed.source ?? null }))
+        })
+    : []
+
   const readmePath = fromRoot('packages', dir, 'README.md')
 
   plugins.push({
     ...manifest,
+    fixtures,
     events: report?.actions ?? [],
     globalContext: report?.globalContext ?? {},
     observedRumApis: report?.rumApis ?? [],
@@ -83,3 +100,4 @@ writeFileSync(join(outDir, 'plugins.json'), `${JSON.stringify(plugins, null, 2)}
 const actionCount = schema.families.reduce((total, family) => total + family.actions.length, 0)
 console.log(`schema ${schema.version}: ${schema.families.length} families, ${actionCount} actions`)
 console.log(`plugins: ${plugins.length} (${plugins.filter((plugin) => plugin.events.length > 0).length} with generated event lists)`)
+console.log(`sandbox fixtures: ${plugins.reduce((total, plugin) => total + plugin.fixtures.length, 0)}`)

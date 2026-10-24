@@ -13,7 +13,14 @@ which account they belong to and what was in the cart do not come for free — t
 managed platforms cannot ship at all.
 
 **Status: Phase 0.** The core, the harness, three adapters, the asset pack, the build and release
-pipeline and the site are in place. Nothing is published to npm and the site is not deployed yet.
+pipeline and the site are in place. Nothing is published to npm yet.
+
+**[Try the sandbox](https://kyletaylored.github.io/datadog-rum-community-plugins/sandbox/)** — it runs
+the real adapters against the same recorded payloads the test suite uses, in your browser, and shows
+every RUM call they make. No Datadog account, and it never asks for an application ID or client
+token. It is the only way to see the parts that matter most, because in each case the correct
+behaviour is that nothing is sent: the consent gate holding events back, a second order being
+refused, card data being stripped.
 
 ## Install
 
@@ -114,7 +121,8 @@ npm run verify      # build, unit and conformance tests, manifest validation, si
 | `npm run lint:manifests` | Validates every `plugin.json` against its JSON schema |
 | `npm run size` | Enforces the 5 KB gzip budget per adapter |
 | `npm run new-plugin -- <name>` | Scaffolds a new adapter from the template |
-| `npm run site:dev` | The project site, with the gallery generated from `plugin.json` files |
+| `npm run site:dev` | The project site, with the gallery and sandbox generated from the packages |
+| `npm run site:build` | Builds the site. Separate from `npm run build`, which builds only the packages |
 | `node scripts/sri.mjs` | The exact-version CDN URLs and their SRI hashes |
 
 ### Why there are two test projects
