@@ -1,0 +1,111 @@
+---
+import Base from '../../layouts/Base.astro'
+import { url } from '../../lib/url'
+---
+
+<Base title="Getting started" description="Add RUM, add a plugin, and check the events arrive in the RUM Explorer.">
+  <h1>Getting started</h1>
+  <p class="lede">
+    Three steps: get RUM running, add a plugin to the init you already have, then confirm the events
+    arrive. Budget an hour, most of which is waiting for a real order to come through.
+  </p>
+
+  <h2>1. Add RUM</h2>
+  <p>
+    If RUM is already on the site, skip this. These plugins never call <code>init</code> themselves, so your
+    application ID, sampling and privacy settings stay in charge. Follow Datadog's own
+    <a href="https://docs.datadoghq.com/real_user_monitoring/browser/setup/">browser setup</a> first and
+    confirm sessions appear before adding a plugin.
+  </p>
+
+  <h2>2. Add a plugin</h2>
+  <p>
+    Put <strong>consent adapters first</strong> in <code>plugins: [...]</code>. A consent adapter sets
+    <code>trackingConsent = 'not-granted'</code> before the SDK starts, so nothing is collected on a page
+    where the banner has not been answered.
+  </p>
+  <pre><code>{`import { datadogRum } from '@datadog/browser-rum'
+import { oneTrustPlugin } from '@kyletaylored/datadog-rum-plugin-onetrust'
+import { wooCommercePlugin } from '@kyletaylored/datadog-rum-plugin-woocommerce'
+
+datadogRum.init({
+  applicationId, clientToken, site, service, env, version,
+  plugins: [
+    oneTrustPlugin({ category: 'C0002' }), // holds RUM until analytics is accepted
+    wooCommercePlugin({ identifyUsers: true, includeItems: false }),
+  ],
+})`}</code></pre>
+
+  <p>
+    On Shopify checkout the community adapter composes with the official one rather than replacing it. Both
+    read the same sandbox <code>analytics</code> global, and they subscribe to different events, so there is
+    no overlap.
+  </p>
+  <pre><code>{`// Settings > Customer events > custom pixel
+DD_RUM.init({
+  /* ... */
+  plugins: [
+    DD_RUM.shopifyPlugin({ shopifyAnalytics: analytics }), // official: sandbox fixes, views, clicks, errors
+    DD_RUM_PLUGINS['shopify']({ analytics }),              // community: checkout events, order value, setUser
+  ],
+})`}</code></pre>
+
+  <h2>3. Check the events</h2>
+  <ol class="steps">
+    <li>
+      Turn on <code>debug: true</code> and reload. Every mapped event prints to the console with its
+      attributes, along with the plugin's declared footprint. If nothing prints, the adapter is not seeing
+      the platform's events — check that you are on the right page type.
+    </li>
+    <li>
+      Query the RUM Explorer. Start with the cheapest event to produce:
+      <pre><code>@type:action @action.name:commerce.add_to_cart</code></pre>
+    </li>
+    <li>
+      Place a test order and confirm one <code>commerce.purchase</code>, with <code>value</code> as a number:
+      <pre><code>@type:action @action.name:commerce.purchase</code></pre>
+      Reload the thank-you page. A second purchase must <strong>not</strong> appear; the core deduplicates on
+      <code>transaction_id</code> for 24 hours.
+    </li>
+    <li>
+      Import the <a href={url('/docs/datadog-assets/')}>asset pack</a>. The generated metrics need to exist
+      before the dashboard shows anything.
+    </li>
+  </ol>
+
+  <h2>Before you trust the numbers</h2>
+  <p>
+    Reconcile order count against the platform's admin report over a week. The accuracy bar is within 5%.
+    Further out than that usually means one of three things:
+  </p>
+  <ul>
+    <li><strong>Consent coverage.</strong> Declined visitors send nothing at all, by design.</li>
+    <li><strong>The thank-you page is never reached.</strong> Some payment flows redirect elsewhere, or the shopper closes the tab.</li>
+    <li><strong>Sampling.</strong> <code>sessionSampleRate</code> below 100 scales every count down with it.</li>
+  </ul>
+  <p>
+    These are browser-measured and directional by design. They exist to correlate business outcomes with
+    performance, errors and replays — not to replace the platform's order reporting.
+  </p>
+
+  <h2>Common options</h2>
+  <p>
+    The same options work on every adapter, so one settings form covers all of them. See a plugin's page for
+    its defaults.
+  </p>
+  <div class="scroll-x">
+    <table>
+      <thead><tr><th>Option</th><th>Default</th><th>Use it when</th></tr></thead>
+      <tbody>
+        <tr><td><code>events</code></td><td class="muted">all</td><td>You only want part of the funnel</td></tr>
+        <tr><td><code>identifyUsers</code></td><td class="muted"><code>true</code></td><td>Turn off to send no user ID at all</td></tr>
+        <tr><td><code>includeEmail</code> / <code>includeName</code></td><td class="muted"><code>false</code></td><td>You have a lawful basis and want them on the session</td></tr>
+        <tr><td><code>includeItems</code></td><td class="muted"><code>false</code></td><td>You want line-item detail, at up to 20 entries per action</td></tr>
+        <tr><td><code>actionPrefix</code></td><td class="muted"><code>commerce.</code></td><td>The site already has its own naming convention. Only commerce is renamed; other families keep theirs</td></tr>
+        <tr><td><code>consent</code></td><td class="muted"><code>auto</code></td><td><code>ignore</code> when the host page already owns <code>trackingConsent</code>, or pass a resolver</td></tr>
+        <tr><td><code>beforeTrack</code></td><td class="muted">none</td><td>You need to edit or drop an event. It cannot reintroduce a blocked attribute</td></tr>
+        <tr><td><code>debug</code></td><td class="muted"><code>false</code></td><td>Working out why an event is not arriving</td></tr>
+      </tbody>
+    </table>
+  </div>
+</Base>

@@ -1,0 +1,11 @@
+{
+  "source": "Say where these payloads came from: which platform version, recorded how. Trim them to the fields the adapter reads, and keep at least one payload carrying data that must be stripped (a card field, an email) so the privacy rules are actually exercised.",
+  "fixtures": [
+    {
+      "name": "describe what happened on the site",
+      "description": "Optional: why this fixture is interesting.",
+      "event": "replace_me",
+      "payload": {}
+    }
+  ]
+}

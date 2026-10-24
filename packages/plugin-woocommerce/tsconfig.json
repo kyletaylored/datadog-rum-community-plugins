@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../../.tsbuild/plugin-woocommerce",
+    "tsBuildInfoFile": "../../.tsbuild/plugin-woocommerce.tsbuildinfo",
+    "rootDir": "src"
+  },
+  "include": ["src/**/*.ts"],
+  "references": [{ "path": "../core" }]
+}

@@ -1,0 +1,49 @@
+{
+  "name": "@kyletaylored/datadog-rum-community-plugins",
+  "version": "0.1.0",
+  "description": "Shared core for the Datadog RUM community plugins: event schemas, dedupe, consent gate, PII filter and debug log. A personal community project, not provided or supported by Datadog.",
+  "author": "Kyle Taylor <kyle.taylor@datadoghq.com>",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kyletaylored/datadog-rum-community-plugins.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://kyletaylored.github.io/datadog-rum-community-plugins/",
+  "keywords": [
+    "datadog",
+    "rum",
+    "plugin",
+    "commerce",
+    "consent",
+    "analytics"
+  ],
+  "files": [
+    "dist",
+    "src",
+    "schema"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./plugin-manifest.schema.json": "./schema/plugin-manifest.schema.json"
+  },
+  "scripts": {
+    "build": "vite build"
+  },
+  "peerDependencies": {
+    "@datadog/browser-rum": ">=7.0.0 <8.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

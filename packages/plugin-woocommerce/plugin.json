@@ -1,0 +1,130 @@
+{
+  "name": "woocommerce",
+  "package": "@kyletaylored/datadog-rum-plugin-woocommerce",
+  "exportName": "wooCommercePlugin",
+  "version": "0.1.0",
+  "family": "commerce",
+  "title": "WooCommerce",
+  "description": "Cart, checkout and order events from WooCommerce's own storefront DOM events, plus order data printed on the order-received page.",
+  "maintainer": {
+    "name": "Kyle Taylor",
+    "github": "kyletaylored"
+  },
+  "tier": "seed",
+  "schemaVersion": "1.0.0",
+  "rumSdk": ">=7.0.0 <8.0.0",
+  "platforms": [
+    {
+      "name": "WooCommerce",
+      "versions": ">=8.0",
+      "notes": "Cart and Checkout blocks. Classic themes are covered through the jQuery added_to_cart event."
+    },
+    {
+      "name": "WordPress",
+      "versions": ">=6.4"
+    }
+  ],
+  "install": {
+    "npm": true,
+    "cdn": true,
+    "platform": "WordPress plugin"
+  },
+  "actions": [
+    "commerce.view_item_list",
+    "commerce.add_to_cart",
+    "commerce.remove_from_cart",
+    "commerce.view_cart",
+    "commerce.begin_checkout",
+    "commerce.add_shipping_info",
+    "commerce.add_payment_info",
+    "commerce.purchase",
+    "commerce.search"
+  ],
+  "options": [
+    {
+      "name": "events",
+      "type": "array",
+      "default": null,
+      "description": "Allow-list of commerce actions. Every action in the schema by default."
+    },
+    {
+      "name": "identifyUsers",
+      "type": "boolean",
+      "default": true,
+      "description": "Call setUser with the WordPress user ID."
+    },
+    {
+      "name": "includeEmail",
+      "type": "boolean",
+      "default": false,
+      "description": "Add the customer email to setUser."
+    },
+    {
+      "name": "includeName",
+      "type": "boolean",
+      "default": false,
+      "description": "Add the customer name to setUser."
+    },
+    {
+      "name": "includeItems",
+      "type": "boolean",
+      "default": false,
+      "description": "Attach items[], capped at 20 entries."
+    },
+    {
+      "name": "actionPrefix",
+      "type": "string",
+      "default": "commerce.",
+      "description": "Rename the action prefix if the site has its own convention."
+    },
+    {
+      "name": "consent",
+      "type": "string",
+      "default": "auto",
+      "description": "auto reads the consent signal, ignore skips the gate, or supply a resolver callback."
+    },
+    {
+      "name": "beforeTrack",
+      "type": "function",
+      "default": null,
+      "description": "Edit or drop an event before it is sent."
+    },
+    {
+      "name": "dataGlobal",
+      "type": "string",
+      "default": "ddRumWooCommerce",
+      "description": "Global holding the server-rendered store, customer and order payload."
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "default": false,
+      "description": "Log every mapped event to the console."
+    }
+  ],
+  "footprint": {
+    "globals": [
+      "window.ddRumWooCommerce",
+      "window.jQuery",
+      "document.body"
+    ],
+    "events": [
+      "wc-blocks_added_to_cart",
+      "wc-blocks_removed_from_cart",
+      "wc-blocks_product_list_rendered",
+      "added_to_cart",
+      "removed_from_cart"
+    ],
+    "storageKeys": [
+      "dd_rum_commerce_seen"
+    ],
+    "rumApis": [
+      "addAction",
+      "setGlobalContextProperty",
+      "setUser",
+      "clearUser"
+    ],
+    "consentSource": "WP Consent API (via the consent option or a consent plugin)"
+  },
+  "docs": "https://kyletaylored.github.io/datadog-rum-community-plugins/plugins/woocommerce/"
+}

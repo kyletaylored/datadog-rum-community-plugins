@@ -1,0 +1,27 @@
+node_modules/
+dist/
+coverage/
+.DS_Store
+*.log
+.vite/
+site/.astro/
+site/dist/
+site/node_modules/
+.env
+.env.*
+!.env.example
+
+# Generated at release time by scripts/sri.mjs
+sri.json
+
+# Generated into the site from the packages by scripts/gen-schema-docs.mjs
+site/src/data/*.json
+
+# Playwright/vitest browser-mode output
+.vitest/
+
+# NOT ignored, deliberately: packages/*/fixtures/.generated/events.json is committed, because it
+# is what the site renders and what CI compares a mapping change against.
+
+# tsc --build output: a typecheck only. Published declarations come from vite-plugin-dts.
+.tsbuild/

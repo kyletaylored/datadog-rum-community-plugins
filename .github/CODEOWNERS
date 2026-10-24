@@ -1,0 +1,15 @@
+# Core, schema and the shared harness: changes here affect every adapter, so they need a core
+# maintainer. Schema changes additionally need an RFC and a semver bump.
+/packages/core/                 @kyletaylored
+/packages/test-harness/         @kyletaylored
+/templates/                     @kyletaylored
+/assets/                        @kyletaylored
+/.github/                       @kyletaylored
+/scripts/                       @kyletaylored
+/docs/PRD.md                    @kyletaylored
+
+# One line per adapter. A contributor owns their own adapter; an adapter with no maintainer
+# activity for six months is marked deprecated in the gallery.
+/packages/plugin-shopify/       @kyletaylored
+/packages/plugin-woocommerce/   @kyletaylored
+/packages/plugin-onetrust/      @kyletaylored

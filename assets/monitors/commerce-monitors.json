@@ -1,0 +1,57 @@
+[
+  {
+    "name": "[RUM Commerce] Order volume anomaly",
+    "type": "query alert",
+    "query": "avg(last_4h):anomalies(sum:rum.commerce.orders{*}.as_count(), 'agile', 2, direction='below', interval=300, alert_window='last_30m', count_default_zero='true', seasonality='weekly') >= 0.5",
+    "message": "Order volume is below its usual range for this hour and day of week.\n\nThis is browser-measured and directional, so confirm against the platform's own order report before treating it as an outage. Start with the RUM dashboard: is revenue down with it, are checkout errors up, did a deploy land?\n\n{{#is_alert}}Check the checkout funnel and recent deploys.{{/is_alert}}\n{{#is_recovery}}Order volume is back in range.{{/is_recovery}}",
+    "tags": ["source:rum-community-plugins", "family:commerce"],
+    "options": {
+      "thresholds": { "critical": 0.5, "critical_recovery": 0 },
+      "notify_no_data": false,
+      "renotify_interval": 0,
+      "threshold_windows": { "trigger_window": "last_30m", "recovery_window": "last_15m" },
+      "require_full_window": false,
+      "new_group_delay": 300
+    }
+  },
+  {
+    "name": "[RUM Commerce] Revenue anomaly",
+    "type": "query alert",
+    "query": "avg(last_4h):anomalies(sum:rum.commerce.revenue.sum{*}.as_count(), 'agile', 2, direction='below', interval=300, alert_window='last_30m', count_default_zero='true', seasonality='weekly') >= 0.5",
+    "message": "Revenue is below its usual range for this hour and day of week.\n\nRevenue is reported in the store currency with no conversion, so scope this monitor by `currency` if the store sells in more than one.\n\n{{#is_alert}}Compare with order volume: a revenue drop without an order drop points at average order value, not at checkout breaking.{{/is_alert}}",
+    "tags": ["source:rum-community-plugins", "family:commerce"],
+    "options": {
+      "thresholds": { "critical": 0.5, "critical_recovery": 0 },
+      "notify_no_data": false,
+      "renotify_interval": 0,
+      "threshold_windows": { "trigger_window": "last_30m", "recovery_window": "last_15m" },
+      "require_full_window": false,
+      "new_group_delay": 300
+    }
+  },
+  {
+    "name": "[RUM Commerce] Checkout conversion below threshold",
+    "type": "query alert",
+    "query": "sum(last_1h):sum:rum.commerce.orders{*}.as_count() / sum:rum.commerce.checkouts_started{*}.as_count() * 100 < 20",
+    "message": "Fewer than 20% of started checkouts became orders in the last hour.\n\nSet the threshold from this store's own baseline: 20% is a placeholder, not a benchmark. Pull a week of `rum.commerce.orders / rum.commerce.checkouts_started` first and set the critical threshold below the normal floor.\n\n{{#is_alert}}Look at checkout errors and checkout view INP in the same window.{{/is_alert}}",
+    "tags": ["source:rum-community-plugins", "family:commerce", "tune-me:threshold"],
+    "options": {
+      "thresholds": { "critical": 20, "warning": 30 },
+      "notify_no_data": false,
+      "renotify_interval": 0,
+      "require_full_window": false
+    }
+  },
+  {
+    "name": "[RUM Commerce] Checkout errors elevated",
+    "type": "rum alert",
+    "query": "events(\"@type:error @context.commerce.platform:*\").rollup(\"count\").last(\"15m\") > 50",
+    "message": "Errors on pages carrying commerce context are elevated.\n\nSet the threshold from this store's own error floor; 50 in 15 minutes is a placeholder.\n\n{{#is_alert}}Open Error Tracking filtered to `@context.commerce.platform:*`, then watch whether order volume follows.{{/is_alert}}",
+    "tags": ["source:rum-community-plugins", "family:commerce", "tune-me:threshold"],
+    "options": {
+      "thresholds": { "critical": 50, "warning": 25 },
+      "notify_no_data": false,
+      "renotify_interval": 0
+    }
+  }
+]

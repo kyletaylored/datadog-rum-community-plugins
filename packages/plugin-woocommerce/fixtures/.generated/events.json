@@ -1,0 +1,192 @@
+{
+  "generatedFrom": "fixture run via @kyletaylored/datadog-rum-test-harness; do not edit by hand",
+  "plugin": "woocommerce",
+  "actions": [
+    {
+      "name": "commerce.add_to_cart",
+      "attributes": [
+        {
+          "name": "cart_id",
+          "type": "string"
+        },
+        {
+          "name": "currency",
+          "type": "string"
+        },
+        {
+          "name": "item_count",
+          "type": "integer"
+        },
+        {
+          "name": "items",
+          "type": "array"
+        },
+        {
+          "name": "unique_items",
+          "type": "integer"
+        },
+        {
+          "name": "value",
+          "type": "number"
+        }
+      ],
+      "occurrences": 2,
+      "example": {
+        "value": 56,
+        "currency": "USD",
+        "cart_id": "c1-8f2a",
+        "items": [
+          {
+            "item_id": "TEE-RED-M",
+            "item_name": "Classic Tee",
+            "price": 28,
+            "quantity": 2,
+            "item_variant": "Red / M",
+            "item_category": "Shirts"
+          }
+        ],
+        "item_count": 2,
+        "unique_items": 1
+      }
+    },
+    {
+      "name": "commerce.purchase",
+      "attributes": [
+        {
+          "name": "coupon",
+          "type": "string"
+        },
+        {
+          "name": "currency",
+          "type": "string"
+        },
+        {
+          "name": "item_count",
+          "type": "integer"
+        },
+        {
+          "name": "items",
+          "type": "array"
+        },
+        {
+          "name": "payment_type",
+          "type": "string"
+        },
+        {
+          "name": "shipping",
+          "type": "number"
+        },
+        {
+          "name": "shipping_tier",
+          "type": "string"
+        },
+        {
+          "name": "tax",
+          "type": "number"
+        },
+        {
+          "name": "transaction_id",
+          "type": "string"
+        },
+        {
+          "name": "unique_items",
+          "type": "integer"
+        },
+        {
+          "name": "value",
+          "type": "number"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "transaction_id": "wc_1042",
+        "value": 100.6,
+        "currency": "USD",
+        "tax": 6.2,
+        "shipping": 4.95,
+        "coupon": "WELCOME10",
+        "payment_type": "paypal",
+        "shipping_tier": "Ground",
+        "item_count": 3,
+        "unique_items": 2,
+        "items": [
+          {
+            "item_id": "TEE-RED-M",
+            "item_name": "Classic Tee",
+            "price": 28,
+            "quantity": 2,
+            "item_variant": "Red / M",
+            "item_category": "Shirts"
+          },
+          {
+            "item_id": "CAP-BLK",
+            "item_name": "Logo Cap",
+            "price": 28.5,
+            "quantity": 1,
+            "item_category": "Hats"
+          }
+        ]
+      }
+    },
+    {
+      "name": "commerce.remove_from_cart",
+      "attributes": [
+        {
+          "name": "cart_id",
+          "type": "string"
+        },
+        {
+          "name": "currency",
+          "type": "string"
+        },
+        {
+          "name": "item_count",
+          "type": "integer"
+        },
+        {
+          "name": "items",
+          "type": "array"
+        },
+        {
+          "name": "unique_items",
+          "type": "integer"
+        },
+        {
+          "name": "value",
+          "type": "number"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "value": 28.5,
+        "currency": "USD",
+        "cart_id": "c1-8f2a",
+        "items": [
+          {
+            "item_id": "CAP-BLK",
+            "item_name": "Logo Cap",
+            "price": 28.5,
+            "quantity": 1,
+            "item_category": "Hats"
+          }
+        ],
+        "item_count": 1,
+        "unique_items": 1
+      }
+    }
+  ],
+  "globalContext": {
+    "commerce.platform": "woocommerce",
+    "commerce.plugin_version": "0.1.0",
+    "commerce.schema_version": "1.0.0",
+    "store.id": "shop.example.com",
+    "store.currency": "USD",
+    "store.locale": "en-US",
+    "customer.type": "returning"
+  },
+  "rumApis": [
+    "addAction",
+    "setGlobalContextProperty",
+    "setUser"
+  ]
+}

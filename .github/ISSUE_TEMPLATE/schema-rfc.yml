@@ -1,0 +1,50 @@
+name: Schema RFC
+description: Propose a change to the shared event schema.
+labels: [schema, rfc]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The schema is what makes one dashboard work across every platform, so a change affects every
+        adapter and every dashboard built on it. It needs an RFC, a semver bump, and both halves of
+        the schema updated together.
+  - type: textarea
+    id: change
+    attributes:
+      label: The change
+      placeholder: 'Add commerce.add_to_wishlist, mapping GA4 add_to_wishlist.'
+    validations:
+      required: true
+  - type: textarea
+    id: ga4
+    attributes:
+      label: GA4 equivalent
+      description: >
+        Action names are GA4's recommended ecommerce event names, and attributes are GA4's
+        parameters. If GA4 has no equivalent, say so and justify the extension — extensions exist
+        only where GA4 has no field and a metric needs one.
+    validations:
+      required: true
+  - type: textarea
+    id: platforms
+    attributes:
+      label: Which platforms can emit it
+      description: At least two, ideally, or it belongs in one adapter rather than the schema.
+    validations:
+      required: true
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy
+      description: >
+        Could any attribute carry PII or free text a user typed? `search_term_length` exists because
+        `search_term` can hold anything.
+    validations:
+      required: true
+  - type: textarea
+    id: compat
+    attributes:
+      label: Compatibility
+      description: Is this additive, or does it break adapters emitting the current version?
+    validations:
+      required: true

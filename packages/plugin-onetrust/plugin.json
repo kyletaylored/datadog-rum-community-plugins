@@ -1,0 +1,74 @@
+{
+  "name": "onetrust",
+  "package": "@kyletaylored/datadog-rum-plugin-onetrust",
+  "exportName": "oneTrustPlugin",
+  "version": "0.1.0",
+  "family": "consent",
+  "title": "OneTrust",
+  "description": "Holds Datadog RUM until the visitor accepts OneTrust's analytics category, then reports the accepted categories as session context.",
+  "maintainer": {
+    "name": "Kyle Taylor",
+    "github": "kyletaylored"
+  },
+  "tier": "seed",
+  "schemaVersion": "1.0.0",
+  "rumSdk": ">=7.0.0 <8.0.0",
+  "platforms": [
+    {
+      "name": "OneTrust Cookie Consent",
+      "notes": "Any site running the OneTrust banner script (otSDKStub.js)."
+    }
+  ],
+  "install": {
+    "npm": true,
+    "cdn": true,
+    "platform": "Google Tag Manager Custom HTML tag"
+  },
+  "actions": [],
+  "options": [
+    {
+      "name": "category",
+      "type": "string",
+      "default": "C0002",
+      "description": "OneTrust category that must be active before RUM may collect. Accepts an array for sites that require several."
+    },
+    {
+      "name": "reportCategories",
+      "type": "boolean",
+      "default": true,
+      "description": "Send the accepted categories as the consent.categories global context property."
+    },
+    {
+      "name": "timeoutMs",
+      "type": "number",
+      "default": 10000,
+      "description": "How long to wait for the banner script before warning. RUM stays held either way."
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "default": false,
+      "description": "Log consent transitions to the console."
+    }
+  ],
+  "footprint": {
+    "globals": [
+      "window.OnetrustActiveGroups",
+      "window.Optanon",
+      "window.OptanonWrapper"
+    ],
+    "events": [
+      "OneTrustGroupsUpdated",
+      "Optanon.OnConsentChanged",
+      "OptanonWrapper",
+      "pagehide"
+    ],
+    "storageKeys": [],
+    "rumApis": [
+      "setTrackingConsent",
+      "setGlobalContextProperty"
+    ],
+    "consentSource": "OneTrust OnetrustActiveGroups"
+  },
+  "docs": "https://kyletaylored.github.io/datadog-rum-community-plugins/plugins/onetrust/"
+}

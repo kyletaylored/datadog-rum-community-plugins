@@ -1,0 +1,68 @@
+---
+import { cdnUrl } from '../lib/url'
+
+interface Props {
+  name: string
+  pkg: string
+  version: string
+  fnName: string
+  platform?: string
+}
+
+const { name, pkg, version, fnName, platform } = Astro.props
+
+const npmSnippet = `import { datadogRum } from '@datadog/browser-rum'
+import { ${fnName} } from '${pkg}'
+
+datadogRum.init({
+  applicationId, clientToken, site, service, env, version,
+  plugins: [${fnName}()],
+})`
+
+const cdnSnippet = `<script src="https://www.datadoghq-browser-agent.com/<site>/v6/datadog-rum.js"></script>
+<script src="${cdnUrl(pkg, version)}"
+        integrity="sha384-REPLACE_WITH_THE_HASH_FROM_THE_RELEASE" crossorigin="anonymous"></script>
+<script>
+  DD_RUM.init({ /* ... */, plugins: [DD_RUM_PLUGINS['${name}']()] })
+</script>`
+
+const tabs = [
+  { id: 'npm', label: 'npm', code: npmSnippet },
+  { id: 'cdn', label: 'CDN', code: cdnSnippet },
+]
+---
+
+<div class="install" data-install>
+  <div class="tabs" role="tablist">
+    {tabs.map((tab, index) => (
+      <button type="button" role="tab" data-tab={tab.id} aria-selected={index === 0 ? 'true' : 'false'}>
+        {tab.label}
+      </button>
+    ))}
+  </div>
+  {tabs.map((tab, index) => (
+    <pre data-panel={tab.id} hidden={index !== 0}><code>{tab.code}</code></pre>
+  ))}
+
+  <p class="small muted">
+    The CDN URL is pinned to an exact version and needs the <code>integrity</code> hash from that
+    release; there is no auto-updating <code>latest</code> URL.
+    {platform && <> Platform path: <strong>{platform}</strong>.</>}
+  </p>
+</div>
+
+<script>
+  // Progressive enhancement: with JS off, the first panel is the one shown.
+  for (const group of document.querySelectorAll('[data-install]')) {
+    group.addEventListener('click', (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-tab]')
+      if (!button) return
+      for (const tab of group.querySelectorAll<HTMLButtonElement>('[data-tab]')) {
+        tab.setAttribute('aria-selected', String(tab === button))
+      }
+      for (const panel of group.querySelectorAll<HTMLElement>('[data-panel]')) {
+        panel.hidden = panel.dataset.panel !== button.dataset.tab
+      }
+    })
+  }
+</script>

@@ -1,0 +1,183 @@
+{
+  "source": "Shopify Web Pixels standard events, recorded from a development store's custom pixel sandbox. Payloads trimmed to the fields the adapter reads; a card_number field is added to the payment step on purpose, to prove the core strips it.",
+  "fixtures": [
+    {
+      "name": "product viewed",
+      "event": "product_viewed",
+      "payload": {
+        "name": "product_viewed",
+        "id": "evt-001",
+        "data": {
+          "productVariant": {
+            "id": "gid://shopify/ProductVariant/44210987",
+            "sku": "TEE-RED-M",
+            "title": "Red / M",
+            "price": { "amount": 28.0, "currencyCode": "USD" },
+            "product": { "id": "gid://shopify/Product/7781", "title": "Classic Tee", "type": "Shirts", "vendor": "Acme" }
+          }
+        }
+      }
+    },
+    {
+      "name": "product added to cart",
+      "event": "product_added_to_cart",
+      "payload": {
+        "name": "product_added_to_cart",
+        "id": "evt-002",
+        "data": {
+          "cartLine": {
+            "quantity": 2,
+            "cost": { "totalAmount": { "amount": 56.0, "currencyCode": "USD" } },
+            "merchandise": {
+              "id": "gid://shopify/ProductVariant/44210987",
+              "sku": "TEE-RED-M",
+              "title": "Red / M",
+              "price": { "amount": 28.0, "currencyCode": "USD" },
+              "product": { "title": "Classic Tee", "type": "Shirts" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "cart viewed",
+      "event": "cart_viewed",
+      "payload": {
+        "name": "cart_viewed",
+        "id": "evt-003",
+        "data": {
+          "cart": {
+            "id": "gid://shopify/Cart/c1-8f2a",
+            "totalQuantity": 3,
+            "cost": { "totalAmount": { "amount": 84.5, "currencyCode": "USD" } },
+            "lines": [
+              {
+                "quantity": 2,
+                "cost": { "totalAmount": { "amount": 56.0, "currencyCode": "USD" } },
+                "merchandise": { "sku": "TEE-RED-M", "title": "Red / M", "price": { "amount": 28.0, "currencyCode": "USD" }, "product": { "title": "Classic Tee", "type": "Shirts" } }
+              },
+              {
+                "quantity": 1,
+                "cost": { "totalAmount": { "amount": 28.5, "currencyCode": "USD" } },
+                "merchandise": { "sku": "CAP-BLK", "title": "Default Title", "price": { "amount": 28.5, "currencyCode": "USD" }, "product": { "title": "Logo Cap", "type": "Hats" } }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "checkout started",
+      "event": "checkout_started",
+      "payload": {
+        "name": "checkout_started",
+        "id": "evt-004",
+        "data": {
+          "checkout": {
+            "token": "ck-7d31",
+            "currencyCode": "USD",
+            "totalPrice": { "amount": 95.65, "currencyCode": "USD" },
+            "subtotalPrice": { "amount": 84.5, "currencyCode": "USD" },
+            "totalTax": { "amount": 6.2, "currencyCode": "USD" },
+            "discountApplications": [{ "title": "WELCOME10", "type": "DISCOUNT_CODE" }],
+            "lineItems": [
+              { "id": "li-1", "title": "Classic Tee", "quantity": 2, "variant": { "sku": "TEE-RED-M", "title": "Red / M", "price": { "amount": 28.0, "currencyCode": "USD" }, "product": { "title": "Classic Tee", "type": "Shirts" } } },
+              { "id": "li-2", "title": "Logo Cap", "quantity": 1, "variant": { "sku": "CAP-BLK", "title": "Default Title", "price": { "amount": 28.5, "currencyCode": "USD" }, "product": { "title": "Logo Cap", "type": "Hats" } } }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "shipping info submitted",
+      "event": "checkout_shipping_info_submitted",
+      "payload": {
+        "name": "checkout_shipping_info_submitted",
+        "id": "evt-005",
+        "data": {
+          "checkout": {
+            "token": "ck-7d31",
+            "currencyCode": "USD",
+            "totalPrice": { "amount": 95.65, "currencyCode": "USD" },
+            "shippingLine": { "title": "Ground", "price": { "amount": 4.95, "currencyCode": "USD" } },
+            "delivery": { "selectedDeliveryOptions": [{ "title": "Ground" }] }
+          }
+        }
+      }
+    },
+    {
+      "name": "payment info submitted, with card data in the payload",
+      "description": "Shopify does not send card data, but the adapter must stay safe if a payload ever carries it. card_number here must never reach addAction.",
+      "event": "payment_info_submitted",
+      "payload": {
+        "name": "payment_info_submitted",
+        "id": "evt-006",
+        "data": {
+          "checkout": {
+            "token": "ck-7d31",
+            "currencyCode": "USD",
+            "totalPrice": { "amount": 100.6, "currencyCode": "USD" },
+            "transactions": [{ "gateway": "shopify_payments", "paymentMethod": "paypal" }],
+            "card_number": "4242424242424242",
+            "cvv": "123"
+          }
+        }
+      }
+    },
+    {
+      "name": "checkout completed",
+      "event": "checkout_completed",
+      "payload": {
+        "name": "checkout_completed",
+        "id": "evt-007",
+        "data": {
+          "checkout": {
+            "token": "ck-7d31",
+            "order": { "id": "5512345678901", "customer": { "id": 6612345678 } },
+            "currencyCode": "USD",
+            "totalPrice": { "amount": 100.6, "currencyCode": "USD" },
+            "subtotalPrice": { "amount": 84.5, "currencyCode": "USD" },
+            "totalTax": { "amount": 6.2, "currencyCode": "USD" },
+            "shippingLine": { "title": "Ground", "price": { "amount": 4.95, "currencyCode": "USD" } },
+            "discountApplications": [{ "title": "WELCOME10", "type": "DISCOUNT_CODE" }],
+            "delivery": { "selectedDeliveryOptions": [{ "title": "Ground" }] },
+            "transactions": [{ "gateway": "shopify_payments", "paymentMethod": "paypal" }],
+            "email": "shopper@example.com",
+            "lineItems": [
+              { "id": "li-1", "title": "Classic Tee", "quantity": 2, "variant": { "sku": "TEE-RED-M", "title": "Red / M", "price": { "amount": 28.0, "currencyCode": "USD" }, "product": { "title": "Classic Tee", "type": "Shirts" } } },
+              { "id": "li-2", "title": "Logo Cap", "quantity": 1, "variant": { "sku": "CAP-BLK", "title": "Default Title", "price": { "amount": 28.5, "currencyCode": "USD" }, "product": { "title": "Logo Cap", "type": "Hats" } } }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "checkout completed again, same order",
+      "description": "A refreshed thank-you page replays checkout_completed. The second one must not produce a second purchase action.",
+      "event": "checkout_completed",
+      "payload": {
+        "name": "checkout_completed",
+        "id": "evt-008",
+        "data": {
+          "checkout": {
+            "token": "ck-7d31",
+            "order": { "id": "5512345678901", "customer": { "id": 6612345678 } },
+            "currencyCode": "USD",
+            "totalPrice": { "amount": 100.6, "currencyCode": "USD" },
+            "lineItems": []
+          }
+        }
+      }
+    },
+    {
+      "name": "search submitted",
+      "description": "The query text must never leave the browser; only its length is sent.",
+      "event": "search_submitted",
+      "payload": {
+        "name": "search_submitted",
+        "id": "evt-009",
+        "data": { "searchResult": { "query": "red tee medium" } }
+      }
+    }
+  ]
+}

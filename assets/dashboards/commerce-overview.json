@@ -1,0 +1,248 @@
+{
+  "title": "RUM Commerce Overview (community plugins)",
+  "description": "Orders, revenue and the checkout funnel from the community RUM commerce plugins.\n\nThese numbers come from the browser and will undercount: ad blockers, closed tabs and declined consent all remove sessions. Read them as trends and anomalies next to performance and errors, never as a replacement for the platform's own order reporting.\n\nTemplate variables filter by platform, currency, env and service. Requires the generated metrics in assets/terraform/generated-metrics.tf.",
+  "layout_type": "ordered",
+  "reflow_type": "fixed",
+  "template_variables": [
+    { "name": "env", "prefix": "env", "available_values": [], "default": "*" },
+    { "name": "service", "prefix": "service", "available_values": [], "default": "*" },
+    { "name": "platform", "prefix": "commerce_platform", "available_values": [], "default": "*" },
+    { "name": "currency", "prefix": "currency", "available_values": [], "default": "*" }
+  ],
+  "widgets": [
+    {
+      "id": 1,
+      "definition": {
+        "type": "note",
+        "content": "**Community plugins, not a Datadog product.** Browser-measured and directional: compare trends, not totals, against the platform admin. [Docs](https://kyletaylored.github.io/datadog-rum-community-plugins/docs/datadog-assets/)",
+        "background_color": "yellow",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "center",
+        "show_tick": false,
+        "tick_pos": "50%",
+        "tick_edge": "left",
+        "has_padding": true
+      },
+      "layout": { "x": 0, "y": 0, "width": 12, "height": 1 }
+    },
+    {
+      "id": 2,
+      "definition": {
+        "title": "Orders",
+        "type": "query_value",
+        "requests": [
+          {
+            "formulas": [{ "formula": "query1" }],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:rum.commerce.orders{$env,$service,$platform,$currency}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 0
+      },
+      "layout": { "x": 0, "y": 1, "width": 3, "height": 2 }
+    },
+    {
+      "id": 3,
+      "definition": {
+        "title": "Revenue",
+        "title_comment": "Store currency; filter by currency to compare like with like",
+        "type": "query_value",
+        "requests": [
+          {
+            "formulas": [{ "formula": "query1" }],
+            "queries": [
+              {
+                "name": "query1",
+                "data_source": "metrics",
+                "query": "sum:rum.commerce.revenue.sum{$env,$service,$platform,$currency}.as_count()",
+                "aggregator": "sum"
+              }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 2
+      },
+      "layout": { "x": 3, "y": 1, "width": 3, "height": 2 }
+    },
+    {
+      "id": 4,
+      "definition": {
+        "title": "Average order value",
+        "type": "query_value",
+        "requests": [
+          {
+            "formulas": [{ "formula": "query1 / query2", "number_format": { "unit": { "type": "canonical_unit", "unit_name": "dollar" } } }],
+            "queries": [
+              { "name": "query1", "data_source": "metrics", "query": "sum:rum.commerce.revenue.sum{$env,$service,$platform,$currency}.as_count()", "aggregator": "sum" },
+              { "name": "query2", "data_source": "metrics", "query": "sum:rum.commerce.orders{$env,$service,$platform,$currency}.as_count()", "aggregator": "sum" }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": true,
+        "precision": 2
+      },
+      "layout": { "x": 6, "y": 1, "width": 3, "height": 2 }
+    },
+    {
+      "id": 5,
+      "definition": {
+        "title": "Checkout conversion",
+        "title_comment": "orders / checkouts started",
+        "type": "query_value",
+        "requests": [
+          {
+            "formulas": [{ "formula": "100 * query1 / query2", "number_format": { "unit": { "type": "canonical_unit", "unit_name": "percent" } } }],
+            "queries": [
+              { "name": "query1", "data_source": "metrics", "query": "sum:rum.commerce.orders{$env,$service,$platform,$currency}.as_count()", "aggregator": "sum" },
+              { "name": "query2", "data_source": "metrics", "query": "sum:rum.commerce.checkouts_started{$env,$service,$platform,$currency}.as_count()", "aggregator": "sum" }
+            ],
+            "response_format": "scalar"
+          }
+        ],
+        "autoscale": false,
+        "precision": 1
+      },
+      "layout": { "x": 9, "y": 1, "width": 3, "height": 2 }
+    },
+    {
+      "id": 6,
+      "definition": {
+        "title": "Orders and revenue over time",
+        "type": "timeseries",
+        "requests": [
+          {
+            "display_type": "bars",
+            "formulas": [{ "formula": "query1", "alias": "Orders" }],
+            "queries": [{ "name": "query1", "data_source": "metrics", "query": "sum:rum.commerce.orders{$env,$service,$platform,$currency}.as_count()" }],
+            "response_format": "timeseries",
+            "style": { "palette": "dog_classic" }
+          },
+          {
+            "display_type": "line",
+            "on_right_yaxis": true,
+            "formulas": [{ "formula": "query2", "alias": "Revenue" }],
+            "queries": [{ "name": "query2", "data_source": "metrics", "query": "sum:rum.commerce.revenue.sum{$env,$service,$platform,$currency}.as_count()" }],
+            "response_format": "timeseries",
+            "style": { "palette": "purple" }
+          }
+        ],
+        "yaxis": { "scale": "linear", "include_zero": true },
+        "right_yaxis": { "scale": "linear", "include_zero": true }
+      },
+      "layout": { "x": 0, "y": 3, "width": 12, "height": 4 }
+    },
+    {
+      "id": 7,
+      "definition": {
+        "title": "Funnel: product viewed → cart → checkout → order",
+        "type": "timeseries",
+        "requests": [
+          {
+            "display_type": "line",
+            "formulas": [
+              { "formula": "query1", "alias": "Product viewed" },
+              { "formula": "query2", "alias": "Added to cart" },
+              { "formula": "query3", "alias": "Checkout started" },
+              { "formula": "query4", "alias": "Orders" }
+            ],
+            "queries": [
+              { "name": "query1", "data_source": "rum", "search": { "query": "@type:action @action.name:commerce.view_item $env $service" }, "compute": { "aggregation": "count" }, "group_by": [] },
+              { "name": "query2", "data_source": "rum", "search": { "query": "@type:action @action.name:commerce.add_to_cart $env $service" }, "compute": { "aggregation": "count" }, "group_by": [] },
+              { "name": "query3", "data_source": "metrics", "query": "sum:rum.commerce.checkouts_started{$env,$service,$platform,$currency}.as_count()" },
+              { "name": "query4", "data_source": "metrics", "query": "sum:rum.commerce.orders{$env,$service,$platform,$currency}.as_count()" }
+            ],
+            "response_format": "timeseries"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 7, "width": 12, "height": 4 }
+    },
+    {
+      "id": 8,
+      "definition": {
+        "title": "Revenue next to checkout errors",
+        "title_comment": "the question this pack exists to answer",
+        "type": "timeseries",
+        "requests": [
+          {
+            "display_type": "area",
+            "formulas": [{ "formula": "query1", "alias": "Revenue" }],
+            "queries": [{ "name": "query1", "data_source": "metrics", "query": "sum:rum.commerce.revenue.sum{$env,$service,$platform,$currency}.as_count()" }],
+            "response_format": "timeseries",
+            "style": { "palette": "green" }
+          },
+          {
+            "display_type": "bars",
+            "on_right_yaxis": true,
+            "formulas": [{ "formula": "query2", "alias": "Checkout errors" }],
+            "queries": [
+              { "name": "query2", "data_source": "rum", "search": { "query": "@type:error @context.commerce.platform:* $env $service" }, "compute": { "aggregation": "count" }, "group_by": [] }
+            ],
+            "response_format": "timeseries",
+            "style": { "palette": "warm" }
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 11, "width": 6, "height": 4 }
+    },
+    {
+      "id": 9,
+      "definition": {
+        "title": "Checkout view performance (LCP p75, INP p75)",
+        "type": "timeseries",
+        "requests": [
+          {
+            "display_type": "line",
+            "formulas": [
+              { "formula": "query1", "alias": "LCP p75" },
+              { "formula": "query2", "alias": "INP p75" }
+            ],
+            "queries": [
+              { "name": "query1", "data_source": "rum", "search": { "query": "@type:view @context.commerce.platform:* $env $service" }, "compute": { "aggregation": "pc75", "metric": "@view.largest_contentful_paint" }, "group_by": [] },
+              { "name": "query2", "data_source": "rum", "search": { "query": "@type:view @context.commerce.platform:* $env $service" }, "compute": { "aggregation": "pc75", "metric": "@view.interaction_to_next_paint" }, "group_by": [] }
+            ],
+            "response_format": "timeseries"
+          }
+        ]
+      },
+      "layout": { "x": 6, "y": 11, "width": 6, "height": 4 }
+    },
+    {
+      "id": 10,
+      "definition": {
+        "title": "Abandoned checkouts with a replay",
+        "title_comment": "checkout started, no order followed — open the replay to see why",
+        "type": "list_stream",
+        "requests": [
+          {
+            "columns": [
+              { "field": "timestamp", "width": "auto" },
+              { "field": "content.attributes.context.commerce.platform", "width": "auto" },
+              { "field": "content.attributes.context.value", "width": "auto" },
+              { "field": "content.session.id", "width": "auto" }
+            ],
+            "query": {
+              "data_source": "rum_issue_stream",
+              "query_string": "@type:session @session.has_replay:true @action.name:commerce.begin_checkout -@action.name:commerce.purchase $env $service",
+              "indexes": []
+            },
+            "response_format": "event_list"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 15, "width": 12, "height": 4 }
+    }
+  ]
+}

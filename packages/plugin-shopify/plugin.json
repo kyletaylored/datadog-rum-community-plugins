@@ -1,0 +1,130 @@
+{
+  "name": "shopify",
+  "package": "@kyletaylored/datadog-rum-plugin-shopify",
+  "exportName": "shopifyPlugin",
+  "version": "0.1.0",
+  "family": "commerce",
+  "title": "Shopify",
+  "description": "Checkout events, order value and customer identity from Shopify Web Pixels. Composes with the official @datadog/browser-rum-shopify plugin rather than replacing it.",
+  "maintainer": {
+    "name": "Kyle Taylor",
+    "github": "kyletaylored"
+  },
+  "tier": "seed",
+  "schemaVersion": "1.0.0",
+  "rumSdk": ">=7.0.0 <8.0.0",
+  "platforms": [
+    {
+      "name": "Shopify",
+      "notes": "Custom pixel under Settings > Customer events. Requires the official shopifyPlugin alongside it for the sandbox fixes, views and clicks."
+    }
+  ],
+  "install": {
+    "npm": true,
+    "cdn": true,
+    "platform": "Shopify custom pixel"
+  },
+  "actions": [
+    "commerce.view_item_list",
+    "commerce.view_item",
+    "commerce.add_to_cart",
+    "commerce.remove_from_cart",
+    "commerce.view_cart",
+    "commerce.begin_checkout",
+    "commerce.add_shipping_info",
+    "commerce.add_payment_info",
+    "commerce.purchase",
+    "commerce.search"
+  ],
+  "options": [
+    {
+      "name": "analytics",
+      "type": "function",
+      "default": null,
+      "description": "The sandbox analytics global, the same object the official plugin takes as shopifyAnalytics."
+    },
+    {
+      "name": "events",
+      "type": "array",
+      "default": null,
+      "description": "Allow-list of commerce actions. Every action in the schema by default."
+    },
+    {
+      "name": "identifyUsers",
+      "type": "boolean",
+      "default": true,
+      "description": "Call setUser with the Shopify customer ID from checkout_completed."
+    },
+    {
+      "name": "includeEmail",
+      "type": "boolean",
+      "default": false,
+      "description": "Add the checkout email to setUser."
+    },
+    {
+      "name": "includeName",
+      "type": "boolean",
+      "default": false,
+      "description": "Add the customer name to setUser."
+    },
+    {
+      "name": "includeItems",
+      "type": "boolean",
+      "default": false,
+      "description": "Attach items[], capped at 20 entries."
+    },
+    {
+      "name": "actionPrefix",
+      "type": "string",
+      "default": "commerce.",
+      "description": "Rename the action prefix if the store has its own convention."
+    },
+    {
+      "name": "consent",
+      "type": "string",
+      "default": "auto",
+      "description": "auto reads the Shopify Customer Privacy API, ignore defers to the host page."
+    },
+    {
+      "name": "beforeTrack",
+      "type": "function",
+      "default": null,
+      "description": "Edit or drop an event before it is sent."
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "default": false,
+      "description": "Log every mapped event to the console."
+    }
+  ],
+  "footprint": {
+    "globals": [
+      "analytics (Web Pixel sandbox)",
+      "window.Shopify"
+    ],
+    "events": [
+      "collection_viewed",
+      "product_viewed",
+      "product_added_to_cart",
+      "product_removed_from_cart",
+      "cart_viewed",
+      "checkout_started",
+      "checkout_shipping_info_submitted",
+      "payment_info_submitted",
+      "checkout_completed",
+      "search_submitted"
+    ],
+    "storageKeys": [
+      "dd_rum_commerce_seen"
+    ],
+    "rumApis": [
+      "addAction",
+      "setGlobalContextProperty",
+      "setUser",
+      "setTrackingConsent"
+    ],
+    "consentSource": "Shopify Customer Privacy API (window.Shopify.customerPrivacy)"
+  },
+  "docs": "https://kyletaylored.github.io/datadog-rum-community-plugins/plugins/shopify/"
+}

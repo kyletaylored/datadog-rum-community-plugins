@@ -1,0 +1,39 @@
+{
+  "source": "Shopify collection_viewed, recorded from a development store. The variant list is trimmed to three entries.",
+  "fixtures": [
+    {
+      "name": "collection viewed",
+      "event": "collection_viewed",
+      "payload": {
+        "name": "collection_viewed",
+        "id": "evt-101",
+        "data": {
+          "collection": {
+            "id": "gid://shopify/Collection/4412",
+            "title": "Summer sale",
+            "productVariants": [
+              { "sku": "TEE-RED-M", "title": "Red / M", "price": { "amount": 28.0, "currencyCode": "USD" }, "product": { "title": "Classic Tee", "type": "Shirts" } },
+              { "sku": "CAP-BLK", "title": "Default Title", "price": { "amount": 28.5, "currencyCode": "USD" }, "product": { "title": "Logo Cap", "type": "Hats" } },
+              { "sku": "SOCK-WHT-L", "title": "White / L", "price": { "amount": 12.0, "currencyCode": "USD" }, "product": { "title": "Crew Socks", "type": "Socks" } }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "product removed from cart",
+      "event": "product_removed_from_cart",
+      "payload": {
+        "name": "product_removed_from_cart",
+        "id": "evt-102",
+        "data": {
+          "cartLine": {
+            "quantity": 1,
+            "cost": { "totalAmount": { "amount": 28.5, "currencyCode": "USD" } },
+            "merchandise": { "sku": "CAP-BLK", "title": "Default Title", "price": { "amount": 28.5, "currencyCode": "USD" }, "product": { "title": "Logo Cap", "type": "Hats" } }
+          }
+        }
+      }
+    }
+  ]
+}

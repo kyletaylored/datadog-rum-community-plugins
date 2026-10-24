@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Datadog product support
+    url: https://www.datadoghq.com/support/
+    about: This is a personal community project and is not supported by Datadog. For questions about RUM itself, the SDK, or your Datadog account, contact Datadog support.
+  - name: Privacy or security problem
+    url: https://github.com/kyletaylored/datadog-rum-community-plugins/security/advisories/new
+    about: Found data leaving the browser that should not? Report it privately as a security advisory, not as a public issue.

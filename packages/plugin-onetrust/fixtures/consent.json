@@ -1,0 +1,34 @@
+{
+  "source": "OneTrust consent states, as the banner script reports them. OnetrustActiveGroups is the comma-delimited string with leading and trailing commas that OneTrust sets on the window; the harness assigns it and then fires the signal OneTrust would.",
+  "fixtures": [
+    {
+      "name": "banner not yet answered",
+      "description": "No active groups. RUM must stay held.",
+      "event": "OneTrustGroupsUpdated",
+      "payload": { "activeGroups": "" }
+    },
+    {
+      "name": "strictly necessary only",
+      "description": "The visitor rejected everything optional. Analytics stays not-granted.",
+      "event": "OneTrustGroupsUpdated",
+      "payload": { "activeGroups": ",C0001," }
+    },
+    {
+      "name": "performance accepted",
+      "description": "C0002 is active, so RUM may collect.",
+      "event": "OneTrustGroupsUpdated",
+      "payload": { "activeGroups": ",C0001,C0002," }
+    },
+    {
+      "name": "all categories accepted",
+      "event": "OneTrustGroupsUpdated",
+      "payload": { "activeGroups": ",C0001,C0002,C0003,C0004," }
+    },
+    {
+      "name": "consent withdrawn",
+      "description": "The visitor returns to the preference centre and turns performance off again.",
+      "event": "OneTrustGroupsUpdated",
+      "payload": { "activeGroups": ",C0001," }
+    }
+  ]
+}

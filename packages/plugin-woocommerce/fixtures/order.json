@@ -1,0 +1,31 @@
+{
+  "source": "The payload the companion WordPress plugin prints on the order-received page as window.ddRumWooCommerce. A billing_address and card_number are included on purpose, to prove the core's filter strips them.",
+  "fixtures": [
+    {
+      "name": "order received",
+      "event": "order_received",
+      "payload": {
+        "store": { "id": "shop.example.com", "currency": "USD", "locale": "en-US" },
+        "customer": { "id": 42, "email": "shopper@example.com", "name": "Jane Shopper", "type": "returning" },
+        "order": {
+          "transaction_id": "wc_1042",
+          "value": 100.6,
+          "currency": "USD",
+          "tax": 6.2,
+          "shipping": 4.95,
+          "coupon": "WELCOME10",
+          "payment_type": "paypal",
+          "shipping_tier": "Ground",
+          "item_count": 3,
+          "unique_items": 2,
+          "card_number": "4242424242424242",
+          "billing_address": "1 Market St",
+          "items": [
+            { "item_id": "TEE-RED-M", "item_name": "Classic Tee", "price": 28.0, "quantity": 2, "item_variant": "Red / M", "item_category": "Shirts" },
+            { "item_id": "CAP-BLK", "item_name": "Logo Cap", "price": 28.5, "quantity": 1, "item_category": "Hats" }
+          ]
+        }
+      }
+    }
+  ]
+}

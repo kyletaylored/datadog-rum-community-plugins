@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../../.tsbuild/plugin-shopify",
+    "tsBuildInfoFile": "../../.tsbuild/plugin-shopify.tsbuildinfo",
+    "rootDir": "src"
+  },
+  "include": ["src/**/*.ts"],
+  "references": [{ "path": "../core" }]
+}

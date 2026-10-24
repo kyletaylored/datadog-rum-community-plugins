@@ -1,0 +1,208 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`event mapping > matches the committed snapshot for every mapped action 1`] = `
+[
+  {
+    "api": "addAction",
+    "context": {
+      "currency": "USD",
+      "items": [
+        {
+          "item_category": "Shirts",
+          "item_id": "TEE-RED-M",
+          "item_name": "Classic Tee",
+          "item_variant": "Red / M",
+          "price": 28,
+          "quantity": 1,
+        },
+      ],
+      "value": 28,
+    },
+    "name": "commerce.view_item",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "currency": "USD",
+      "item_count": 2,
+      "items": [
+        {
+          "item_category": "Shirts",
+          "item_id": "TEE-RED-M",
+          "item_name": "Classic Tee",
+          "item_variant": "Red / M",
+          "price": 28,
+          "quantity": 2,
+        },
+      ],
+      "unique_items": 1,
+      "value": 56,
+    },
+    "name": "commerce.add_to_cart",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "cart_id": "gid://shopify/Cart/c1-8f2a",
+      "currency": "USD",
+      "item_count": 3,
+      "items": [
+        {
+          "item_category": "Shirts",
+          "item_id": "TEE-RED-M",
+          "item_name": "Classic Tee",
+          "item_variant": "Red / M",
+          "price": 28,
+          "quantity": 2,
+        },
+        {
+          "item_category": "Hats",
+          "item_id": "CAP-BLK",
+          "item_name": "Logo Cap",
+          "price": 28.5,
+          "quantity": 1,
+        },
+      ],
+      "value": 84.5,
+    },
+    "name": "commerce.view_cart",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "coupon": "WELCOME10",
+      "currency": "USD",
+      "item_count": 3,
+      "items": [
+        {
+          "item_category": "Shirts",
+          "item_id": "TEE-RED-M",
+          "item_name": "Classic Tee",
+          "item_variant": "Red / M",
+          "price": 28,
+          "quantity": 2,
+        },
+        {
+          "item_category": "Hats",
+          "item_id": "CAP-BLK",
+          "item_name": "Logo Cap",
+          "price": 28.5,
+          "quantity": 1,
+        },
+      ],
+      "unique_items": 2,
+      "value": 95.65,
+    },
+    "name": "commerce.begin_checkout",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "currency": "USD",
+      "shipping_tier": "Ground",
+      "value": 95.65,
+    },
+    "name": "commerce.add_shipping_info",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "currency": "USD",
+      "payment_type": "paypal",
+      "value": 100.6,
+    },
+    "name": "commerce.add_payment_info",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "coupon": "WELCOME10",
+      "currency": "USD",
+      "item_count": 3,
+      "items": [
+        {
+          "item_category": "Shirts",
+          "item_id": "TEE-RED-M",
+          "item_name": "Classic Tee",
+          "item_variant": "Red / M",
+          "price": 28,
+          "quantity": 2,
+        },
+        {
+          "item_category": "Hats",
+          "item_id": "CAP-BLK",
+          "item_name": "Logo Cap",
+          "price": 28.5,
+          "quantity": 1,
+        },
+      ],
+      "payment_type": "paypal",
+      "shipping": 4.95,
+      "shipping_tier": "Ground",
+      "tax": 6.2,
+      "transaction_id": "5512345678901",
+      "unique_items": 2,
+      "value": 100.6,
+    },
+    "name": "commerce.purchase",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "search_term_length": 14,
+    },
+    "name": "commerce.search",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "item_list_name": "Summer sale",
+      "items": [
+        {
+          "item_category": "Shirts",
+          "item_id": "TEE-RED-M",
+          "item_name": "Classic Tee",
+          "item_variant": "Red / M",
+          "price": 28,
+          "quantity": 1,
+        },
+        {
+          "item_category": "Hats",
+          "item_id": "CAP-BLK",
+          "item_name": "Logo Cap",
+          "price": 28.5,
+          "quantity": 1,
+        },
+        {
+          "item_category": "Socks",
+          "item_id": "SOCK-WHT-L",
+          "item_name": "Crew Socks",
+          "item_variant": "White / L",
+          "price": 12,
+          "quantity": 1,
+        },
+      ],
+    },
+    "name": "commerce.view_item_list",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "currency": "USD",
+      "item_count": 1,
+      "items": [
+        {
+          "item_category": "Hats",
+          "item_id": "CAP-BLK",
+          "item_name": "Logo Cap",
+          "price": 28.5,
+          "quantity": 1,
+        },
+      ],
+      "unique_items": 1,
+      "value": 28.5,
+    },
+    "name": "commerce.remove_from_cart",
+  },
+]
+`;

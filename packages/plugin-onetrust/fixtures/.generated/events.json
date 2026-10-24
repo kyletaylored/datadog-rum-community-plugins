@@ -1,0 +1,15 @@
+{
+  "generatedFrom": "fixture run via @kyletaylored/datadog-rum-test-harness; do not edit by hand",
+  "plugin": "onetrust",
+  "actions": [],
+  "globalContext": {
+    "consent.categories": [
+      "C0001",
+      "C0002"
+    ]
+  },
+  "rumApis": [
+    "setGlobalContextProperty",
+    "setTrackingConsent"
+  ]
+}

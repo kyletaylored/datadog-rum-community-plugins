@@ -1,0 +1,98 @@
+---
+import Base from '../../layouts/Base.astro'
+import schema from '../../data/schema.json'
+
+// Entirely generated from packages/core/src/schema. Editing this page cannot change the schema;
+// changing the schema regenerates this page.
+---
+
+<Base title="Schema reference" description="Every action and attribute in the community commerce schema, with its GA4 equivalent.">
+  <h1>Schema <code>{schema.version}</code></h1>
+  <p class="lede">
+    Action names are <a href="https://developers.google.com/analytics/devguides/collection/ga4/ecommerce">GA4's
+    recommended ecommerce event names</a> behind a family prefix, and attributes are GA4's parameters.
+    There is no second vocabulary to learn, and a site already pushing GA4 ecommerce data maps one to one.
+  </p>
+  <p class="small muted">
+    This page is generated from the core's schema definitions. Schema changes go through a short RFC and a
+    semver bump; each adapter declares the version it emits in its manifest.
+  </p>
+
+  {schema.families.map((family) => (
+    <>
+      <h2 id={family.family}>{family.family} <code>{family.prefix}*</code></h2>
+
+      <h3>Actions</h3>
+      <div class="scroll-x">
+        <table>
+          <thead>
+            <tr><th>Action</th><th>GA4 event</th><th>Fires when</th><th>Key attributes</th></tr>
+          </thead>
+          <tbody>
+            {family.actions.map((action) => (
+              <tr>
+                <td><code>{action.name}</code></td>
+                <td class="muted">{action.ga4 ? <code>{action.ga4}</code> : <span>none</span>}</td>
+                <td>{action.firesWhen}</td>
+                <td class="small">
+                  {action.keyAttributes.length === 0
+                    ? <span class="muted">none</span>
+                    : action.keyAttributes.map((attribute, index) => <>{index > 0 && ', '}<code>{attribute}</code></>)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Attributes</h3>
+      <div class="scroll-x">
+        <table>
+          <thead>
+            <tr><th>Attribute</th><th>Type</th><th>Origin</th><th>Description</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            {family.attributes.map((attribute) => (
+              <tr>
+                <td><code>{attribute.name}</code></td>
+                <td class="muted">{attribute.type}</td>
+                <td class="muted small">{attribute.origin === 'ga4' ? 'GA4' : 'extension'}</td>
+                <td>{attribute.description}</td>
+                <td class="muted"><code>{attribute.example === null ? '—' : JSON.stringify(attribute.example)}</code></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  ))}
+
+  <h2>Session-wide context</h2>
+  <p>Set with <code>setGlobalContextProperty</code>. Deliberately low cardinality: no order, cart or user IDs.</p>
+  <div class="scroll-x">
+    <table>
+      <thead><tr><th>Key</th><th>Property</th></tr></thead>
+      <tbody>
+        {schema.globalContext.map((entry) => (
+          <tr><td class="muted">{entry.key}</td><td><code>{entry.path}</code></td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Limits the core enforces</h2>
+  <ul>
+    <li><code>items[]</code> is opt-in and capped at <strong>{schema.limits.maxItems}</strong> entries.</li>
+    <li>Strings are truncated at <strong>{schema.limits.maxStringLength}</strong> characters.</li>
+    <li><code>commerce.purchase</code> fires once per <code>transaction_id</code>, deduplicated for <strong>{schema.limits.dedupeTtlHours} hours</strong>.</li>
+    <li>Numbers are sent as numbers, never strings, so they can become RUM measures and distribution metrics.</li>
+  </ul>
+
+  <h2>Why some platform events send nothing</h2>
+  <p>
+    A platform event with no GA4 equivalent emits no action. Shopify's
+    <code>checkout_contact_info_submitted</code>, for instance, only feeds <code>setUser</code> when the
+    merchant opts into email. Inventing an action name for it would break the promise that one dashboard
+    works across every platform.
+  </p>
+</Base>

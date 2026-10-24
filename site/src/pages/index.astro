@@ -1,0 +1,109 @@
+---
+import Base from '../layouts/Base.astro'
+import { url } from '../lib/url'
+import plugins from '../data/plugins.json'
+import schema from '../data/schema.json'
+
+const families = [
+  { name: 'Commerce', blurb: 'Cart, checkout and order events as RUM custom actions, so revenue lands next to errors and slow views.', count: plugins.filter((p) => p.family === 'commerce').length },
+  { name: 'Consent', blurb: 'Hold RUM until the visitor accepts analytics, read from the site’s own consent manager.', count: plugins.filter((p) => p.family === 'consent').length },
+  { name: 'Identity', blurb: 'setUser and setAccount from the auth provider the app already runs.', count: plugins.filter((p) => p.family === 'identity').length },
+]
+
+const featured = plugins.slice(0, 3)
+const actionCount = schema.families.reduce((total, family) => total + family.actions.length, 0)
+---
+
+<Base
+  title="Business context for Datadog RUM, without custom code"
+  description="Community-maintained Datadog Browser RUM plugins for commerce platforms, consent managers and login providers."
+>
+  <h1>Business context for Datadog RUM, without custom code</h1>
+  <p class="lede">
+    The Browser RUM SDK collects sessions, views, errors and long tasks on its own. Who the shopper is,
+    which account they belong to and what was in the cart do not come for free. These plugins read the
+    platform’s own events and turn them into RUM context and custom actions, so order count and revenue
+    become Datadog metrics without writing a line of tracking code.
+  </p>
+
+  <h2>Three steps</h2>
+  <ol class="steps">
+    <li>
+      <strong>Keep your existing RUM init.</strong> Plugins never call <code>init</code> themselves, so your
+      application ID, sampling and privacy settings stay in charge.
+    </li>
+    <li>
+      <strong>Add a plugin to <code>plugins: [...]</code>.</strong> Consent adapters go first, so nothing is
+      collected before the visitor accepts.
+      <pre><code>{`import { datadogRum } from '@datadog/browser-rum'
+import { oneTrustPlugin } from '@kyletaylored/datadog-rum-plugin-onetrust'
+import { wooCommercePlugin } from '@kyletaylored/datadog-rum-plugin-woocommerce'
+
+datadogRum.init({
+  applicationId, clientToken, site, service, env, version,
+  plugins: [
+    oneTrustPlugin({ category: 'C0002' }),
+    wooCommercePlugin({ identifyUsers: true }),
+  ],
+})`}</code></pre>
+    </li>
+    <li>
+      <strong>Import the asset pack.</strong> {actionCount} actions across {schema.families.length} families
+      feed one <a href={url('/docs/datadog-assets/')}>dashboard and monitor set</a> that works on every platform.
+    </li>
+  </ol>
+
+  <h2>How it works</h2>
+  <p>
+    The adapter is the only platform-specific part. Everything below it is shared: order dedupe, the consent
+    gate, the PII and payment-data filter, size caps and the debug log all live in the core, so a new adapter
+    inherits them without reimplementing any of it.
+  </p>
+  <div class="scroll-x">
+    <pre><code>{`Platform event source        Shopify Web Pixels · WooCommerce DOM events · OneTrust · Auth0 · …
+        ↓
+Platform adapter             one package per platform; maps events onto the shared schema
+        ↓
+Shared core                  dedupe · consent gate · PII and payment filter · size caps · debug log
+        ↓
+RUM SDK public API           setUser / setAccount · setGlobalContextProperty · addAction
+        ↓
+Datadog                      RUM Explorer, Session Replay, generated metrics, dashboard, monitors`}</code></pre>
+  </div>
+
+  <h2>Plugin families</h2>
+  <div class="grid">
+    {families.map((family) => (
+      <div class="card">
+        <h3>{family.name}</h3>
+        <p>{family.blurb}</p>
+        <div class="badges">
+          <span class="badge">{family.count} available</span>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <h2>Featured plugins</h2>
+  <div class="grid">
+    {featured.map((plugin) => (
+      <div class="card">
+        <h3><a href={url(`/plugins/${plugin.name}/`)}>{plugin.title ?? plugin.name}</a></h3>
+        <p>{plugin.description}</p>
+        <div class="badges">
+          <span class={`badge ${plugin.tier}`}>{plugin.tier === 'seed' ? 'Maintainer' : plugin.tier}</span>
+          <span class="badge">{plugin.family}</span>
+          <span class="badge">v{plugin.version}</span>
+        </div>
+      </div>
+    ))}
+  </div>
+  <p><a href={url('/plugins/')}>Browse all plugins →</a></p>
+
+  <h2>What it will not do</h2>
+  <ul>
+    <li><strong>No payment data, ever.</strong> Adapters read platform event payloads, never DOM inputs, and card fields are stripped in the core even if a payload carries them.</li>
+    <li><strong>No PII by default.</strong> <code>usr.id</code> is the platform customer ID; email and name need an explicit opt-in. Search terms are sent as a length, never the text.</li>
+    <li><strong>No claim to replace order reporting.</strong> These numbers come from the browser and undercount. They show trends and anomalies next to performance and errors; the platform’s admin report stays the source of truth.</li>
+  </ul>
+</Base>

@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Version or publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npm run build
+      - run: npx vitest run --project unit
+      - run: npm run lint:manifests
+      - run: npm run size
+      - name: Dry run every package
+        run: npm pack --dry-run --workspaces
+
+      # Opens or updates the release PR when changesets are pending; publishes when the release
+      # PR is merged. Changesets decides which it is, and bumps only the changed packages.
+      - name: Create release PR or publish
+        id: changesets
+        uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          version: npm run version-packages
+          publish: npm run release
+          commit: 'chore: version packages'
+          title: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'
+
+      # Merchants paste an exact-version CDN URL with an integrity hash; this is where that hash
+      # comes from. Attached to the release so the site and READMEs can quote it.
+      - name: Compute SRI hashes for the CDN builds
+        if: steps.changesets.outputs.published == 'true'
+        run: node scripts/sri.mjs --write sri.json
+
+      - name: Attach the SRI manifest to the published releases
+        if: steps.changesets.outputs.published == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sri-hashes
+          path: sri.json

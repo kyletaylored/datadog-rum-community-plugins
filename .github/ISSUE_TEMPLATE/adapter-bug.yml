@@ -1,0 +1,64 @@
+name: Adapter bug
+description: An adapter sends the wrong thing, or nothing at all.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A personal community project, maintained best effort. Not supported by Datadog.
+  - type: input
+    id: adapter
+    attributes:
+      label: Adapter
+      placeholder: '@kyletaylored/datadog-rum-plugin-woocommerce@0.1.0'
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform and version
+      placeholder: 'WooCommerce 9.4 on WordPress 6.7, Cart and Checkout blocks'
+    validations:
+      required: true
+  - type: input
+    id: sdk
+    attributes:
+      label: '@datadog/browser-rum version'
+      placeholder: 7.16.1
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened
+      placeholder: |
+        Expected one commerce.purchase after checkout. Got none / got two / value was a string.
+    validations:
+      required: true
+  - type: textarea
+    id: debug
+    attributes:
+      label: Debug output
+      description: >
+        Run with `debug: true` and paste the console output. It prints every mapped event and the
+        plugin's declared footprint.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: payload
+    attributes:
+      label: The platform payload, if you have it
+      description: >
+        **Redact it first.** Remove emails, names, addresses and anything card-related before
+        pasting. A redacted payload is still useful; a real one is a problem.
+      render: json
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Before filing
+      options:
+        - label: I checked the plugin's page for what it actually sends, which is generated from its fixtures
+          required: true
+        - label: I redacted any personal data from everything pasted above
+          required: true

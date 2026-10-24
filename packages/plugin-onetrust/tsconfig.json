@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../../.tsbuild/plugin-onetrust",
+    "tsBuildInfoFile": "../../.tsbuild/plugin-onetrust.tsbuildinfo",
+    "rootDir": "src"
+  },
+  "include": ["src/**/*.ts"],
+  "references": [{ "path": "../core" }]
+}

@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dev-dependencies:
+        dependency-type: development
+    # The SDK peer range is deliberately narrow and is widened by hand after the compatibility
+    # workflow passes against a new major, not by a bot.
+    ignore:
+      - dependency-name: '@datadog/browser-rum'
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

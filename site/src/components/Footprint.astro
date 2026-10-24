@@ -1,0 +1,48 @@
+---
+interface Props {
+  footprint: {
+    globals: string[]
+    events: string[]
+    storageKeys: string[]
+    rumApis: string[]
+    consentSource: string | null
+  }
+}
+
+const { footprint } = Astro.props
+
+const rows: { label: string; values: string[]; empty: string }[] = [
+  { label: 'Platform globals read', values: footprint.globals, empty: 'none' },
+  { label: 'Platform events subscribed', values: footprint.events, empty: 'none' },
+  { label: 'Storage keys written', values: footprint.storageKeys, empty: 'none' },
+  { label: 'RUM APIs called', values: footprint.rumApis, empty: 'none' },
+  {
+    label: 'Consent source',
+    values: footprint.consentSource ? [footprint.consentSource] : [],
+    empty: 'none — pair it with a consent plugin',
+  },
+]
+---
+
+<div class="scroll-x">
+  <table>
+    <tbody>
+      {rows.map((row) => (
+        <tr>
+          <th scope="row">{row.label}</th>
+          <td>
+            {row.values.length === 0
+              ? <span class="muted">{row.empty}</span>
+              : row.values.map((value, index) => (
+                  <>{index > 0 && ', '}<code>{value}</code></>
+                ))}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+<p class="small muted">
+  Declared by the plugin and checked against its fixture run: the conformance suite fails if the
+  adapter calls a RUM API this list does not mention. Also printed to the console in debug mode.
+</p>

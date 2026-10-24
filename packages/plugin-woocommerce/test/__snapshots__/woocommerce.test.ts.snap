@@ -1,0 +1,99 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`storefront cart events > matches the committed snapshot for every mapped action 1`] = `
+[
+  {
+    "api": "addAction",
+    "context": {
+      "coupon": "WELCOME10",
+      "currency": "USD",
+      "item_count": 3,
+      "items": [
+        {
+          "item_category": "Shirts",
+          "item_id": "TEE-RED-M",
+          "item_name": "Classic Tee",
+          "item_variant": "Red / M",
+          "price": 28,
+          "quantity": 2,
+        },
+        {
+          "item_category": "Hats",
+          "item_id": "CAP-BLK",
+          "item_name": "Logo Cap",
+          "price": 28.5,
+          "quantity": 1,
+        },
+      ],
+      "payment_type": "paypal",
+      "shipping": 4.95,
+      "shipping_tier": "Ground",
+      "tax": 6.2,
+      "transaction_id": "wc_1042",
+      "unique_items": 2,
+      "value": 100.6,
+    },
+    "name": "commerce.purchase",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "cart_id": "c1-8f2a",
+      "currency": "USD",
+      "item_count": 2,
+      "items": [
+        {
+          "item_category": "Shirts",
+          "item_id": "TEE-RED-M",
+          "item_name": "Classic Tee",
+          "item_variant": "Red / M",
+          "price": 28,
+          "quantity": 2,
+        },
+      ],
+      "unique_items": 1,
+      "value": 56,
+    },
+    "name": "commerce.add_to_cart",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "cart_id": "c1-8f2a",
+      "currency": "USD",
+      "item_count": 1,
+      "items": [
+        {
+          "item_category": "Hats",
+          "item_id": "CAP-BLK",
+          "item_name": "Logo Cap",
+          "price": 28.5,
+          "quantity": 1,
+        },
+      ],
+      "unique_items": 1,
+      "value": 28.5,
+    },
+    "name": "commerce.remove_from_cart",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "cart_id": "c1-8f2a",
+      "currency": "USD",
+      "item_count": 1,
+      "items": [
+        {
+          "item_id": "SOCK-WHT-L",
+          "item_name": "Crew Socks",
+          "price": 12,
+          "quantity": 1,
+        },
+      ],
+      "unique_items": 1,
+      "value": 12,
+    },
+    "name": "commerce.add_to_cart",
+  },
+]
+`;

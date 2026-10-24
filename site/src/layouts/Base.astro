@@ -1,0 +1,65 @@
+---
+import '../styles/global.css'
+import { url } from '../lib/url'
+
+interface Props {
+  title: string
+  description?: string
+}
+
+const { title, description } = Astro.props
+const current = Astro.url.pathname
+
+const nav = [
+  { href: '/plugins/', label: 'Plugins' },
+  { href: '/docs/getting-started/', label: 'Getting started' },
+  { href: '/docs/schema/', label: 'Schema' },
+  { href: '/docs/datadog-assets/', label: 'Datadog assets' },
+  { href: '/docs/contributing/', label: 'Contributing' },
+  { href: '/docs/privacy/', label: 'Privacy' },
+]
+
+const isCurrent = (href: string) => current === url(href)
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · Datadog RUM community plugins</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="icon" href={url('/favicon.svg')} />
+  </head>
+  <body>
+    <header class="site">
+      <div class="wrap">
+        <a class="brand" href={url('/')}>RUM community plugins</a>
+        <nav>
+          {nav.map((item) => (
+            <a href={url(item.href)} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>
+          ))}
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="wrap">
+        <p class="notice">
+          A personal community project under <a href="https://github.com/kyletaylored">@kyletaylored</a>, MIT licensed.
+          <strong>Not provided or supported by Datadog.</strong>
+        </p>
+        <slot />
+      </div>
+    </main>
+
+    <footer class="site">
+      <div class="wrap">
+        <p>
+          MIT licensed · <a href="https://github.com/kyletaylored/datadog-rum-community-plugins">Source</a> ·
+          Built from the monorepo: the schema tables and every plugin's event list are generated from the code, not written by hand.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

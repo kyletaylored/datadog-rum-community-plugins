@@ -1,0 +1,88 @@
+---
+import Base from '../../layouts/Base.astro'
+
+const repo = 'https://github.com/kyletaylored/datadog-rum-community-plugins/blob/main/assets'
+
+const metrics = [
+  { name: 'rum.commerce.orders', source: 'Action, @action.name:commerce.purchase', agg: 'count' },
+  { name: 'rum.commerce.revenue', source: 'Action, @action.name:commerce.purchase', agg: 'distribution of value' },
+  { name: 'rum.commerce.cart_value', source: 'Action, commerce.begin_checkout', agg: 'distribution of value (cart total at checkout)' },
+  { name: 'rum.commerce.items_per_order', source: 'Action, commerce.purchase', agg: 'distribution of item_count' },
+  { name: 'rum.commerce.checkouts_started', source: 'Action, commerce.begin_checkout', agg: 'count' },
+  { name: 'rum.commerce.checkout_errors', source: 'Error, on a page carrying commerce context', agg: 'count' },
+  { name: 'rum.account.logins', source: 'Action, account.login', agg: 'count' },
+  { name: 'rum.account.sign_ups', source: 'Action, account.sign_up', agg: 'count' },
+  { name: 'rum.lead.leads', source: 'Action, lead.generate_lead', agg: 'count' },
+]
+---
+
+<Base title="Datadog assets" description="Generated metrics, a dashboard and monitors that work on any plugin's data.">
+  <h1>Datadog assets</h1>
+  <p class="lede">
+    Because every adapter emits the same schema, one asset pack works for all platforms. It ships as
+    Terraform for the generated metrics plus dashboard and monitor JSON, because a community project cannot
+    publish an integration tile.
+  </p>
+
+  <h2>Read these numbers correctly</h2>
+  <p>
+    They come from the browser, so they undercount: ad blockers, tabs closed before the thank-you page, and
+    declined consent all remove sessions. <strong>Compare trends, not totals</strong>, against the platform's
+    own order report, which stays the source of truth. The accuracy bar this project holds itself to is order
+    count within 5% of the platform admin over seven days.
+  </p>
+
+  <h2>Generated metrics</h2>
+  <p>
+    RUM <a href="https://docs.datadoghq.com/real_user_monitoring/platform/generate_metrics/">generated metrics</a>
+    are computed from 100% of ingested RUM events, not just retained sessions, kept for 15 months, and usable
+    in anomaly and forecast monitors.
+  </p>
+  <div class="scroll-x">
+    <table>
+      <thead><tr><th>Metric</th><th>Event type and filter</th><th>Aggregation</th></tr></thead>
+      <tbody>
+        {metrics.map((metric) => (
+          <tr><td><code>{metric.name}</code></td><td class="small">{metric.source}</td><td class="small muted">{metric.agg}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Grouped by <code>commerce_platform</code>, <code>currency</code> and <code>store_currency</code> only.
+    Never by order, cart or user ID: those are unbounded, and generated metrics are billed as custom metrics.
+    Checkout conversion is not a metric of its own — it is <code>orders ÷ checkouts started</code>, computed
+    in the dashboard.
+  </p>
+  <p><a href={`${repo}/terraform/generated-metrics.tf`}>terraform/generated-metrics.tf</a> · apply with <code>terraform apply -var rum_application_id=&lt;id&gt;</code></p>
+
+  <h2>Dashboard</h2>
+  <p>Orders and revenue over time, average order value, checkout conversion, the funnel from product view to
+    order, revenue next to checkout errors, checkout view LCP and INP, and a list of sessions with replays
+    where checkout started but no order followed.</p>
+  <p><a href={`${repo}/dashboards/commerce-overview.json`}>dashboards/commerce-overview.json</a> · Dashboards → New → Import JSON</p>
+
+  <h2>Monitors</h2>
+  <div class="scroll-x">
+    <table>
+      <thead><tr><th>Monitor</th><th>Type</th><th>Ready to use?</th></tr></thead>
+      <tbody>
+        <tr><td>Order volume anomaly</td><td class="muted">anomaly, weekly seasonality</td><td>Yes</td></tr>
+        <tr><td>Revenue anomaly</td><td class="muted">anomaly, weekly seasonality</td><td>Yes — scope by <code>currency</code> on multi-currency stores</td></tr>
+        <tr><td>Checkout conversion below threshold</td><td class="muted">threshold</td><td><strong>Tune first.</strong> Ships with a placeholder</td></tr>
+        <tr><td>Checkout errors elevated</td><td class="muted">RUM threshold</td><td><strong>Tune first.</strong> Ships with a placeholder</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    The two threshold monitors are tagged <code>tune-me:threshold</code>. Pull a week of the underlying metric
+    for the store in question and set the threshold below its normal floor: a conversion monitor set to
+    someone else's benchmark will page constantly or never.
+  </p>
+  <p><a href={`${repo}/monitors/commerce-monitors.json`}>monitors/commerce-monitors.json</a></p>
+
+  <h2>Product Analytics</h2>
+  <p>
+    Nothing extra to do. These are ordinary RUM custom actions, so they feed Product Analytics automatically.
+  </p>
+</Base>

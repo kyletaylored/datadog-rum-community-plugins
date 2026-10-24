@@ -1,0 +1,97 @@
+{
+  "name": "__NAME__",
+  "package": "@kyletaylored/datadog-rum-plugin-__NAME__",
+  "exportName": "__NAME_FN__Plugin",
+  "version": "0.1.0",
+  "family": "commerce",
+  "title": "__TITLE__",
+  "description": "One or two sentences: what this adapter reads, and what it sends.",
+  "maintainer": {
+    "name": "__MAINTAINER__",
+    "github": "__GITHUB__"
+  },
+  "tier": "listed",
+  "schemaVersion": "1.0.0",
+  "rumSdk": ">=7.0.0 <8.0.0",
+  "platforms": [
+    {
+      "name": "__TITLE__",
+      "versions": "",
+      "notes": ""
+    }
+  ],
+  "install": {
+    "npm": true,
+    "cdn": true
+  },
+  "actions": [
+    "commerce.add_to_cart"
+  ],
+  "options": [
+    {
+      "name": "identifyUsers",
+      "type": "boolean",
+      "default": true,
+      "description": "Call setUser with the platform customer ID."
+    },
+    {
+      "name": "includeEmail",
+      "type": "boolean",
+      "default": false,
+      "description": "Add the customer email to setUser."
+    },
+    {
+      "name": "includeName",
+      "type": "boolean",
+      "default": false,
+      "description": "Add the customer name to setUser."
+    },
+    {
+      "name": "includeItems",
+      "type": "boolean",
+      "default": false,
+      "description": "Attach items[], capped at 20 entries."
+    },
+    {
+      "name": "actionPrefix",
+      "type": "string",
+      "default": "commerce.",
+      "description": "Rename the action prefix if the site has its own convention."
+    },
+    {
+      "name": "consent",
+      "type": "string",
+      "default": "auto",
+      "description": "auto reads the platform consent signal, ignore skips the gate, or supply a resolver callback."
+    },
+    {
+      "name": "beforeTrack",
+      "type": "function",
+      "default": null,
+      "description": "Edit or drop an event before it is sent."
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "default": false,
+      "description": "Log every mapped event to the console."
+    }
+  ],
+  "footprint": {
+    "globals": [
+      "window.replaceMe"
+    ],
+    "events": [
+      "replace_me"
+    ],
+    "storageKeys": [
+      "dd_rum_commerce_seen"
+    ],
+    "rumApis": [
+      "addAction",
+      "setGlobalContextProperty"
+    ],
+    "consentSource": null
+  },
+  "docs": "https://kyletaylored.github.io/datadog-rum-community-plugins/plugins/__NAME__/"
+}

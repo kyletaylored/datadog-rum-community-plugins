@@ -1,0 +1,35 @@
+name: SDK compatibility
+
+# The official package imports RumPlugin from @datadog/browser-rum-core, which is internal and
+# may change without notice. This is the early warning: it runs the real-SDK integration test
+# against the latest release every week, so a contract break surfaces here rather than in a
+# merchant's checkout.
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  latest-sdk:
+    name: Latest @datadog/browser-rum
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Install the latest SDK release, ignoring the peer range
+        run: npm install --no-save --legacy-peer-deps @datadog/browser-rum@latest
+      - name: Report the version under test
+        run: node -p "'testing against @datadog/browser-rum@' + require('@datadog/browser-rum/package.json').version"
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npx vitest run --project browser
+      - run: npx vitest run --project unit

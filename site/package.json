@@ -1,0 +1,16 @@
+{
+  "name": "site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node ../scripts/gen-schema-docs.mjs && astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^8.1.1",
+    "astro": "^7.4.2"
+  }
+}

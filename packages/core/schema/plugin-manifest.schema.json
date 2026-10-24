@@ -1,0 +1,219 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kyletaylored.github.io/datadog-rum-community-plugins/schema/plugin-manifest.schema.json",
+  "title": "Datadog RUM community plugin manifest",
+  "description": "plugin.json: what an adapter is, who maintains it, and what it touches. The gallery renders the footprint as a permissions screen.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "package",
+    "exportName",
+    "version",
+    "family",
+    "description",
+    "maintainer",
+    "tier",
+    "schemaVersion",
+    "rumSdk",
+    "footprint"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "Adapter slug. Also the window.DD_RUM_PLUGINS key and the site route."
+    },
+    "package": {
+      "type": "string",
+      "pattern": "^@kyletaylored/datadog-rum-plugin-[a-z0-9-]+$"
+    },
+    "exportName": {
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]*Plugin$",
+      "description": "The factory this package exports, e.g. wooCommercePlugin. Cannot be derived from the slug (woocommerce exports wooCommercePlugin), and the site's install snippets use it verbatim."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$"
+    },
+    "family": {
+      "type": "string",
+      "enum": [
+        "commerce",
+        "consent",
+        "identity",
+        "support",
+        "lead"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 60
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 300
+    },
+    "maintainer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "github"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "github": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9-]+$"
+        }
+      }
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "seed",
+        "verified",
+        "listed"
+      ]
+    },
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "rumSdk": {
+      "type": "string",
+      "description": "Supported @datadog/browser-rum semver range."
+    },
+    "platforms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "versions": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "install": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "npm": {
+          "type": "boolean"
+        },
+        "cdn": {
+          "type": "boolean"
+        },
+        "platform": {
+          "type": "string",
+          "description": "Platform-native path, e.g. 'WordPress plugin'."
+        }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "description": "Action names this adapter can emit. Checked against the fixture snapshots.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z]+\\.[a-z_]+$"
+      }
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "default",
+          "description"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "boolean",
+              "string",
+              "number",
+              "array",
+              "function"
+            ]
+          },
+          "default": {},
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "footprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "globals",
+        "events",
+        "storageKeys",
+        "rumApis",
+        "consentSource"
+      ],
+      "properties": {
+        "globals": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "storageKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rumApis": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "consentSource": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "demo": {
+      "type": "string",
+      "format": "uri"
+    },
+    "docs": {
+      "type": "string",
+      "format": "uri"
+    }
+  }
+}

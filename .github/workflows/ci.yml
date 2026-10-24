@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Makes the generated event reports read-only: a mapping change without a regenerated
+  # fixtures/.generated/events.json fails here rather than shipping stale docs.
+  CI: 'true'
+
+jobs:
+  unit:
+    name: Unit and conformance (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22, 24]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Unit, fixture and conformance tests
+        run: npx vitest run --project unit
+      - name: Validate plugin manifests
+        run: npm run lint:manifests
+      - name: Check CDN bundle size budget
+        run: npm run size
+      - name: Verify package contents
+        run: npm pack --dry-run --workspaces
+
+  browser:
+    name: Real-SDK integration (headless Chromium)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - run: npm run build
+      # The SDK does not start a session under jsdom, so this is the only test that proves the
+      # plugin contract and the consent gate against what actually reaches the intake.
+      - name: Integration tests with @datadog/browser-rum
+        run: npx vitest run --project browser
+
+  site:
+    name: Site build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # Catches broken links and schema errors before deploy, on every push and PR.
+      - run: npm run site:build

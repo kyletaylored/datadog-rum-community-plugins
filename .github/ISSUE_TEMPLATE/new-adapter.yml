@@ -1,0 +1,53 @@
+name: New adapter proposal
+description: Propose an adapter for a platform, consent manager, identity or support provider.
+labels: [adapter-proposal]
+body:
+  - type: input
+    id: platform
+    attributes:
+      label: Platform or provider
+      placeholder: BigCommerce
+    validations:
+      required: true
+  - type: dropdown
+    id: family
+    attributes:
+      label: Family
+      options: [commerce, consent, identity, support, lead]
+    validations:
+      required: true
+  - type: textarea
+    id: event-source
+    attributes:
+      label: Browser event source
+      description: >
+        **This is the question that decides whether an adapter is possible.** What does the platform
+        expose to the browser — a documented event API, a data layer, DOM events, a server-rendered
+        payload? Link the docs. An adapter with no structured browser event source cannot be built,
+        and scraping the DOM is not an option here.
+    validations:
+      required: true
+  - type: textarea
+    id: order-data
+    attributes:
+      label: Where order or conversion data comes from
+      description: >
+        For commerce: is there a confirmation-page hook with a stable order ID? Without one,
+        `commerce.purchase` cannot be deduplicated and so is not sent at all.
+  - type: input
+    id: identity
+    attributes:
+      label: Identity source
+      placeholder: 'Stencil customer context'
+  - type: textarea
+    id: consent
+    attributes:
+      label: Consent signal
+      description: Does the platform expose one, or does this need pairing with a consent adapter?
+  - type: checkboxes
+    id: maintainer
+    attributes:
+      label: Maintenance
+      options:
+        - label: I am willing to maintain this adapter and be its CODEOWNER
+        - label: I am proposing it for someone else to build

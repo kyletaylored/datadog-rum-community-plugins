@@ -1,0 +1,182 @@
+/* One small stylesheet, no framework: the site is mostly documentation. */
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --surface: #f7f7f9;
+  --border: #e2e2e8;
+  --text: #16161d;
+  --muted: #5d5d6b;
+  --accent: #632ca6; /* Datadog purple, used sparingly and never as a brand claim */
+  --accent-ink: #ffffff;
+  --warn-bg: #fff8e1;
+  --warn-border: #e8d08a;
+  --code-bg: #f2f2f5;
+  --radius: 8px;
+  --max: 68rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15151c;
+    --surface: #1d1d26;
+    --border: #30303d;
+    --text: #ececf2;
+    --muted: #a0a0b0;
+    --accent: #a476e0;
+    --accent-ink: #15151c;
+    --warn-bg: #2b2415;
+    --warn-border: #5a4a22;
+    --code-bg: #22222c;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+a { color: var(--accent); }
+a:hover { text-decoration: none; }
+
+code, pre, kbd {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.875em;
+}
+
+code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+
+pre {
+  background: var(--code-bg);
+  padding: 1rem;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  border: 1px solid var(--border);
+}
+pre code { background: none; padding: 0; }
+
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 1.25rem; }
+
+header.site {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+header.site .wrap { display: flex; align-items: center; gap: 1.5rem; min-height: 3.5rem; flex-wrap: wrap; }
+header.site a.brand { font-weight: 650; color: var(--text); text-decoration: none; }
+header.site nav { display: flex; gap: 1.25rem; font-size: 0.925rem; margin-left: auto; }
+header.site nav a { color: var(--muted); text-decoration: none; }
+header.site nav a:hover, header.site nav a[aria-current="page"] { color: var(--text); }
+
+main { padding: 2.5rem 0 4rem; }
+
+footer.site {
+  border-top: 1px solid var(--border);
+  padding: 2rem 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 0.75rem; }
+h2 { font-size: 1.375rem; margin: 2.5rem 0 0.75rem; }
+h3 { font-size: 1.0625rem; margin: 1.75rem 0 0.5rem; }
+p { margin: 0 0 1rem; }
+
+.lede { font-size: 1.125rem; color: var(--muted); max-width: 48rem; }
+
+/* The not-a-Datadog-product notice. Present on every page, not only the landing page. */
+.notice {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  margin: 0 0 2rem;
+}
+
+table { border-collapse: collapse; width: 100%; margin: 0 0 1.5rem; font-size: 0.925rem; }
+/* Wide tables scroll inside their own container rather than the page. */
+.scroll-x { overflow-x: auto; margin: 0 0 1.5rem; }
+.scroll-x table { margin: 0; }
+th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.03em; }
+
+.grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); }
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.card h3 { margin: 0; font-size: 1.0625rem; }
+.card h3 a { text-decoration: none; }
+.card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+.badges { display: flex; gap: 0.375rem; flex-wrap: wrap; margin-top: auto; padding-top: 0.5rem; }
+.badge {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 650;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.badge.seed { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.badge.verified { border-color: var(--accent); color: var(--accent); }
+
+.filters { display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 0 0 1.5rem; align-items: center; }
+.filters input, .filters select {
+  font: inherit;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+}
+.filters input { flex: 1 1 14rem; }
+
+.steps { counter-reset: step; list-style: none; padding: 0; }
+.steps li { counter-increment: step; position: relative; padding-left: 2.25rem; margin-bottom: 1.25rem; }
+.steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0; top: 0;
+  width: 1.6rem; height: 1.6rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: grid; place-items: center;
+  font-size: 0.8125rem; font-weight: 650;
+}
+
+.tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--border); margin-bottom: -1px; flex-wrap: wrap; }
+.tabs button {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.tabs button[aria-selected="true"] {
+  color: var(--text);
+  background: var(--code-bg);
+  border-color: var(--border);
+}
+
+.muted { color: var(--muted); }
+.small { font-size: 0.875rem; }

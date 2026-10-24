@@ -1,0 +1,92 @@
+{
+  "source": "WooCommerce Cart and Checkout block DOM events, recorded from a Woo 9.x store. Money arrives as integer minor units with currency_minor_unit, which is Woo's Store API convention.",
+  "fixtures": [
+    {
+      "name": "added to cart",
+      "event": "wc-blocks_added_to_cart",
+      "payload": {
+        "productId": 184,
+        "quantity": 2,
+        "cart": {
+          "cart_key": "c1-8f2a",
+          "items_count": 3,
+          "totals": { "total_price": "8450", "total_items": "8450", "currency_code": "USD", "currency_minor_unit": 2 },
+          "items": [
+            {
+              "key": "a1b2",
+              "id": 184,
+              "name": "Classic Tee",
+              "sku": "TEE-RED-M",
+              "quantity": 2,
+              "prices": { "price": "2800", "regular_price": "2800", "currency_code": "USD", "currency_minor_unit": 2 },
+              "totals": { "line_total": "5600", "currency_code": "USD", "currency_minor_unit": 2 },
+              "variation": [{ "attribute": "Color", "value": "Red" }, { "attribute": "Size", "value": "M" }],
+              "categories": [{ "name": "Shirts" }]
+            },
+            {
+              "key": "c3d4",
+              "id": 190,
+              "name": "Logo Cap",
+              "sku": "CAP-BLK",
+              "quantity": 1,
+              "prices": { "price": "2850", "currency_code": "USD", "currency_minor_unit": 2 },
+              "totals": { "line_total": "2850", "currency_code": "USD", "currency_minor_unit": 2 },
+              "categories": [{ "name": "Hats" }]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "removed from cart",
+      "event": "wc-blocks_removed_from_cart",
+      "payload": {
+        "productId": 190,
+        "quantity": 1,
+        "cart": {
+          "cart_key": "c1-8f2a",
+          "items_count": 2,
+          "totals": { "total_price": "5600", "currency_code": "USD", "currency_minor_unit": 2 },
+          "items": [
+            {
+              "key": "a1b2",
+              "id": 184,
+              "name": "Classic Tee",
+              "sku": "TEE-RED-M",
+              "quantity": 2,
+              "prices": { "price": "2800", "currency_code": "USD", "currency_minor_unit": 2 },
+              "totals": { "line_total": "5600", "currency_code": "USD", "currency_minor_unit": 2 },
+              "categories": [{ "name": "Shirts" }]
+            },
+            {
+              "key": "c3d4",
+              "id": 190,
+              "name": "Logo Cap",
+              "sku": "CAP-BLK",
+              "quantity": 1,
+              "prices": { "price": "2850", "currency_code": "USD", "currency_minor_unit": 2 },
+              "totals": { "line_total": "2850", "currency_code": "USD", "currency_minor_unit": 2 },
+              "categories": [{ "name": "Hats" }]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "added to cart on a classic theme",
+      "description": "Classic (non-block) themes dispatch the jQuery added_to_cart event, which carries no cart object.",
+      "event": "added_to_cart",
+      "payload": {
+        "productId": 212,
+        "quantity": 1,
+        "cart": {
+          "cart_key": "c1-8f2a",
+          "totals": { "total_price": "6800", "currency_code": "USD", "currency_minor_unit": 2 },
+          "items": [
+            { "key": "e5f6", "id": 212, "name": "Crew Socks", "sku": "SOCK-WHT-L", "quantity": 1, "prices": { "price": "1200", "currency_code": "USD", "currency_minor_unit": 2 }, "totals": { "line_total": "1200", "currency_code": "USD", "currency_minor_unit": 2 } }
+          ]
+        }
+      }
+    }
+  ]
+}
