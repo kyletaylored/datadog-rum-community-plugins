@@ -1,9 +1,21 @@
 {
   "compilerOptions": {
     "target": "ES2019",
-    "lib": ["ES2019", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2019",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "paths": {
+      "@kyletaylored/datadog-rum-community-plugins": [
+        "./packages/core/src/index.ts"
+      ],
+      "@kyletaylored/datadog-rum-test-harness": [
+        "./packages/test-harness/src/index.ts"
+      ]
+    },
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": false,
