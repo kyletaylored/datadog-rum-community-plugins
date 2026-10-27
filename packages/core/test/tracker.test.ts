@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
-import { GLOBAL_CONTEXT_KEYS, SCHEMA_VERSION, createDedupe, createTracker } from '../src/index.js'
+import {
+  ACCOUNT_FAMILY,
+  COMMERCE_FAMILY,
+  GLOBAL_CONTEXT_KEYS,
+  SCHEMA_VERSION,
+  createDedupe,
+  createTracker,
+} from '../src/index.js'
 import { createFakeRum, createMemoryStorage } from '../../test-harness/src/index.js'
 import type { CommonPluginOptions } from '../src/index.js'
 
@@ -16,6 +23,7 @@ function setup(options: CommonPluginOptions = {}, initConfiguration: Record<stri
     platform: 'test',
     version: '0.1.0',
     publicApi: rum.publicApi,
+    families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
     initConfiguration: rum.initConfiguration,
     options: { consent: 'ignore', ...options },
     footprint: FOOTPRINT,
@@ -121,6 +129,8 @@ describe('consent gate', () => {
       platform: 'test',
       version: '0.1.0',
       publicApi: rum.publicApi,
+      families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
+    families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
       initConfiguration: rum.initConfiguration,
       options: {},
       footprint: FOOTPRINT,
@@ -142,6 +152,8 @@ describe('consent gate', () => {
       platform: 'test',
       version: '0.1.0',
       publicApi: rum.publicApi,
+      families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
+    families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
       initConfiguration: rum.initConfiguration,
       options: {},
       footprint: FOOTPRINT,
@@ -157,6 +169,8 @@ describe('consent gate', () => {
       platform: 'test',
       version: '0.1.0',
       publicApi: rum.publicApi,
+      families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
+    families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
       initConfiguration: rum.initConfiguration,
       options: { consent: 'ignore' },
       footprint: FOOTPRINT,
@@ -171,6 +185,8 @@ describe('consent gate', () => {
       platform: 'test',
       version: '0.1.0',
       publicApi: rum.publicApi,
+      families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
+    families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
       initConfiguration: rum.initConfiguration,
       options: { consent: (cb) => void (notify = cb) },
       footprint: FOOTPRINT,

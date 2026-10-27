@@ -4,38 +4,39 @@ import Icon from '../components/Icon.astro'
 import { url } from '../lib/url'
 import plugins from '../data/plugins.json'
 
-const order = ['shopify', 'woocommerce', 'onetrust']
+const order = ['engagement', 'shopify', 'woocommerce', 'onetrust']
 const featured = order
   .map((name) => plugins.find((plugin) => plugin.name === name))
   .filter((plugin) => plugin !== undefined)
 
-const familyIcon: Record<string, 'cart' | 'shield' | 'user' | 'puzzle'> = {
+const familyIcon: Record<string, 'cart' | 'shield' | 'user' | 'puzzle' | 'bolt'> = {
   commerce: 'cart',
+  engagement: 'bolt',
   consent: 'shield',
   identity: 'user',
 }
 
 const guarantees = [
-  { icon: 'block' as const, title: 'No payment data, ever', body: 'Card fields are stripped at any depth, even when the platform’s own payload includes them.' },
+  { icon: 'block' as const, title: 'No URLs, no addresses', body: 'Query strings are dropped, mailto and tel links report only that a click happened, and card fields are stripped at any depth.' },
   { icon: 'shield' as const, title: 'Consent comes first', body: 'A consent plugin holds RUM until the visitor accepts. Nothing is queued, so nothing is backfilled.' },
-  { icon: 'check' as const, title: 'One order, counted once', body: 'Purchases dedupe on transaction_id, so a reloaded thank-you page never double-counts revenue.' },
-  { icon: 'bolt' as const, title: 'Under 5 KB', body: 'Per plugin, gzipped, core included. CI fails the build if one goes over.' },
+  { icon: 'check' as const, title: 'No field values', body: 'Forms report their identity and destination. No input is read, on any event. Search terms are sent as a length.' },
+  { icon: 'bolt' as const, title: 'Small and pinned', body: 'Around 5 KB gzipped per plugin, core included, with a budget CI enforces. Exact-version CDN URLs with an SRI hash.' },
 ]
 ---
 
 <Base
-  title="Order data in Datadog RUM, from one script tag"
-  description="Community Datadog Browser RUM plugins for commerce platforms, consent managers and login providers."
+  title="Custom RUM events, without the custom code"
+  description="Community Datadog Browser RUM plugins: scroll depth, downloads, video, signups, logins and orders as RUM actions and metrics, from one script tag."
   hero
 >
   <section class="hero">
     <div class="wrap">
       <span class="eyebrow"><Icon name="puzzle" size="0.85rem" /> Community plugins</span>
-      <h1>Order data in Datadog RUM,<br /><span class="gradient-text">from one script tag</span></h1>
+      <h1>Custom RUM events,<br /><span class="gradient-text">without the custom code</span></h1>
       <p class="lede">
-        RUM already tracks sessions, views and errors. It does not know who the shopper is or what
-        was in the cart. These plugins read your platform’s own events and turn them into RUM
-        actions — no tracking code to write.
+        Scroll depth, file downloads, video plays, newsletter signups, logins, orders — captured as
+        Datadog RUM actions and metrics from one script tag. Nothing to instrument, no data layer to
+        design.
       </p>
       <div class="btn-row">
         <a class="btn primary" href={url('/sandbox/')}>See what it sends <Icon name="arrow" size="0.95rem" /></a>
@@ -45,8 +46,11 @@ const guarantees = [
   </section>
 
   <section class="wrap">
-    <h2 id="start">Start with your platform</h2>
-    <p class="lede">Each one installs with a script tag and needs no changes to your RUM setup.</p>
+    <h2 id="start">Start here</h2>
+    <p class="lede">
+      Begin with the generic kit — it works on any site. Add a platform plugin when you need orders
+      or consent. None of them change your RUM setup.
+    </p>
     <div class="grid">
       {featured.map((plugin) => (
         <a class="card" href={url(`/plugins/${plugin.name}/`)}>
@@ -62,8 +66,8 @@ const guarantees = [
       ))}
       <a class="card" href={url('/docs/contributing/')}>
         <span class="card-icon"><Icon name="code" /></span>
-        <h3>Your platform missing?</h3>
-        <p>BigCommerce, Adobe Commerce, Auth0 and more are open. The scaffold gets you to a working plugin in about a week.</p>
+        <h3>Something missing?</h3>
+        <p>BigCommerce, Adobe Commerce, Auth0, Intercom and more are open. The scaffold gets you to a working plugin in about a week.</p>
         <div class="badges"><span class="badge">Contribute</span></div>
       </a>
     </div>
@@ -72,20 +76,49 @@ const guarantees = [
   <section class="wrap">
     <h2>Add one script tag</h2>
     <p class="lede">
-      Works anywhere you can paste a tag — Shopify, WordPress, Google Tag Manager, Squarespace. npm
-      too, if you have a build.
+      Works anywhere you can paste a tag — WordPress, Shopify, Google Tag Manager, Squarespace,
+      Webflow. npm too, if you have a build.
     </p>
     <pre><code>{`<script src="https://www.datadoghq-browser-agent.com/us1/v6/datadog-rum.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-woocommerce@0.1.0/dist/plugin.js"
+<script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-engagement@0.1.0/dist/plugin.js"
         integrity="sha384-REPLACE_FROM_RELEASE" crossorigin="anonymous"></script>
 <script>
   window.DD_RUM.init({
     applicationId: 'YOUR_APPLICATION_ID',
     clientToken: 'YOUR_CLIENT_TOKEN',
     site: 'datadoghq.com',
-    plugins: [window.DD_RUM_PLUGINS['woocommerce']()],
+    plugins: [window.DD_RUM_PLUGINS['engagement']()],
   })
 </script>`}</code></pre>
+    <p class="small muted">
+      That is the whole install. Scroll depth, downloads, outbound and contact clicks, video and
+      form submissions start arriving as RUM actions.
+    </p>
+  </section>
+
+  <section class="wrap">
+    <h2>Names your team already knows</h2>
+    <p class="lede">
+      Events use <a href="https://developers.google.com/analytics/devguides/collection/ga4/ecommerce">GA4's
+      names and parameters</a> behind a family prefix, so anyone arriving from GA4, Matomo or
+      Plausible recognises them on sight — and a site already tagged for GA4 maps one to one.
+    </p>
+    <div class="scroll-x">
+      <table>
+        <thead><tr><th>What you want to know</th><th>The action</th></tr></thead>
+        <tbody>
+          <tr><td>How far down the page did they get before leaving?</td><td><code>engagement.scroll</code></td></tr>
+          <tr><td>Who downloaded the PDF?</td><td><code>engagement.file_download</code></td></tr>
+          <tr><td>Did anyone watch the product video?</td><td><code>engagement.video_start</code> · <code>video_progress</code></td></tr>
+          <tr><td>How many newsletter signups?</td><td><code>lead.generate_lead</code></td></tr>
+          <tr><td>Are people clicking through to our docs?</td><td><code>engagement.click</code></td></tr>
+          <tr><td>Did they email or call us?</td><td><code>engagement.click</code>, <code>link_type: email | phone</code></td></tr>
+          <tr><td>How much revenue, and from which checkouts?</td><td><code>commerce.purchase</code></td></tr>
+          <tr><td>Who is signed in?</td><td><code>account.login</code> · <code>setUser</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><a href={url('/docs/schema/')}>The full schema <Icon name="arrow" size="0.85rem" /></a></p>
   </section>
 
   <section class="wrap">

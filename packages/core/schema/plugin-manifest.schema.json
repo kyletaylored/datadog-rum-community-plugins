@@ -41,6 +41,7 @@
       "type": "string",
       "enum": [
         "commerce",
+        "engagement",
         "consent",
         "identity",
         "support",

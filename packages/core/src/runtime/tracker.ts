@@ -1,11 +1,5 @@
-import {
-  FAMILY_PREFIX,
-  GLOBAL_CONTEXT_KEYS,
-  SCHEMA_VERSION,
-  bareEvent,
-  familyNameOf,
-  type CustomerType,
-} from '../schema/registry.js'
+import { GLOBAL_CONTEXT_KEYS, SCHEMA_VERSION, bareEvent, type CustomerType } from '../schema/keys.js'
+import type { RuntimeFamily } from '../schema/families/types.js'
 import type {
   CommonPluginOptions,
   PluginFootprint,
@@ -49,6 +43,14 @@ export interface TrackerConfig {
   publicApi: RumPublicApi
   initConfiguration?: RumInitConfigurationLike
   options?: CommonPluginOptions
+  /**
+   * The families this plugin emits, imported one module at a time
+   * (`import { COMMERCE_FAMILY } from '@kyletaylored/datadog-rum-community-plugins'`).
+   *
+   * Declaring them rather than validating against the whole schema is what keeps a plugin's CDN
+   * bundle proportional to what it actually sends: a commerce plugin carries no video event names.
+   */
+  families: readonly RuntimeFamily[]
   /** What this adapter declares that it touches. */
   footprint: Omit<PluginFootprint, 'storageKeys'> & { storageKeys?: string[] }
   /** Injected in tests. */
@@ -122,6 +124,12 @@ export function createTracker(config: TrackerConfig): Tracker {
   // The allow-list accepts prefixed or bare names, so `events: ['purchase']` works too.
   const allowed = options.events?.map(bareEvent)
 
+  // Built from this plugin's families only.
+  const eventFamily = new Map<string, RuntimeFamily>()
+  for (const family of config.families) {
+    for (const event of family.events) eventFamily.set(event, family)
+  }
+
   config.publicApi.setGlobalContextProperty(GLOBAL_CONTEXT_KEYS.platform, config.platform)
   config.publicApi.setGlobalContextProperty(GLOBAL_CONTEXT_KEYS.pluginVersion, config.version)
   config.publicApi.setGlobalContextProperty(GLOBAL_CONTEXT_KEYS.schemaVersion, SCHEMA_VERSION)
@@ -133,10 +141,10 @@ export function createTracker(config: TrackerConfig): Tracker {
 
   function track(event: string, attributes: Record<string, unknown> = {}): boolean {
     const bare = bareEvent(event)
-    const family = familyNameOf(bare)
+    const family = eventFamily.get(bare)
 
     if (!family) {
-      logger.dropped(bare, 'not in the schema')
+      logger.dropped(bare, 'not in this plugin’s declared families')
       return false
     }
 
@@ -153,7 +161,7 @@ export function createTracker(config: TrackerConfig): Tracker {
 
     // Commerce keeps the configurable prefix; other families keep their own, so renaming
     // `commerce.` never silently renames `account.login`.
-    const name = family === 'commerce' ? `${prefix}${bare}` : `${FAMILY_PREFIX[family]}${bare}`
+    const name = family.name === 'commerce' ? `${prefix}${bare}` : `${family.prefix}${bare}`
 
     let context = sanitizeContext(attributes)
 

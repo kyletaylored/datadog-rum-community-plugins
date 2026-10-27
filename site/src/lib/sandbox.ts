@@ -8,6 +8,7 @@
  * events back, the purchase dedupe refusing a second order, and card data being stripped. A live
  * RUM demo could show none of those, because the whole point is that nothing is sent.
  */
+import { engagementPlugin } from '@kyletaylored/datadog-rum-plugin-engagement'
 import { oneTrustPlugin } from '@kyletaylored/datadog-rum-plugin-onetrust'
 import { shopifyPlugin } from '@kyletaylored/datadog-rum-plugin-shopify'
 import { wooCommercePlugin } from '@kyletaylored/datadog-rum-plugin-woocommerce'
@@ -47,7 +48,7 @@ export interface SandboxOptions extends CommonPluginOptions {
   shopifyPrivacy?: 'absent' | 'allowed' | 'denied'
 }
 
-export type SandboxAdapter = 'shopify' | 'woocommerce' | 'onetrust'
+export type SandboxAdapter = 'engagement' | 'shopify' | 'woocommerce' | 'onetrust'
 
 export interface SandboxSession {
   /** Hand one recorded payload to the platform double the adapter subscribed to. */
@@ -217,6 +218,46 @@ export function startSession(
         return
       }
       target.dispatchEvent(new CustomEvent(fixture.event, { detail: fixture.payload }))
+    }
+  } else if (adapter === 'engagement') {
+    // The kit reads the page, so its "fixtures" are markup. Each step builds the element it
+    // describes inside a scratch container and fires the event the plugin listens for.
+    const stage = document.createElement('div')
+    stage.setAttribute('data-sandbox-stage', '')
+    stage.style.display = 'none'
+    document.body.append(stage)
+
+    // The demo markup contains real anchors and real forms, so a dispatched click or submit would
+    // navigate the browser away from the sandbox. jsdom never navigates, which is why the unit
+    // tests did not catch this. The guard sits in the bubble phase, so the plugin's own capture
+    // listener has already seen the event by the time the default action is cancelled.
+    const preventNavigation = (event: Event) => event.preventDefault()
+    stage.addEventListener('click', preventNavigation)
+    stage.addEventListener('submit', preventNavigation)
+
+    plugin = engagementPlugin({ ...debugOptions, root: stage, trackScroll: false })
+    emit = (fixture) => {
+      const payload = fixture.payload as { html?: string; percent?: number; depth?: number }
+      if (!payload.html) return
+      stage.innerHTML = payload.html
+      const element = stage.firstElementChild as HTMLElement | null
+      if (!element) return
+
+      if (fixture.event === 'click') {
+        element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+      } else if (fixture.event === 'timeupdate') {
+        const video = element as HTMLVideoElement
+        Object.defineProperty(video, 'duration', { value: 200, configurable: true })
+        Object.defineProperty(video, 'currentTime', {
+          value: ((payload.percent ?? 0) / 100) * 200,
+          configurable: true,
+        })
+        video.dispatchEvent(new Event('timeupdate'))
+      } else if (fixture.event === 'focusin') {
+        element.querySelector('input')?.dispatchEvent(new Event('focusin', { bubbles: true }))
+      } else {
+        element.dispatchEvent(new Event(fixture.event, { bubbles: true, cancelable: true }))
+      }
     }
   } else {
     plugin = oneTrustPlugin({ category: options.category ?? 'C0002', debug: true })

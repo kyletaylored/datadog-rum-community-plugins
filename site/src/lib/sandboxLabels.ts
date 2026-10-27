@@ -26,7 +26,7 @@ export const STEP_LABELS: Record<string, string> = {
   removed_from_cart: 'Removes an item (classic theme)',
   order_received: 'Lands on the thank-you page',
 
-  // OneTrust consent states, keyed by fixture name since the event is always the same
+  // Engagement: the fixture name already reads as a shopper action, so these fall through to it.
 }
 
 /** OneTrust fixtures all share one event, so they are labelled by fixture name. */

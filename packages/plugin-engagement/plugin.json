@@ -1,0 +1,151 @@
+{
+  "name": "engagement",
+  "package": "@kyletaylored/datadog-rum-plugin-engagement",
+  "exportName": "engagementPlugin",
+  "version": "0.1.0",
+  "family": "engagement",
+  "title": "Engagement",
+  "description": "The events analytics tools capture automatically \u2014 scroll depth, outbound and contact clicks, file downloads, video plays and form submissions \u2014 with no instrumentation. Works on any site.",
+  "maintainer": {
+    "name": "Kyle Taylor",
+    "github": "kyletaylored"
+  },
+  "tier": "seed",
+  "schemaVersion": "1.1.0",
+  "rumSdk": ">=7.0.0 <8.0.0",
+  "platforms": [
+    {
+      "name": "Any website",
+      "notes": "No platform integration required. Reads only the DOM, so it works alongside a commerce or consent plugin."
+    }
+  ],
+  "install": {
+    "npm": true,
+    "cdn": true,
+    "platform": "Google Tag Manager Custom HTML tag"
+  },
+  "actions": [
+    "engagement.scroll",
+    "engagement.click",
+    "engagement.file_download",
+    "engagement.video_start",
+    "engagement.video_progress",
+    "engagement.video_complete",
+    "engagement.form_start",
+    "engagement.form_submit",
+    "lead.generate_lead"
+  ],
+  "options": [
+    {
+      "name": "scrollThresholds",
+      "type": "array",
+      "default": [
+        25,
+        50,
+        75,
+        90
+      ],
+      "description": "Depth percentages that fire engagement.scroll. Each fires once per view."
+    },
+    {
+      "name": "videoThresholds",
+      "type": "array",
+      "default": [
+        10,
+        25,
+        50,
+        75
+      ],
+      "description": "Progress percentages that fire engagement.video_progress."
+    },
+    {
+      "name": "downloadExtensions",
+      "type": "array",
+      "default": null,
+      "description": "Extensions treated as a download. Defaults to common documents, archives and media."
+    },
+    {
+      "name": "leadFormSelector",
+      "type": "string",
+      "default": "[data-dd-lead], form[data-lead]",
+      "description": "Forms matching this also emit lead.generate_lead on submit."
+    },
+    {
+      "name": "trackScroll",
+      "type": "boolean",
+      "default": true,
+      "description": "Scroll depth thresholds."
+    },
+    {
+      "name": "trackClicks",
+      "type": "boolean",
+      "default": true,
+      "description": "Outbound, mailto and tel clicks."
+    },
+    {
+      "name": "trackDownloads",
+      "type": "boolean",
+      "default": true,
+      "description": "File download clicks."
+    },
+    {
+      "name": "trackVideo",
+      "type": "boolean",
+      "default": true,
+      "description": "HTML5 video start, progress and completion."
+    },
+    {
+      "name": "trackForms",
+      "type": "boolean",
+      "default": true,
+      "description": "Form start and submit."
+    },
+    {
+      "name": "actionPrefix",
+      "type": "string",
+      "default": "commerce.",
+      "description": "Renames the commerce prefix only; engagement and lead keep their own."
+    },
+    {
+      "name": "consent",
+      "type": "string",
+      "default": "auto",
+      "description": "auto holds events until consent is granted, ignore defers to the host page."
+    },
+    {
+      "name": "beforeTrack",
+      "type": "function",
+      "default": null,
+      "description": "Edit or drop an event before it is sent."
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "default": false,
+      "description": "Log every mapped event to the console."
+    }
+  ],
+  "footprint": {
+    "globals": [
+      "document",
+      "window"
+    ],
+    "events": [
+      "scroll",
+      "click",
+      "play",
+      "timeupdate",
+      "ended",
+      "focusin",
+      "submit",
+      "popstate"
+    ],
+    "storageKeys": [],
+    "rumApis": [
+      "addAction",
+      "setGlobalContextProperty"
+    ],
+    "consentSource": null
+  },
+  "docs": "https://kyletaylored.github.io/datadog-rum-community-plugins/plugins/engagement/"
+}

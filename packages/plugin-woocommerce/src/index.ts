@@ -1,5 +1,6 @@
 import {
   createTracker,
+  COMMERCE_FAMILY,
   type CommonPluginOptions,
   type CustomerType,
   type PluginFootprint,
@@ -85,6 +86,7 @@ export function wooCommercePlugin(options: WooCommercePluginOptions = {}): RumPl
         platform: 'woocommerce',
         version: PLUGIN_VERSION,
         publicApi,
+        families: [COMMERCE_FAMILY],
         initConfiguration,
         options,
         footprint: FOOTPRINT,

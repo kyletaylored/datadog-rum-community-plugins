@@ -1,0 +1,130 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`conformance > matches the committed snapshot, and generates the published event list 1`] = `
+[
+  {
+    "api": "addAction",
+    "context": {
+      "link_domain": "partner.example.org",
+      "link_path": "/pricing",
+      "link_text": "See pricing",
+      "link_type": "outbound",
+      "outbound": true,
+    },
+    "name": "engagement.click",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "link_domain": "portal.example.org",
+      "link_path": "/account",
+      "link_text": "Open portal",
+      "link_type": "outbound",
+      "outbound": true,
+    },
+    "name": "engagement.click",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "link_text": "Email sales",
+      "link_type": "email",
+      "outbound": false,
+    },
+    "name": "engagement.click",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "link_text": "Call us",
+      "link_type": "phone",
+      "outbound": false,
+    },
+    "name": "engagement.click",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "file_extension": "pdf",
+      "file_name": "q3-report.pdf",
+      "link_domain": "shop.example.com",
+      "link_path": "/files/q3-report.pdf",
+      "link_text": "Download the Q3 report",
+    },
+    "name": "engagement.file_download",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "video_provider": "html5",
+      "video_title": "Product tour",
+    },
+    "name": "engagement.video_start",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "video_percent": 10,
+      "video_title": "Product tour",
+    },
+    "name": "engagement.video_progress",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "video_percent": 25,
+      "video_title": "Product tour",
+    },
+    "name": "engagement.video_progress",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "video_percent": 50,
+      "video_title": "Product tour",
+    },
+    "name": "engagement.video_progress",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "video_title": "Product tour",
+    },
+    "name": "engagement.video_complete",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "form_id": "newsletter",
+      "form_name": "Newsletter signup",
+    },
+    "name": "engagement.form_start",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "form_destination": "hooks.example.com",
+      "form_id": "newsletter",
+      "form_name": "Newsletter signup",
+    },
+    "name": "engagement.form_submit",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "form_id": "newsletter",
+      "form_name": "Newsletter signup",
+    },
+    "name": "lead.generate_lead",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "form_destination": "shop.example.com",
+      "form_id": "search",
+      "form_name": "Site search",
+    },
+    "name": "engagement.form_submit",
+  },
+]
+`;

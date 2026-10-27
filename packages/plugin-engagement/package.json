@@ -1,0 +1,52 @@
+{
+  "name": "@kyletaylored/datadog-rum-plugin-engagement",
+  "version": "0.1.0",
+  "description": "Datadog RUM plugin for Engagement. A personal community project, not provided or supported by Datadog.",
+  "author": "Kyle Taylor <kyle.taylor@datadoghq.com>",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kyletaylored/datadog-rum-community-plugins.git",
+    "directory": "packages/plugin-engagement"
+  },
+  "homepage": "https://kyletaylored.github.io/datadog-rum-community-plugins/plugins/engagement/",
+  "keywords": [
+    "datadog",
+    "rum",
+    "plugin",
+    "engagement"
+  ],
+  "files": [
+    "dist",
+    "src",
+    "plugin.json"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/plugin.js",
+  "jsdelivr": "./dist/plugin.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./plugin.json": "./plugin.json"
+  },
+  "scripts": {
+    "build": "vite build && vite build --config vite.config.cdn.ts"
+  },
+  "dependencies": {
+    "@kyletaylored/datadog-rum-community-plugins": "0.1.0"
+  },
+  "peerDependencies": {
+    "@datadog/browser-rum": ">=7.0.0 <8.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

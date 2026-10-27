@@ -1,0 +1,189 @@
+{
+  "generatedFrom": "fixture run via @kyletaylored/datadog-rum-test-harness; do not edit by hand",
+  "plugin": "engagement",
+  "actions": [
+    {
+      "name": "engagement.click",
+      "attributes": [
+        {
+          "name": "link_domain",
+          "type": "string"
+        },
+        {
+          "name": "link_path",
+          "type": "string"
+        },
+        {
+          "name": "link_text",
+          "type": "string"
+        },
+        {
+          "name": "link_type",
+          "type": "string"
+        },
+        {
+          "name": "outbound",
+          "type": "boolean"
+        }
+      ],
+      "occurrences": 4,
+      "example": {
+        "link_type": "outbound",
+        "outbound": true,
+        "link_text": "See pricing",
+        "link_domain": "partner.example.org",
+        "link_path": "/pricing"
+      }
+    },
+    {
+      "name": "engagement.file_download",
+      "attributes": [
+        {
+          "name": "file_extension",
+          "type": "string"
+        },
+        {
+          "name": "file_name",
+          "type": "string"
+        },
+        {
+          "name": "link_domain",
+          "type": "string"
+        },
+        {
+          "name": "link_path",
+          "type": "string"
+        },
+        {
+          "name": "link_text",
+          "type": "string"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "file_name": "q3-report.pdf",
+        "file_extension": "pdf",
+        "link_domain": "shop.example.com",
+        "link_path": "/files/q3-report.pdf",
+        "link_text": "Download the Q3 report"
+      }
+    },
+    {
+      "name": "engagement.form_start",
+      "attributes": [
+        {
+          "name": "form_id",
+          "type": "string"
+        },
+        {
+          "name": "form_name",
+          "type": "string"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "form_id": "newsletter",
+        "form_name": "Newsletter signup"
+      }
+    },
+    {
+      "name": "engagement.form_submit",
+      "attributes": [
+        {
+          "name": "form_destination",
+          "type": "string"
+        },
+        {
+          "name": "form_id",
+          "type": "string"
+        },
+        {
+          "name": "form_name",
+          "type": "string"
+        }
+      ],
+      "occurrences": 2,
+      "example": {
+        "form_id": "newsletter",
+        "form_name": "Newsletter signup",
+        "form_destination": "hooks.example.com"
+      }
+    },
+    {
+      "name": "engagement.video_complete",
+      "attributes": [
+        {
+          "name": "video_title",
+          "type": "string"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "video_title": "Product tour"
+      }
+    },
+    {
+      "name": "engagement.video_progress",
+      "attributes": [
+        {
+          "name": "video_percent",
+          "type": "integer"
+        },
+        {
+          "name": "video_title",
+          "type": "string"
+        }
+      ],
+      "occurrences": 3,
+      "example": {
+        "video_percent": 10,
+        "video_title": "Product tour"
+      }
+    },
+    {
+      "name": "engagement.video_start",
+      "attributes": [
+        {
+          "name": "video_provider",
+          "type": "string"
+        },
+        {
+          "name": "video_title",
+          "type": "string"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "video_title": "Product tour",
+        "video_provider": "html5"
+      }
+    },
+    {
+      "name": "lead.generate_lead",
+      "attributes": [
+        {
+          "name": "form_id",
+          "type": "string"
+        },
+        {
+          "name": "form_name",
+          "type": "string"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "form_id": "newsletter",
+        "form_name": "Newsletter signup"
+      }
+    }
+  ],
+  "globalContext": {
+    "commerce.platform": "engagement",
+    "commerce.plugin_version": "0.1.0",
+    "commerce.schema_version": "1.1.0"
+  },
+  "rumApis": [
+    "addAction",
+    "setGlobalContextProperty"
+  ]
+}

@@ -8,8 +8,16 @@ import { fromRoot, repoRoot } from './repo-root.mjs'
 
 const schema = JSON.parse(readFileSync(fromRoot('packages/core/schema/plugin-manifest.schema.json'), 'utf8'))
 const coreSchemaVersion = /SCHEMA_VERSION = '([^']+)'/.exec(
-  readFileSync(fromRoot('packages/core/src/schema/registry.ts'), 'utf8'),
+  readFileSync(fromRoot('packages/core/src/schema/keys.ts'), 'utf8'),
 )?.[1]
+
+// This cross-check reads the constant out of a source file, so a move silently turns it off —
+// which is exactly what happened when SCHEMA_VERSION moved out of registry.ts. Fail loudly
+// instead of reporting "valid against schema undefined".
+if (!coreSchemaVersion) {
+  console.error('could not read SCHEMA_VERSION from packages/core/src/schema/keys.ts — has it moved?')
+  process.exit(1)
+}
 
 const ajv = new Ajv({ allErrors: true, strict: false, formats: { uri: true } })
 const validate = ajv.compile(schema)

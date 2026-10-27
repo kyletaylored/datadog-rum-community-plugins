@@ -1,0 +1,79 @@
+{
+  "source": "Synthetic DOM interactions, not recorded platform payloads: this plugin reads the page itself, so its fixtures are the markup it reads. Several carry data that must never be sent — a mailto address, a tel number, an access token in a query string, a form with a password field — so the stripping is exercised rather than assumed.",
+  "fixtures": [
+    {
+      "name": "reads half the page",
+      "event": "scroll",
+      "payload": { "depth": 55 }
+    },
+    {
+      "name": "reads to the bottom",
+      "event": "scroll",
+      "payload": { "depth": 100 }
+    },
+    {
+      "name": "clicks an outbound link",
+      "event": "click",
+      "payload": { "html": "<a href=\"https://partner.example.org/pricing?utm_source=news\">See pricing</a>" }
+    },
+    {
+      "name": "clicks a link carrying an access token",
+      "description": "The query string holds a token. Only the host and path may be sent.",
+      "event": "click",
+      "payload": { "html": "<a href=\"https://portal.example.org/account?token=sk_live_9f2a&email=shopper%40example.com\">Open portal</a>" }
+    },
+    {
+      "name": "clicks an email address",
+      "description": "The href IS the personal data. Only the fact of the click may be sent.",
+      "event": "click",
+      "payload": { "html": "<a href=\"mailto:sales@example.com?subject=Demo\">Email sales</a>" }
+    },
+    {
+      "name": "clicks a phone number",
+      "event": "click",
+      "payload": { "html": "<a href=\"tel:+15551234567\">Call us</a>" }
+    },
+    {
+      "name": "clicks an internal link",
+      "description": "Already a RUM view; re-reporting it as an action would be noise.",
+      "event": "click",
+      "payload": { "html": "<a href=\"https://shop.example.com/about\">About</a>" }
+    },
+    {
+      "name": "downloads a report",
+      "event": "click",
+      "payload": { "html": "<a href=\"https://shop.example.com/files/q3-report.pdf?sig=abc123\">Download the Q3 report</a>" }
+    },
+    {
+      "name": "starts a video",
+      "event": "play",
+      "payload": { "html": "<video title=\"Product tour\" data-duration=\"212\"></video>" }
+    },
+    {
+      "name": "watches half the video",
+      "event": "timeupdate",
+      "payload": { "html": "<video title=\"Product tour\" data-duration=\"212\"></video>", "percent": 55 }
+    },
+    {
+      "name": "finishes the video",
+      "event": "ended",
+      "payload": { "html": "<video title=\"Product tour\" data-duration=\"212\"></video>" }
+    },
+    {
+      "name": "starts filling the newsletter form",
+      "event": "focusin",
+      "payload": { "html": "<form id=\"newsletter\" data-lead aria-label=\"Newsletter signup\" action=\"https://hooks.example.com/subscribe\"><input name=\"email\"><input type=\"password\" name=\"password\"></form>" }
+    },
+    {
+      "name": "submits the newsletter form",
+      "description": "A form marked data-lead, so it also counts as a lead. No field value is ever read.",
+      "event": "submit",
+      "payload": { "html": "<form id=\"newsletter\" data-lead aria-label=\"Newsletter signup\" action=\"https://hooks.example.com/subscribe\"><input name=\"email\" value=\"shopper@example.com\"><input type=\"password\" name=\"password\" value=\"hunter2\"></form>" }
+    },
+    {
+      "name": "submits an ordinary form",
+      "event": "submit",
+      "payload": { "html": "<form id=\"search\" aria-label=\"Site search\" action=\"/search\"><input name=\"q\" value=\"red tee medium\"></form>" }
+    }
+  ]
+}

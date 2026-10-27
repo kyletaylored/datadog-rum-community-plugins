@@ -3,14 +3,18 @@
 > A personal community project under [@kyletaylored](https://github.com/kyletaylored), MIT licensed.
 > **Not provided or supported by Datadog.**
 
-A library of Datadog Browser RUM plugins for commerce platforms, consent managers and login
-providers. Each plugin reads the platform's own events and turns them into RUM context and custom
-actions, so order count and revenue become Datadog metrics without writing tracking code.
+Custom RUM events, without the custom code.
 
-The Browser RUM SDK collects sessions, views, errors and long tasks on its own. Who the shopper is,
-which account they belong to and what was in the cart do not come for free — they need hand-written
-`setUser`, `setAccount`, `setGlobalContextProperty` and `addAction` calls, which many merchants on
-managed platforms cannot ship at all.
+Scroll depth, file downloads, video plays, newsletter signups, logins, orders — captured as Datadog
+RUM actions and metrics from one script tag. Nothing to instrument, no data layer to design.
+
+The Browser RUM SDK collects sessions, views, errors and long tasks on its own. What a visitor
+actually *did* does not come for free: it needs hand-written `addAction`, `setUser` and
+`setGlobalContextProperty` calls, which many teams on managed platforms cannot ship at all.
+
+Events use [GA4's names and parameters](https://developers.google.com/analytics/devguides/collection/ga4/ecommerce)
+behind a family prefix, so a marketing or product team arriving from GA4, Matomo or Plausible
+recognises them on sight.
 
 **Status: Phase 0.** The core, the harness, three adapters, the asset pack, the build and release
 pipeline and the site are in place. Nothing is published to npm yet.
@@ -70,11 +74,13 @@ DD_RUM.init({
 | Package | What it does | CDN gzip |
 | --- | --- | --- |
 | [`@kyletaylored/datadog-rum-community-plugins`](packages/core) | Shared core: schemas, dedupe, consent gate, PII filter, debug log | — |
-| [`@kyletaylored/datadog-rum-plugin-shopify`](packages/plugin-shopify) | Checkout events, order value and identity from Web Pixels | 4.96 KB |
-| [`@kyletaylored/datadog-rum-plugin-woocommerce`](packages/plugin-woocommerce) | Cart, checkout and order events from Woo's DOM events | 4.62 KB |
+| [`@kyletaylored/datadog-rum-plugin-engagement`](packages/plugin-engagement) | **The generic kit.** Scroll depth, downloads, outbound and contact clicks, video, forms — any site, zero config | 5.15 KB |
+| [`@kyletaylored/datadog-rum-plugin-shopify`](packages/plugin-shopify) | Checkout events, order value and identity from Web Pixels | 4.99 KB |
+| [`@kyletaylored/datadog-rum-plugin-woocommerce`](packages/plugin-woocommerce) | Cart, checkout and order events from Woo's DOM events | 4.66 KB |
 | [`@kyletaylored/datadog-rum-plugin-onetrust`](packages/plugin-onetrust) | Holds RUM until the OneTrust analytics category is accepted | 1.65 KB |
 
-CI fails any adapter over 5 KB gzip.
+CI enforces a 5 KB gzip budget per plugin; the engagement kit declares 6 KB, because it is five
+trackers rather than an event mapper. See `BUDGET_OVERRIDES_KB` in `scripts/size-check.mjs`.
 
 ## The event model
 
@@ -83,10 +89,15 @@ behind a family prefix, and attributes are GA4's parameters. There is no second 
 site already pushing GA4 ecommerce data maps one to one.
 
 ```
+engagement.scroll         engagement.video_start      engagement.form_start
+engagement.click          engagement.video_progress   engagement.form_submit
+engagement.file_download  engagement.video_complete
+
 commerce.view_item_list   commerce.view_cart          commerce.add_payment_info
 commerce.view_item        commerce.begin_checkout     commerce.purchase
 commerce.add_to_cart      commerce.add_shipping_info  commerce.search
 commerce.remove_from_cart
+
 account.login  account.sign_up  account.logout  lead.generate_lead  support.chat_opened
 ```
 

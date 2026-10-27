@@ -1,5 +1,5 @@
 import type { ConsentState, RumInitConfigurationLike, RumPublicApi } from '../types.js'
-import { GLOBAL_CONTEXT_KEYS } from '../schema/registry.js'
+import { GLOBAL_CONTEXT_KEYS } from '../schema/keys.js'
 
 /**
  * Holds every event until consent is granted.

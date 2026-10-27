@@ -60,7 +60,7 @@ describe('with the real browser-rum SDK', () => {
   it('carries the store and platform context the plugin set globally', () => {
     expect(purchases[0]?.context).toMatchObject({
       'commerce.platform': 'woocommerce',
-      'commerce.schema_version': '1.0.0',
+      'commerce.schema_version': '1.1.0',
       'store.id': 'shop.example.com',
       'store.currency': 'USD',
       'customer.type': 'returning',

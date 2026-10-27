@@ -1,5 +1,6 @@
 import {
   createTracker,
+  COMMERCE_FAMILY,
   type CommonPluginOptions,
   type PluginFootprint,
   type RumPlugin,
@@ -95,6 +96,7 @@ export function shopifyPlugin(options: ShopifyPluginOptions = {}): RumPlugin {
         platform: 'shopify',
         version: PLUGIN_VERSION,
         publicApi,
+        families: [COMMERCE_FAMILY],
         // Consent is read from Shopify's own Customer Privacy API below, so the gate is not
         // handed `initConfiguration`: the official plugin owns the init options.
         options,

@@ -1,5 +1,5 @@
 import {
-  ALL_ACTION_NAMES,
+  allActionNames,
   FAMILIES,
   ITEM_FIELDS,
   MAX_ITEMS,
@@ -49,7 +49,7 @@ export function checkConformance(input: ConformanceInput): ConformanceResult {
   const actions = rum.actions()
 
   // ---- Action names -------------------------------------------------------
-  const allowedNames = new Set(ALL_ACTION_NAMES)
+  const allowedNames = new Set(allActionNames())
   if (prefix !== 'commerce.') {
     for (const action of FAMILIES.commerce.actions) allowedNames.add(`${prefix}${action.event}`)
   }

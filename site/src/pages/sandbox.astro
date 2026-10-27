@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro'
 import { url } from '../lib/url'
 import plugins from '../data/plugins.json'
 
-const order = ['shopify', 'woocommerce', 'onetrust']
+const order = ['engagement', 'shopify', 'woocommerce', 'onetrust']
 const runnable = order
   .map((name) => plugins.find((plugin) => plugin.name === name))
   .filter((plugin) => plugin !== undefined)
@@ -266,6 +266,30 @@ const runnable = order
      * for. Telling someone to go and set four checkboxes is how the previous version lost people.
      */
     const PRESETS: Record<string, { label: string; apply: () => void; note: string }[]> = {
+      engagement: [
+        {
+          label: 'A visit, end to end',
+          // The kit has no consent source of its own — it expects to be paired with a consent
+          // plugin — so these presets assume the banner was accepted.
+          apply: () => { option('consentIgnore').checked = true },
+          note: 'Every step is a real interaction on a page. Watch the contact clicks: an email and a phone link report only that a click happened, never the address.',
+        },
+        {
+          label: 'Links carrying secrets',
+          apply: () => { option('consentIgnore').checked = true },
+          note: 'Two of these links carry an access token and a signed URL in their query strings. Only the host and path arrive — the query is dropped, not truncated.',
+        },
+        {
+          label: 'A form with a password in it',
+          apply: () => { option('consentIgnore').checked = true },
+          note: 'The newsletter form has a filled email and password field. Its identity and destination host arrive; no field value does, on start or on submit.',
+        },
+        {
+          label: 'Cookie banner unanswered',
+          apply: () => {},
+          note: 'Pair it with a consent plugin and nothing is sent until the visitor accepts — every interaction is refused, with the reason.',
+        },
+      ],
       shopify: [
         {
           label: 'Happy path',

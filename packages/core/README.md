@@ -85,7 +85,7 @@ runtime. `schema.test.ts` asserts the two stay in agreement, so the split cannot
 | `createConsentGate` | A consent adapter that emits no actions of its own |
 | `createDedupe`, `DEDUPE_STORAGE_KEY`, `DEDUPE_TTL_MS` | Tests, and adapters needing a second dedupe namespace |
 | `sanitizeContext`, `sanitizeItems`, `isBlockedKey`, `money`, `count`, `text` | Mapping helpers; `money` rounds to cents so floating-point noise never reaches a distribution metric |
-| `FAMILIES`, `COMMERCE`, `ACCOUNT`, `LEAD`, `SUPPORT`, `ALL_ACTION_NAMES` | Docs generation and the conformance suite |
+| `FAMILIES`, `COMMERCE`, `ACCOUNT`, `LEAD`, `SUPPORT`, `allActionNames()` | Docs generation and the conformance suite |
 | `GLOBAL_CONTEXT_KEYS`, `SCHEMA_VERSION`, `MAX_ITEMS`, `MAX_STRING_LENGTH` | Both |
 | `PluginManifest`, `PluginFootprint`, `RumPlugin`, `RumPublicApi` | Types |
 

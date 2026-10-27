@@ -1,6 +1,7 @@
 import {
   ACCOUNT_ATTRIBUTES,
   COMMERCE_ATTRIBUTES,
+  ENGAGEMENT_ATTRIBUTES,
   LEAD_ATTRIBUTES,
   SUPPORT_ATTRIBUTES,
   type AttributeSpec,
@@ -9,17 +10,27 @@ import {
 export * from './attributes.js'
 export * from './registry.js'
 
-import { FAMILY_EVENTS, FAMILY_PREFIX, bareEvent, type FamilyName } from './registry.js'
+import {
+  ACCOUNT_FAMILY,
+  COMMERCE_FAMILY,
+  ENGAGEMENT_FAMILY,
+  LEAD_FAMILY,
+  SUPPORT_FAMILY,
+  allFamilies,
+  bareEvent,
+  type FamilyName,
+} from './registry.js'
 
 /**
  * Every valid action name with its default prefix, e.g. `commerce.purchase`.
  *
- * Lives here rather than in the runtime registry: only the conformance suite and the docs
- * generator need it, and computing it at module load put a dead expression in every CDN bundle.
+ * A function, not a constant. Only the conformance suite and the docs generator need it, and as a
+ * top-level `flatMap` it counted as a side effect — which kept every family's event names in every
+ * plugin's CDN bundle, however little of the schema that plugin emits.
  */
-export const ALL_ACTION_NAMES: string[] = (Object.keys(FAMILY_EVENTS) as FamilyName[]).flatMap((family) =>
-  FAMILY_EVENTS[family].map((event) => `${FAMILY_PREFIX[family]}${event}`),
-)
+export function allActionNames(): string[] {
+  return allFamilies().flatMap((family) => family.events.map((event) => `${family.prefix}${event}`))
+}
 
 export interface ActionSpec {
   /** Name without the family prefix, as GA4 spells it where GA4 has an equivalent. */
@@ -41,7 +52,7 @@ export interface FamilySpec {
 
 export const COMMERCE: FamilySpec = {
   family: 'commerce',
-  prefix: FAMILY_PREFIX.commerce,
+  prefix: COMMERCE_FAMILY.prefix,
   attributes: COMMERCE_ATTRIBUTES,
   actions: [
     { event: 'view_item_list', ga4: 'view_item_list', firesWhen: 'Collection or category page shown', keyAttributes: ['item_list_name', 'items'] },
@@ -57,9 +68,30 @@ export const COMMERCE: FamilySpec = {
   ],
 }
 
+/**
+ * Engagement: the events analytics tools capture automatically — scroll depth, downloads,
+ * outbound and contact clicks, video, forms. The point of the family is that a site gets them
+ * with no instrumentation, which is also why none of them may carry a URL or a field value.
+ */
+export const ENGAGEMENT: FamilySpec = {
+  family: 'engagement',
+  prefix: ENGAGEMENT_FAMILY.prefix,
+  attributes: ENGAGEMENT_ATTRIBUTES,
+  actions: [
+    { event: 'scroll', ga4: 'scroll', firesWhen: 'The visitor reaches a depth threshold', keyAttributes: ['percent_scrolled'] },
+    { event: 'click', ga4: 'click', firesWhen: 'An outbound, mailto or tel link is clicked', keyAttributes: ['link_domain', 'link_type', 'outbound'] },
+    { event: 'file_download', ga4: 'file_download', firesWhen: 'A link to a document, archive or media file is clicked', keyAttributes: ['file_name', 'file_extension', 'link_domain'] },
+    { event: 'video_start', ga4: 'video_start', firesWhen: 'A video begins playing', keyAttributes: ['video_title', 'video_provider', 'video_duration'] },
+    { event: 'video_progress', ga4: 'video_progress', firesWhen: 'A video passes a progress threshold', keyAttributes: ['video_percent', 'video_title'] },
+    { event: 'video_complete', ga4: 'video_complete', firesWhen: 'A video reaches the end', keyAttributes: ['video_title'] },
+    { event: 'form_start', ga4: 'form_start', firesWhen: 'The visitor first interacts with a form', keyAttributes: ['form_id', 'form_name'] },
+    { event: 'form_submit', ga4: 'form_submit', firesWhen: 'A form is submitted', keyAttributes: ['form_id', 'form_name', 'form_destination'] },
+  ],
+}
+
 export const ACCOUNT: FamilySpec = {
   family: 'account',
-  prefix: FAMILY_PREFIX.account,
+  prefix: ACCOUNT_FAMILY.prefix,
   attributes: ACCOUNT_ATTRIBUTES,
   actions: [
     { event: 'login', ga4: 'login', firesWhen: 'Auth state becomes signed in', keyAttributes: ['method'] },
@@ -70,7 +102,7 @@ export const ACCOUNT: FamilySpec = {
 
 export const LEAD: FamilySpec = {
   family: 'lead',
-  prefix: FAMILY_PREFIX.lead,
+  prefix: LEAD_FAMILY.prefix,
   attributes: LEAD_ATTRIBUTES,
   actions: [
     { event: 'generate_lead', ga4: 'generate_lead', firesWhen: 'A lead form is submitted', keyAttributes: ['form_id', 'form_name'] },
@@ -79,7 +111,7 @@ export const LEAD: FamilySpec = {
 
 export const SUPPORT: FamilySpec = {
   family: 'support',
-  prefix: FAMILY_PREFIX.support,
+  prefix: SUPPORT_FAMILY.prefix,
   attributes: SUPPORT_ATTRIBUTES,
   actions: [
     { event: 'chat_opened', ga4: null, firesWhen: 'The support widget is shown', keyAttributes: ['provider'] },
@@ -88,6 +120,7 @@ export const SUPPORT: FamilySpec = {
 
 export const FAMILIES: Record<FamilyName, FamilySpec> = {
   commerce: COMMERCE,
+  engagement: ENGAGEMENT,
   account: ACCOUNT,
   lead: LEAD,
   support: SUPPORT,

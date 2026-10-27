@@ -1,4 +1,4 @@
-import { ITEM_FIELDS } from '../schema/registry.js'
+import { ITEM_FIELDS } from '../schema/keys.js'
 
 /** Caps from the PRD's privacy rules. Enforced for every adapter, not per adapter. */
 export const MAX_ITEMS = 20

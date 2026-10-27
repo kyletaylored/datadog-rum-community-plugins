@@ -404,7 +404,7 @@
   "globalContext": {
     "commerce.platform": "shopify",
     "commerce.plugin_version": "0.1.0",
-    "commerce.schema_version": "1.0.0"
+    "commerce.schema_version": "1.1.0"
   },
   "rumApis": [
     "addAction",

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
-  ALL_ACTION_NAMES,
+  allActionNames,
   COMMERCE,
   FAMILIES,
-  FAMILY_EVENTS,
-  FAMILY_PREFIX,
+  familyEvents,
+  familyPrefixes,
   actionSpec,
   bareEvent,
   familyNameOf,
@@ -16,15 +16,15 @@ describe('registry and spec stay in agreement', () => {
   // The runtime registry is deliberately a separate, metadata-free copy so the CDN build stays
   // under its size budget. These assertions are what keeps the two from drifting apart.
   it.each(Object.keys(FAMILIES) as FamilyName[])('%s lists the same events in both', (family) => {
-    expect(FAMILIES[family].actions.map((action) => action.event)).toEqual([...FAMILY_EVENTS[family]])
+    expect(FAMILIES[family].actions.map((action) => action.event)).toEqual([...familyEvents()[family]])
   })
 
   it.each(Object.keys(FAMILIES) as FamilyName[])('%s uses the same prefix in both', (family) => {
-    expect(FAMILIES[family].prefix).toBe(FAMILY_PREFIX[family])
+    expect(FAMILIES[family].prefix).toBe(familyPrefixes()[family])
   })
 
   it('resolves every action name to the same family through both paths', () => {
-    for (const name of ALL_ACTION_NAMES) {
+    for (const name of allActionNames()) {
       expect(familyNameOf(name)).toBe(familyOf(name)?.family)
     }
   })
@@ -32,10 +32,10 @@ describe('registry and spec stay in agreement', () => {
 
 describe('schema shape', () => {
   it('names commerce actions after GA4, behind the commerce prefix', () => {
-    expect(ALL_ACTION_NAMES).toContain('commerce.purchase')
-    expect(ALL_ACTION_NAMES).toContain('commerce.add_to_cart')
-    expect(ALL_ACTION_NAMES).toContain('account.login')
-    expect(ALL_ACTION_NAMES).toContain('lead.generate_lead')
+    expect(allActionNames()).toContain('commerce.purchase')
+    expect(allActionNames()).toContain('commerce.add_to_cart')
+    expect(allActionNames()).toContain('account.login')
+    expect(allActionNames()).toContain('lead.generate_lead')
   })
 
   it('never offers search_term, only its length', () => {

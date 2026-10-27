@@ -9,78 +9,69 @@
  * `families.test.ts` asserts this registry and the full `FAMILIES` spec stay in agreement.
  */
 
-/** Bumped by RFC. Adapters declare the version they emit in `plugin.json`. */
-export const SCHEMA_VERSION = '1.0.0'
 
-export type FamilyName = 'commerce' | 'account' | 'lead' | 'support'
+import {
+  ACCOUNT_FAMILY,
+  COMMERCE_FAMILY,
+  ENGAGEMENT_FAMILY,
+  LEAD_FAMILY,
+  SUPPORT_FAMILY,
+} from './families/index.js'
 
-/** Bare event names per family, in the order the docs list them. */
-export const FAMILY_EVENTS: Record<FamilyName, readonly string[]> = {
-  commerce: [
-    'view_item_list',
-    'view_item',
-    'add_to_cart',
-    'remove_from_cart',
-    'view_cart',
-    'begin_checkout',
-    'add_shipping_info',
-    'add_payment_info',
-    'purchase',
-    'search',
-  ],
-  account: ['login', 'sign_up', 'logout'],
-  lead: ['generate_lead'],
-  support: ['chat_opened'],
+export type { RuntimeFamily } from './families/types.js'
+
+import type { RuntimeFamily } from './families/types.js'
+type RuntimeFamilyList = readonly RuntimeFamily[]
+export * from './keys.js'
+
+import { bareEvent } from './keys.js'
+export * from './families/index.js'
+
+export type FamilyName = 'commerce' | 'engagement' | 'account' | 'lead' | 'support'
+
+
+
+/**
+ * Every family, for tooling: the docs generator, the conformance suite and the schema tests.
+ *
+ * A function, not an array. Any eager structure that touches all five families — an array, or a
+ * map built from `FAMILY.events` — survives bundling even when unused, because a bundler cannot
+ * prove a property read on an imported object has no side effect. That left every family's event
+ * names in every plugin's CDN bundle. Inside a function body, nothing is evaluated until called,
+ * and an uncalled function is dropped outright.
+ */
+export function allFamilies(): RuntimeFamilyList {
+  return [COMMERCE_FAMILY, ENGAGEMENT_FAMILY, ACCOUNT_FAMILY, LEAD_FAMILY, SUPPORT_FAMILY]
 }
 
-export const FAMILY_PREFIX: Record<FamilyName, string> = {
-  commerce: 'commerce.',
-  account: 'account.',
-  lead: 'lead.',
-  support: 'support.',
+/** Bare event names per family. Tooling only. */
+export function familyEvents(): Record<FamilyName, readonly string[]> {
+  const out = {} as Record<FamilyName, readonly string[]>
+  for (const family of allFamilies()) out[family.name] = family.events
+  return out
 }
 
-const EVENT_TO_FAMILY: Record<string, FamilyName> = (() => {
-  const map: Record<string, FamilyName> = {}
-  for (const family of Object.keys(FAMILY_EVENTS) as FamilyName[]) {
-    for (const event of FAMILY_EVENTS[family]) map[event] = family
-  }
-  return map
-})()
-
-/** Strip a family prefix, so `commerce.purchase`, `shop.purchase` and `purchase` all resolve. */
-export function bareEvent(nameOrEvent: string): string {
-  const dot = nameOrEvent.indexOf('.')
-  return dot === -1 ? nameOrEvent : nameOrEvent.slice(dot + 1)
+/** Default prefix per family. Tooling only. */
+export function familyPrefixes(): Record<FamilyName, string> {
+  const out = {} as Record<FamilyName, string>
+  for (const family of allFamilies()) out[family.name] = family.prefix
+  return out
 }
+
+let eventToFamily: Record<string, FamilyName> | undefined
+
 
 /** The family a bare or prefixed event belongs to, or `undefined` when it is not in the schema. */
 export function familyNameOf(nameOrEvent: string): FamilyName | undefined {
-  return EVENT_TO_FAMILY[bareEvent(nameOrEvent)]
+  if (!eventToFamily) {
+    eventToFamily = {}
+    for (const family of allFamilies()) {
+      for (const event of family.events) eventToFamily[event] = family.name
+    }
+  }
+  return eventToFamily[bareEvent(nameOrEvent)]
 }
 
-/** Global context keys the core sets. Never high cardinality: no order, cart or user IDs. */
-export const GLOBAL_CONTEXT_KEYS = {
-  platform: 'commerce.platform',
-  pluginVersion: 'commerce.plugin_version',
-  schemaVersion: 'commerce.schema_version',
-  storeId: 'store.id',
-  storeCurrency: 'store.currency',
-  storeLocale: 'store.locale',
-  customerType: 'customer.type',
-  consentCategories: 'consent.categories',
-} as const
 
-export type CustomerType = 'guest' | 'new' | 'returning'
 
-/** GA4 item fields allowed inside `items[]`. Anything else is dropped by the core's filter. */
-export const ITEM_FIELDS = [
-  'item_id',
-  'item_name',
-  'price',
-  'quantity',
-  'item_variant',
-  'item_category',
-] as const
 
-export type ItemField = (typeof ITEM_FIELDS)[number]

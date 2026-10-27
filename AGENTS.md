@@ -1,6 +1,8 @@
 # Agent Guide: `datadog-rum-community-plugins`
 
-A community-maintained library of Datadog Browser RUM plugins. Each plugin reads events from a platform (Shopify, WooCommerce, OneTrust, Auth0, …) and turns them into RUM context and custom actions, so a site gets user identity, consent handling and commerce metrics without writing custom code.
+A community-maintained library of Datadog Browser RUM plugins. Each plugin reads events from a platform (Shopify, WooCommerce, OneTrust, Auth0, …) — or, in the generic kit's case, from the page itself — and turns them into RUM context and custom actions, so a site gets engagement, identity, consent handling and commerce metrics without writing custom code.
+
+**Positioning:** this is not a commerce library. The pitch is *custom RUM events without the custom code*, and the audience includes marketing and product teams arriving from GA4, Matomo or Plausible — which is why the schema uses GA4's names and why the engagement kit exists. Don't narrow the framing back to orders and revenue.
 
 This is a **personal community project** under `@kyletaylored`, not an official Datadog product. Never present it as Datadog-provided or Datadog-supported.
 
@@ -27,7 +29,8 @@ Don't reopen these without the maintainer asking.
 | Repo | `kyletaylored/datadog-rum-community-plugins`, one npm-workspaces monorepo |
 | npm names | Core: `@kyletaylored/datadog-rum-community-plugins`. Each plugin: `@kyletaylored/datadog-rum-plugin-<name>`. Never `@datadog/*`. |
 | CDN | jsDelivr from npm, exact version plus SRI hash. Builds register on `window.DD_RUM_PLUGINS.<name>()`. Never document an unpinned URL. |
-| Event names | GA4 recommended event names behind a family prefix: `commerce.purchase`, `commerce.add_to_cart`, `account.login`, `lead.generate_lead`. No custom aliases. |
+| Event names | GA4 recommended event names behind a family prefix: `commerce.purchase`, `engagement.scroll`, `account.login`, `lead.generate_lead`. No custom aliases. |
+| Generic kit | `plugin-engagement` reads the page, not a platform: scroll depth, outbound and contact clicks, downloads, video, forms. Zero config, works anywhere, composes with the platform plugins. |
 | Attributes | GA4 parameter names (`value`, `currency`, `transaction_id`, `items[]`). Extensions only where GA4 has no field (`item_count`, `unique_items`, `cart_id`, `search_term_length`). |
 | Currency | Keep the store currency on every event and tag metrics by `currency`. No conversion in the browser. |
 | Accuracy | Client-side and directional. Never claim to replace the platform's order reporting. No server-side or webhook capture. |
@@ -92,9 +95,19 @@ test can stand in for.
 - **Shopify opts out when `analytics` is missing**, the way the official plugin does off a checkout page, so a misconfigured install looks misconfigured instead of silently sending nothing.
 - **`fixtures/.generated/events.json` is committed.** The adapter's own snapshot test writes it, the site renders it, and `CI=true` makes it read-only so a mapping change without a regenerated report fails the build.
 
+### Decisions made after Phase 0
+
+- **Schema 1.1.0 adds the `engagement` family** (scroll, click, file_download, video_start/progress/complete, form_start/submit). Additive, so 1.0.0 plugins stay conformant.
+- **No URLs in engagement events.** GA4 sends `link_url`; this schema sends `link_domain` + `link_path` with the query and fragment dropped, because a URL carries tokens and emails. A `mailto:`/`tel:` click reports `link_type` only — the address is the personal data. No form field is ever read.
+- **Families are per-module and declared per plugin.** `createTracker({ families: [COMMERCE_FAMILY] })`. Before this, the tracker validated against a map of every family, so *adding* a family silently grew every plugin's CDN bundle — adding `engagement` pushed two plugins over the 5 KB budget at once. Any eager structure spanning all families (an array, a map built from `FAMILY.events`, a top-level `flatMap`) survives bundling because a bundler cannot prove a property read on an imported object is side-effect free, so these are all functions now: `allFamilies()`, `familyEvents()`, `allActionNames()`.
+- **Per-plugin size budgets.** 5 KB stays the default for a platform adapter. `plugin-engagement` declares 6 KB in `BUDGET_OVERRIDES_KB` (`scripts/size-check.mjs`) with the reason recorded: it is five trackers plus the DOM readers, not an event mapper.
+- **Release needs the repo to allow Actions to create PRs.** Enabled, with `default_workflow_permissions` left at `read` since every workflow declares its own. The workflow also prefers `RELEASE_TOKEN` over `GITHUB_TOKEN`, and ignores `site/**`, `docs/**` and root `*.md` so a site change does not wake it.
+
 ### Watch items
 
-- **The Shopify adapter is at 4.96 KB against the 5 KB gzip budget.** The next mapping added to it will need the budget revisited or the adapter trimmed; `npm run size` is the check.
+- **Shopify sits at 4.99 KB against its 5 KB budget.** The per-family split bought the headroom back once; there is no second trick of that size. The next mapping added to it needs either a trim or a declared budget.
+- **Engagement video is HTML5 only.** YouTube and Vimeo are iframes needing their player APIs; `video_provider` exists so they can be added without a schema change.
+- **Engagement scroll thresholds reset on `popstate`, not on a `pushState` route change.** Observing that means patching `history`, which the plugin will not do to a merchant's page.
 - **OneTrust's callback names are still unconfirmed against vendor docs**, as the PRD flagged. The adapter listens on all four known signals and reads the state directly as a fallback, so one firing is enough — but this should still be checked against OneTrust's own documentation.
 
 ## Reference repos

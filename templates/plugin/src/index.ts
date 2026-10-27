@@ -1,5 +1,6 @@
 import {
   createTracker,
+  COMMERCE_FAMILY,
   type CommonPluginOptions,
   type PluginFootprint,
   type RumPlugin,
@@ -48,6 +49,8 @@ export function __NAME_FN__Plugin(options: __TITLE_CONST__PluginOptions = {}): R
         platform: '__NAME__',
         version: PLUGIN_VERSION,
         publicApi,
+        // The families this plugin emits. Import only the ones you use.
+        families: [COMMERCE_FAMILY],
         initConfiguration,
         options,
         footprint: FOOTPRINT,

@@ -4,7 +4,7 @@ import Icon from '../../components/Icon.astro'
 import { url } from '../../lib/url'
 import plugins from '../../data/plugins.json'
 
-const order = ['shopify', 'woocommerce', 'onetrust']
+const order = ['engagement', 'shopify', 'woocommerce', 'onetrust']
 const sorted = [
   ...order.map((name) => plugins.find((plugin) => plugin.name === name)).filter((p) => p !== undefined),
   ...plugins.filter((plugin) => !order.includes(plugin.name)),
@@ -12,13 +12,18 @@ const sorted = [
 
 const families = [...new Set(plugins.map((plugin) => plugin.family))].sort()
 const tierLabel: Record<string, string> = { seed: 'Maintainer', verified: 'Verified', listed: 'Community' }
-const familyIcon: Record<string, 'cart' | 'shield' | 'user' | 'puzzle'> = {
+const familyIcon: Record<string, 'cart' | 'shield' | 'user' | 'puzzle' | 'bolt'> = {
   commerce: 'cart',
+  engagement: 'bolt',
   consent: 'shield',
   identity: 'user',
 }
 
 const planned = [
+  { name: 'YouTube & Vimeo embeds', family: 'engagement' },
+  { name: 'Intercom / Zendesk chat', family: 'support' },
+  { name: 'HubSpot & Marketo forms', family: 'lead' },
+  { name: 'GA4 dataLayer bridge', family: 'engagement' },
   { name: 'Adobe Commerce', family: 'commerce' },
   { name: 'BigCommerce', family: 'commerce' },
   { name: 'Salesforce Commerce', family: 'commerce' },
@@ -34,7 +39,8 @@ const planned = [
   <div class="wrap">
     <h1>Plugins</h1>
     <p class="lede">
-      Pick your platform. Every plugin sends the same events, so one dashboard works across all of them.
+      The generic kit works on any site. Platform plugins add orders, consent and identity. All of
+      them speak the same schema, so one dashboard works across the lot.
     </p>
 
     <div class="grid" style="margin-top:1.75rem">

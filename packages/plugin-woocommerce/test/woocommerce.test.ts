@@ -169,11 +169,12 @@ describe('checkout reporter', () => {
     const { rum } = await run()
     const cart = (cartFixtures[0]!.payload as { cart: Record<string, unknown> }).cart
     const { createCheckoutReporter } = await import('../src/index.js')
-    const { createTracker } = await import('@kyletaylored/datadog-rum-community-plugins')
+    const { createTracker, COMMERCE_FAMILY } = await import('@kyletaylored/datadog-rum-community-plugins')
     const tracker = createTracker({
       platform: 'woocommerce',
       version: '0.1.0',
       publicApi: rum.publicApi,
+      families: [COMMERCE_FAMILY],
       options: { consent: 'ignore' },
       footprint: { globals: [], events: [], rumApis: [], consentSource: null },
     })
