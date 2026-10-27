@@ -3,6 +3,13 @@ name: Release
 on:
   push:
     branches: [main]
+    # A site or docs push cannot change what is published, so it should not wake the release job.
+    # Three of the first four runs were exactly that. `.changeset/*.md` is deliberately NOT covered
+    # by `*.md`, which matches root-level markdown only — a new changeset must still trigger this.
+    paths-ignore:
+      - 'site/**'
+      - 'docs/**'
+      - '*.md'
   workflow_dispatch:
 
 permissions:
@@ -31,6 +38,12 @@ jobs:
           registry-url: https://registry.npmjs.org
           cache: npm
 
+      - name: Check release prerequisites
+        run: |
+          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "::warning title=NPM_TOKEN not set::A release PR can still be opened, but merging it cannot publish. Add the NPM_TOKEN secret before merging."
+          fi
+
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npm run build
@@ -52,7 +65,11 @@ jobs:
           commit-message: 'chore: version packages'
           pr-title: 'chore: version packages'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Changesets opens the release PR. The default GITHUB_TOKEN can only do that when the
+          # repository allows Actions to create pull requests (Settings → Actions → General →
+          # Workflow permissions). Where that is switched off, add a RELEASE_TOKEN secret — a PAT
+          # with `repo` scope — and this picks it up instead, with no workflow change.
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: 'true'
 
