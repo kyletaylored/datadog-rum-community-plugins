@@ -11,6 +11,22 @@ interface Props {
 
 const { name, pkg, version, fnName, platform } = Astro.props
 
+// CDN first: on Shopify, Squarespace, Wix, GTM and most WordPress installs a merchant can paste a
+// script tag but cannot run a build, so npm is the minority path.
+const cdnSnippet = `<script src="https://www.datadoghq-browser-agent.com/us1/v6/datadog-rum.js"></script>
+<script src="${cdnUrl(pkg, version)}"
+        integrity="sha384-REPLACE_FROM_RELEASE" crossorigin="anonymous"></script>
+<script>
+  window.DD_RUM.init({
+    applicationId: 'YOUR_APPLICATION_ID',
+    clientToken: 'YOUR_CLIENT_TOKEN',
+    site: 'datadoghq.com',
+    service: 'storefront',
+    sessionSampleRate: 100,
+    plugins: [window.DD_RUM_PLUGINS['${name}']()],
+  })
+</script>`
+
 const npmSnippet = `import { datadogRum } from '@datadog/browser-rum'
 import { ${fnName} } from '${pkg}'
 
@@ -19,16 +35,9 @@ datadogRum.init({
   plugins: [${fnName}()],
 })`
 
-const cdnSnippet = `<script src="https://www.datadoghq-browser-agent.com/<site>/v6/datadog-rum.js"></script>
-<script src="${cdnUrl(pkg, version)}"
-        integrity="sha384-REPLACE_WITH_THE_HASH_FROM_THE_RELEASE" crossorigin="anonymous"></script>
-<script>
-  DD_RUM.init({ /* ... */, plugins: [DD_RUM_PLUGINS['${name}']()] })
-</script>`
-
 const tabs = [
+  { id: 'cdn', label: 'CDN (script tag)', code: cdnSnippet },
   { id: 'npm', label: 'npm', code: npmSnippet },
-  { id: 'cdn', label: 'CDN', code: cdnSnippet },
 ]
 ---
 
@@ -45,14 +54,14 @@ const tabs = [
   ))}
 
   <p class="small muted">
-    The CDN URL is pinned to an exact version and needs the <code>integrity</code> hash from that
-    release; there is no auto-updating <code>latest</code> URL.
-    {platform && <> Platform path: <strong>{platform}</strong>.</>}
+    Paste both tags before <code>&lt;/head&gt;</code>. Replace <code>us1</code> with your Datadog site
+    and take the <code>integrity</code> hash from the release — the version is pinned on purpose, and
+    there is no <code>latest</code> URL.
+    {platform && <> On this platform the usual route is: <strong>{platform}</strong>.</>}
   </p>
 </div>
 
 <script>
-  // Progressive enhancement: with JS off, the first panel is the one shown.
   for (const group of document.querySelectorAll('[data-install]')) {
     group.addEventListener('click', (event) => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-tab]')

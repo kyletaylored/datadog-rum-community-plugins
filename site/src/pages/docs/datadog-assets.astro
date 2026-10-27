@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro'
+import { url } from '../../lib/url'
 
 const repo = 'https://github.com/kyletaylored/datadog-rum-community-plugins/blob/main/assets'
 
@@ -16,7 +17,7 @@ const metrics = [
 ]
 ---
 
-<Base title="Datadog assets" description="Generated metrics, a dashboard and monitors that work on any plugin's data.">
+<Base title="Datadog assets" description="Generated metrics, a dashboard and monitors that work on any plugin's data." docs>
   <h1>Datadog assets</h1>
   <p class="lede">
     Because every adapter emits the same schema, one asset pack works for all platforms. It ships as
@@ -85,4 +86,15 @@ const metrics = [
   <p>
     Nothing extra to do. These are ordinary RUM custom actions, so they feed Product Analytics automatically.
   </p>
+
+  <div class="next-cards">
+    <a class="card" href={url('/docs/getting-started/')}>
+      <h3>Install a plugin</h3>
+      <p>The events have to arrive first.</p>
+    </a>
+    <a class="card" href={url('/docs/schema/')}>
+      <h3>Event schema</h3>
+      <p>What the metrics are computed from.</p>
+    </a>
+  </div>
 </Base>

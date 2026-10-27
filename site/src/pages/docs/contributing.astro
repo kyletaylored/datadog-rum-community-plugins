@@ -5,102 +5,102 @@ import { url } from '../../lib/url'
 const repo = 'https://github.com/kyletaylored/datadog-rum-community-plugins'
 ---
 
-<Base title="Contributing" description="Write an adapter with the template, run the harness, and get it listed.">
-  <h1>Contributing an adapter</h1>
+<Base title="Contribute" description="Write a plugin for a platform you know, in about a week." docs>
+  <h1>Contribute a plugin</h1>
   <p class="lede">
-    An adapter is a small module: subscribe to the platform's own events, map them onto the shared schema,
-    call the RUM API. Everything else — dedupe, the consent gate, the PII filter, size caps, the debug log —
-    lives in the core, so you do not write any of it. The target is a week from first commit to merged PR.
+    Subscribe to the platform's events, map them to the shared schema, done. Dedupe, the consent
+    gate, the PII filter and size caps are all in the core — you write none of it.
   </p>
 
-  <h2>Scaffold</h2>
+  <h2>Start</h2>
   <pre><code>{`git clone ${repo}
-cd datadog-rum-community-plugins
-npm install
+cd datadog-rum-community-plugins && npm install
 npm run new-plugin -- bigcommerce --title "BigCommerce" --family commerce --github your-handle`}</code></pre>
-  <p>
-    That copies <code>templates/plugin</code> into <code>packages/plugin-bigcommerce</code> and renames
-    everything. Its tests pass against an empty mapping on purpose, so you start from green and watch each
+  <p class="small muted">
+    The scaffold's tests pass against an empty mapping on purpose, so you start green and watch each
     assertion tighten as you fill it in.
   </p>
 
   <h2>What you write</h2>
   <ol class="steps">
     <li>
-      <strong>Record real fixtures.</strong> Capture actual payloads from the platform into
-      <code>fixtures/*.json</code>, trimmed to the fields you read. Say in the file where they came from.
-      Include at least one payload carrying something that must be stripped — a card field, an email — so the
-      privacy rules are exercised rather than assumed.
+      <strong>Record real fixtures.</strong> Actual payloads from the platform, trimmed to the fields
+      you read, with a note saying where they came from. Include one carrying something that must be
+      stripped — a card field, an email — so the privacy rules get exercised, not assumed.
     </li>
     <li>
-      <strong>Map them.</strong> In <code>src/index.ts</code>, subscribe to the platform's events and call
-      <code>tracker.track(...)</code>. Send numbers as numbers. Pass email and name straight through and let
-      the core decide whether they are sent — do not gate them yourself.
+      <strong>Map them</strong> in <code>src/index.ts</code>. Send numbers as numbers. Pass email and
+      name straight through and let the core decide; gating them yourself is how one of the two ends
+      up wrong.
     </li>
     <li>
-      <strong>Declare the footprint.</strong> Every global you read, event you subscribe to, storage key you
-      write and RUM API you call, in both <code>FOOTPRINT</code> and <code>plugin.json</code>. The conformance
-      suite fails if the run touches something undeclared.
+      <strong>Declare the footprint</strong> in both <code>FOOTPRINT</code> and
+      <code>plugin.json</code>. The suite fails on anything undeclared.
     </li>
     <li>
-      <strong>Point the harness at your platform.</strong> Fill in the test's <code>emit</code> so fixtures
-      reach the adapter through its own subscription, rather than calling the mapper directly. Testing the
-      mapper alone would miss the part most likely to be wrong.
+      <strong>Point the test's <code>emit</code> at your platform</strong> so fixtures reach the
+      plugin through its own subscription. Calling the mapper directly skips the wiring most likely
+      to be wrong.
     </li>
-    <li>
-      <strong>Run it.</strong> <code>npm run verify</code> builds, tests, validates the manifest and checks
-      the size budget.
-    </li>
+    <li><code>npm run verify</code></li>
   </ol>
 
-  <h2>What the harness gives you</h2>
+  <h2>What will fail your PR</h2>
   <ul>
-    <li>A fake <code>publicApi</code> that records instead of sending, so no test needs a real RUM init.</li>
-    <li>A fixture runner that replays recorded payloads through your adapter's own subscription.</li>
-    <li>The <a href={url('/docs/privacy/')}>conformance suite</a>, which every adapter runs with no extra code.</li>
-    <li>A snapshot of every mapped action, which also generates your plugin page's "Events this plugin sends".</li>
-  </ul>
-
-  <h2>Rules that will fail your PR</h2>
-  <ul>
-    <li>An action name that is not in the schema, or a commerce prefix applied to another family.</li>
-    <li>An attribute the schema does not define, or one sent with the wrong type — a numeric string instead of a number, for instance.</li>
-    <li>Any blocked key reaching <code>addAction</code> or <code>setUser</code>: card fields, email, phone, address, search text.</li>
-    <li><code>items[]</code> sent without <code>includeItems</code>, over 20 entries, or carrying non-GA4 item fields.</li>
-    <li>More than one <code>commerce.purchase</code> per <code>transaction_id</code>, or one with no <code>transaction_id</code> at all.</li>
+    <li>An action name not in the schema, or a commerce prefix on another family.</li>
+    <li>An attribute the schema doesn't define, or the wrong type — a numeric string instead of a number.</li>
+    <li>Any blocked key reaching <code>addAction</code> or <code>setUser</code>.</li>
+    <li><code>items[]</code> without <code>includeItems</code>, over 20 entries, or with non-GA4 fields.</li>
+    <li>More than one <code>commerce.purchase</code> per <code>transaction_id</code>, or one without.</li>
     <li>Anything sent before consent, when a consent source is declared.</li>
-    <li>A CDN bundle over 5 KB gzip.</li>
-    <li>A footprint that does not match what the fixture run did.</li>
+    <li>A CDN bundle over 5 KB gzip, or a footprint that doesn't match the run.</li>
   </ul>
 
   <h2>Hard rules</h2>
   <ul>
-    <li><strong>Never call <code>datadogRum.init</code>.</strong> The customer's init owns the application ID, sampling and privacy settings. <code>@datadog/browser-rum</code> is a peer dependency, never bundled.</li>
-    <li><strong>Public API only.</strong> Call only the <code>publicApi</code> methods. The core is the single place that depends on the SDK's internal plugin type, so an upstream change is one edit, not one per adapter.</li>
-    <li><strong>Platform code stays in the adapter.</strong> If you find yourself writing dedupe or a consent gate, it belongs in the core instead — open an issue.</li>
-    <li><strong>Compose, don't replace.</strong> Where Datadog ships an official plugin for a platform, add to it rather than reimplementing it.</li>
+    <li><strong>Never call <code>datadogRum.init</code>.</strong> The customer's init owns the application ID, sampling and privacy. <code>@datadog/browser-rum</code> is a peer dependency, never bundled.</li>
+    <li><strong>Public API only.</strong> The core is the one place that touches the SDK's internal plugin type, so an upstream change is one edit, not one per plugin.</li>
+    <li><strong>Compose, don't replace.</strong> Where Datadog ships an official plugin, add to it.</li>
+    <li><strong>Platform code stays in the plugin.</strong> Writing dedupe or a consent gate means it belongs in the core — open an issue.</li>
   </ul>
 
-  <h2>Tiers and review</h2>
+  <h2>Tiers</h2>
   <div class="scroll-x">
     <table>
-      <thead><tr><th>Tier</th><th>Bar</th><th>Shown as</th></tr></thead>
+      <thead><tr><th>Tier</th><th>Bar</th></tr></thead>
       <tbody>
-        <tr><td>Listed</td><td>Valid manifest, passing CI</td><td>Community</td></tr>
-        <tr><td>Verified</td><td>Passes the conformance suite, has a demo page, reviewed by a core maintainer for the privacy rules</td><td>Verified community</td></tr>
-        <tr><td>Seed</td><td>Maintained by the project maintainer</td><td>Maintainer</td></tr>
+        <tr><td><span class="badge">Community</span></td><td>Valid manifest, passing CI</td></tr>
+        <tr><td><span class="badge verified">Verified</span></td><td>Passes conformance, has a demo, reviewed for the <a href={url('/docs/privacy/')}>privacy rules</a></td></tr>
+        <tr><td><span class="badge seed">Maintainer</span></td><td>Maintained by the project maintainer</td></tr>
       </tbody>
     </table>
   </div>
+  <p class="small muted">
+    Each plugin gets a <code>CODEOWNERS</code> entry. No maintainer activity for six months marks it
+    deprecated in the gallery rather than leaving it to rot quietly.
+  </p>
+
+  <h2>Schema changes</h2>
   <p>
-    Each adapter gets a <code>CODEOWNERS</code> entry. An adapter with no maintainer activity for six months
-    is marked deprecated in the gallery rather than silently rotting.
+    These affect every plugin and every dashboard built on one, so they need an RFC issue, a semver
+    bump, and both halves of the schema updated together.
   </p>
 
   <h2>Releasing</h2>
   <p>
-    Add a changeset with your PR (<code>npm run changeset</code>). Merging to <code>main</code> opens a release
-    PR that bumps only the changed packages; merging that publishes them with provenance and computes the SRI
-    hash for each CDN build.
+    Add a changeset with your PR (<code>npm run changeset</code>). Merging to <code>main</code> opens
+    a release PR that bumps only what changed; merging that publishes with provenance and computes
+    each CDN build's SRI hash.
   </p>
+
+  <div class="next-cards">
+    <a class="card" href={url('/docs/schema/')}>
+      <h3>Event schema</h3>
+      <p>The vocabulary to map onto.</p>
+    </a>
+    <a class="card" href={url('/docs/privacy/')}>
+      <h3>Privacy rules</h3>
+      <p>What will fail your PR.</p>
+    </a>
+  </div>
 </Base>

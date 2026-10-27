@@ -5,22 +5,45 @@ import { url } from '../lib/url'
 interface Props {
   title: string
   description?: string
+  /** Renders the docs sidebar alongside the content. */
+  docs?: boolean
+  /** Full-bleed hero pages skip the default top padding. */
+  hero?: boolean
 }
 
-const { title, description } = Astro.props
-const current = Astro.url.pathname
+const { title, description, docs = false, hero = false } = Astro.props
+const here = Astro.url.pathname
 
 const nav = [
   { href: '/plugins/', label: 'Plugins' },
   { href: '/sandbox/', label: 'Sandbox' },
-  { href: '/docs/getting-started/', label: 'Getting started' },
-  { href: '/docs/schema/', label: 'Schema' },
-  { href: '/docs/datadog-assets/', label: 'Datadog assets' },
-  { href: '/docs/contributing/', label: 'Contributing' },
-  { href: '/docs/privacy/', label: 'Privacy' },
+  { href: '/docs/getting-started/', label: 'Docs' },
 ]
 
-const isCurrent = (href: string) => current === url(href)
+const docsNav = [
+  {
+    group: 'Start',
+    items: [
+      { href: '/docs/getting-started/', label: 'Install' },
+      { href: '/sandbox/', label: 'Sandbox' },
+      { href: '/plugins/', label: 'All plugins' },
+    ],
+  },
+  {
+    group: 'Reference',
+    items: [
+      { href: '/docs/schema/', label: 'Event schema' },
+      { href: '/docs/datadog-assets/', label: 'Dashboards & monitors' },
+      { href: '/docs/privacy/', label: 'Privacy rules' },
+    ],
+  },
+  {
+    group: 'Build one',
+    items: [{ href: '/docs/contributing/', label: 'Contribute a plugin' }],
+  },
+]
+
+const isHere = (href: string) => here === url(href)
 ---
 
 <!doctype html>
@@ -28,39 +51,175 @@ const isCurrent = (href: string) => current === url(href)
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} · Datadog RUM community plugins</title>
+    <title>{title} · RUM community plugins</title>
     {description && <meta name="description" content={description} />}
     <link rel="icon" href={url('/favicon.svg')} />
+    <script is:inline>
+      // Runs before first paint, so a dark-mode visitor never sees a white flash.
+      try {
+        const saved = localStorage.getItem('theme')
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved
+      } catch {}
+    </script>
   </head>
   <body>
     <header class="site">
       <div class="wrap">
-        <a class="brand" href={url('/')}>RUM community plugins</a>
-        <nav>
+        <a class="brand" href={url('/')}>
+          <span class="mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 17 9 6l3.6 7 2.4-3.5L21 17" />
+            </svg>
+          </span>
+          RUM community plugins
+        </a>
+
+        <nav id="site-nav">
           {nav.map((item) => (
-            <a href={url(item.href)} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>
+            <a href={url(item.href)} aria-current={here.startsWith(url(item.href.split('/').slice(0, 2).join('/') + '/')) || isHere(item.href) ? 'page' : undefined}>
+              {item.label}
+            </a>
           ))}
+          <a href="https://github.com/kyletaylored/datadog-rum-community-plugins">GitHub</a>
         </nav>
+
+        <div class="header-tools">
+          <button class="icon-button" type="button" data-theme-toggle aria-label="Switch colour theme" title="Switch colour theme">
+            <svg data-icon="system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none" /></svg>
+            <svg data-icon="light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" hidden><circle cx="12" cy="12" r="4.2" /><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8" /></svg>
+            <svg data-icon="dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z" /></svg>
+          </button>
+          <button class="icon-button nav-toggle" type="button" data-nav-toggle aria-label="Menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          </button>
+        </div>
       </div>
     </header>
 
-    <main>
-      <div class="wrap">
-        <p class="notice">
-          A personal community project under <a href="https://github.com/kyletaylored">@kyletaylored</a>, MIT licensed.
-          <strong>Not provided or supported by Datadog.</strong>
-        </p>
+    <main class={hero ? '' : 'page-top'}>
+      {docs ? (
+        <div class="wrap docs">
+          <aside class="docs-nav" data-docs-nav>
+            <button class="docs-nav-toggle" type="button" data-docs-nav-toggle>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+              On this site
+            </button>
+            <ul>
+              {docsNav.map((section) => (
+                <>
+                  <li class="group">{section.group}</li>
+                  {section.items.map((item) => (
+                    <li><a href={url(item.href)} aria-current={isHere(item.href) ? 'page' : undefined}>{item.label}</a></li>
+                  ))}
+                </>
+              ))}
+            </ul>
+          </aside>
+          <div><slot /></div>
+        </div>
+      ) : (
         <slot />
-      </div>
+      )}
     </main>
 
     <footer class="site">
       <div class="wrap">
         <p>
+          A personal community project by <a href="https://github.com/kyletaylored">@kyletaylored</a>.
+          <strong>Not provided or supported by Datadog.</strong>
+        </p>
+        <p class="small">
           MIT licensed · <a href="https://github.com/kyletaylored/datadog-rum-community-plugins">Source</a> ·
-          Built from the monorepo: the schema tables and every plugin's event list are generated from the code, not written by hand.
+          Schema tables and every plugin's event list are generated from the code.
         </p>
       </div>
     </footer>
+
+    <script>
+      // ---- Theme: system -> light -> dark -----------------------------------
+      const root = document.documentElement
+      const toggle = document.querySelector<HTMLButtonElement>('[data-theme-toggle]')
+      const order = ['system', 'light', 'dark'] as const
+
+      const current = () => {
+        const saved = root.dataset.theme
+        return saved === 'light' || saved === 'dark' ? saved : 'system'
+      }
+
+      function paintToggle() {
+        const now = current()
+        for (const icon of toggle?.querySelectorAll<SVGElement>('[data-icon]') ?? []) {
+          icon.hidden = icon.dataset.icon !== now
+        }
+        toggle?.setAttribute('title', `Theme: ${now}. Click to change.`)
+      }
+
+      toggle?.addEventListener('click', () => {
+        const next = order[(order.indexOf(current()) + 1) % order.length]
+        if (next === 'system') {
+          delete root.dataset.theme
+          try { localStorage.removeItem('theme') } catch {}
+        } else {
+          root.dataset.theme = next
+          try { localStorage.setItem('theme', next) } catch {}
+        }
+        paintToggle()
+      })
+      paintToggle()
+
+      // ---- Mobile nav --------------------------------------------------------
+      const navButton = document.querySelector<HTMLButtonElement>('[data-nav-toggle]')
+      const siteNav = document.getElementById('site-nav')
+      navButton?.addEventListener('click', () => {
+        const open = siteNav?.hasAttribute('data-open')
+        if (open) siteNav?.removeAttribute('data-open')
+        else siteNav?.setAttribute('data-open', '')
+        navButton.setAttribute('aria-expanded', String(!open))
+      })
+
+      const docsNavEl = document.querySelector<HTMLElement>('[data-docs-nav]')
+      document.querySelector('[data-docs-nav-toggle]')?.addEventListener('click', () => {
+        if (docsNavEl?.hasAttribute('data-open')) docsNavEl.removeAttribute('data-open')
+        else docsNavEl?.setAttribute('data-open', '')
+      })
+
+      // ---- Copy buttons on every code block ----------------------------------
+      // Added here rather than per page: a merchant's main job on this site is to copy a
+      // script tag, and a copy button on every block is cheaper than trusting selection.
+      for (const pre of document.querySelectorAll<HTMLPreElement>('main pre')) {
+        if (pre.closest('.code-block')) continue
+        const wrapper = document.createElement('div')
+        wrapper.className = 'code-block'
+        pre.parentNode?.insertBefore(wrapper, pre)
+        wrapper.append(pre)
+
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.className = 'copy'
+        button.textContent = 'Copy'
+        button.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(pre.innerText)
+            button.textContent = 'Copied'
+            button.dataset.done = ''
+          } catch {
+            // Clipboard blocked (insecure origin, or permission denied). Select the block so the
+            // keyboard shortcut actually works — telling someone to press a key without selecting
+            // anything for them is not a fallback.
+            const range = document.createRange()
+            range.selectNodeContents(pre)
+            const selection = window.getSelection()
+            selection?.removeAllRanges()
+            selection?.addRange(range)
+            button.textContent = 'Selected — ⌘C'
+          }
+          setTimeout(() => {
+            button.textContent = 'Copy'
+            delete button.dataset.done
+          }, 1800)
+        })
+        wrapper.append(button)
+      }
+    </script>
   </body>
 </html>

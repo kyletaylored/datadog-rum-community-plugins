@@ -1,83 +1,94 @@
 ---
 import Base from '../../layouts/Base.astro'
+import { url } from '../../lib/url'
 import schema from '../../data/schema.json'
 ---
 
-<Base title="Privacy, consent and security" description="The rules the core enforces for every adapter, and how they are tested.">
-  <h1>Privacy, consent and security</h1>
+<Base title="Privacy" description="What these plugins will and will not send, and how it is enforced." docs>
+  <h1>Privacy</h1>
   <p class="lede">
-    These plugins get installed on checkout pages, so they have to be safer by default than hand-written
-    tracking code. Every rule below lives in the shared core, not in individual adapters, and the conformance
-    suite fails a release that breaks one.
+    These run on checkout pages, so the rules live in the shared core, not in individual plugins —
+    and the test suite fails a release that breaks one.
+    <a href={url('/sandbox/')}>Watch them work →</a>
   </p>
 
-  <h2>No payment data, ever</h2>
+  <div class="scroll-x">
+    <table>
+      <thead><tr><th>Rule</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr>
+          <th scope="row">No payment data</th>
+          <td>Card number, CVV, expiry and billing address are stripped at any nesting depth, even when the platform's own payload includes them. Plugins read event payloads, never DOM inputs.</td>
+        </tr>
+        <tr>
+          <th scope="row">PII is opt-in</th>
+          <td><code>usr.id</code> is the platform customer ID — that is all, by default. Email and name need an explicit flag. Phone and address have no flag at all.</td>
+        </tr>
+        <tr>
+          <th scope="row">Search terms as length</th>
+          <td><code>search_term_length</code>, never the text. A shopper can type anything into a search box.</td>
+        </tr>
+        <tr>
+          <th scope="row">Free text dropped</th>
+          <td>Notes, comments and messages are removed wherever they appear.</td>
+        </tr>
+        <tr>
+          <th scope="row">Nothing before consent</th>
+          <td>A consent plugin sets <code>trackingConsent</code> to <code>not-granted</code> before the SDK starts, which stops RUM collecting anything. Pending events are dropped, not queued, so a later grant never backfills them.</td>
+        </tr>
+        <tr>
+          <th scope="row">Size caps</th>
+          <td><code>items[]</code> opt-in and capped at {schema.limits.maxItems}; strings truncated at {schema.limits.maxStringLength}; objects deeper than four levels dropped.</td>
+        </tr>
+        <tr>
+          <th scope="row">One order, counted once</th>
+          <td><code>commerce.purchase</code> is deduplicated per <code>transaction_id</code> for {schema.limits.dedupeTtlHours} hours. No <code>transaction_id</code> means no purchase is sent at all.</td>
+        </tr>
+        <tr>
+          <th scope="row">Hooks cannot widen it</th>
+          <td>A <code>beforeTrack</code> hook's output is re-filtered, so it cannot reintroduce a blocked attribute.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>What a declined visitor means</h2>
   <p>
-    Adapters read the platform's event payloads, never DOM inputs. Card numbers, CVV, expiry and billing
-    addresses are stripped in the core <strong>even when a platform payload includes them</strong> — the
-    fixtures deliberately carry a <code>card_number</code> so that stripping is exercised rather than assumed.
+    They send nothing at all, so RUM cannot report opt-in rate. A consent plugin describes the
+    categories of sessions that <em>did</em> opt in — never the share of visitors who did.
   </p>
-
-  <h2>PII is off by default</h2>
-  <ul>
-    <li><code>usr.id</code> is the platform or provider customer ID. That is the only identifier sent by default.</li>
-    <li>Email, name, phone and address need an explicit opt-in (<code>includeEmail</code>, <code>includeName</code>). Phone and address have no opt-in at all.</li>
-    <li>Search queries are sent as <code>search_term_length</code> only. The text never leaves the browser, because a shopper can type anything into a search box.</li>
-    <li>Free-text fields — notes, comments, messages — are dropped wherever they appear in a payload.</li>
-  </ul>
-
-  <h2>Consent</h2>
-  <p>
-    When a consent adapter is present it runs first and sets <code>trackingConsent = 'not-granted'</code>
-    before the SDK starts, which stops RUM collecting anything, not just this plugin's actions. Commerce
-    adapters additionally hold their own events, including <code>setUser</code>, until consent is granted.
-  </p>
-  <p>
-    <strong>Nothing is queued.</strong> Events that happen while the decision is pending are dropped, not
-    buffered, so a later grant never backfills pre-consent activity. One consequence worth stating plainly:
-    a declined visitor sends nothing at all, so RUM cannot report opt-in rate. A consent plugin describes
-    only the categories of sessions that opted in.
-  </p>
-
-  <h2>Size limits</h2>
-  <ul>
-    <li><code>items[]</code> is opt-in and capped at {schema.limits.maxItems} entries.</li>
-    <li>Strings are truncated at {schema.limits.maxStringLength} characters.</li>
-    <li>Nested objects deeper than four levels are dropped rather than partly sent.</li>
-    <li><code>commerce.purchase</code> is deduplicated per <code>transaction_id</code> for {schema.limits.dedupeTtlHours} hours in <code>localStorage</code>.</li>
-  </ul>
-
-  <h2>Supply chain</h2>
-  <ul>
-    <li>Packages publish to npm from CI only, with provenance. No local publishes.</li>
-    <li>CDN URLs are exact-version jsDelivr links with an SRI hash. There is no auto-updating <code>latest</code> URL; merchants pin a version.</li>
-    <li>GitHub Actions are pinned by commit SHA, and workflows run with <code>persist-credentials: false</code>.</li>
-    <li>A new runtime dependency on an adapter needs core-maintainer review. The launch adapters have none beyond the shared core.</li>
-    <li>Every release runs the conformance suite and the real-SDK integration test.</li>
-  </ul>
 
   <h2>Declared footprint</h2>
   <p>
-    Each adapter declares the platform globals it reads, the events it subscribes to, the storage keys it
-    writes and the RUM APIs it calls. The gallery renders that as a permissions screen, debug mode prints it
-    to the console, and the conformance suite compares it against what the adapter actually did during its
-    fixture run — so an adapter cannot quietly call an API it did not declare.
+    Each plugin lists the globals it reads, events it subscribes to, storage keys it writes and RUM
+    APIs it calls. The test suite compares that list against what the plugin actually did, so it
+    cannot quietly call something undeclared. It is on every plugin page, and in the console with
+    <code>debug: true</code>.
   </p>
 
-  <h2>What the tests actually check</h2>
-  <div class="scroll-x">
-    <table>
-      <thead><tr><th>Rule</th><th>Checked by</th></tr></thead>
-      <tbody>
-        <tr><td>Action names are in the schema, with the right family prefix</td><td>Conformance suite, every adapter</td></tr>
-        <tr><td>Attribute names and types match the schema</td><td>Conformance suite</td></tr>
-        <tr><td>No blocked key is ever sent, on actions or on <code>setUser</code></td><td>Conformance suite plus core unit tests</td></tr>
-        <tr><td>Email and name appear only when opted in</td><td>Conformance suite</td></tr>
-        <tr><td><code>items[]</code> capped, strings truncated</td><td>Conformance suite plus core unit tests</td></tr>
-        <tr><td>One purchase per <code>transaction_id</code>, across a reload</td><td>Conformance suite plus a real-browser test</td></tr>
-        <tr><td>Nothing leaves the browser before consent</td><td>A real-browser test with the intake intercepted</td></tr>
-        <tr><td>The declared footprint matches the run</td><td>Conformance suite plus the manifest check</td></tr>
-      </tbody>
-    </table>
+  <h2>Supply chain</h2>
+  <ul>
+    <li>Published from CI only, with npm provenance.</li>
+    <li>CDN URLs are exact-version with an SRI hash. No <code>latest</code> URL.</li>
+    <li>GitHub Actions pinned by commit SHA, <code>persist-credentials: false</code>.</li>
+    <li>A new runtime dependency needs maintainer review. The launch plugins have none beyond the core.</li>
+  </ul>
+
+  <h2>Reporting a problem</h2>
+  <p>
+    Data leaving the browser that shouldn't, or a consent bypass, goes to
+    <a href="https://github.com/kyletaylored/datadog-rum-community-plugins/security/advisories/new">a
+    private security advisory</a> — not a public issue. Redact real payloads first.
+  </p>
+
+  <div class="next-cards">
+    <a class="card" href={url('/sandbox/')}>
+      <h3>See it enforced</h3>
+      <p>Withhold consent and watch every event get refused.</p>
+    </a>
+    <a class="card" href={url('/docs/schema/')}>
+      <h3>Event schema</h3>
+      <p>Every attribute, with its type and origin.</p>
+    </a>
   </div>
 </Base>

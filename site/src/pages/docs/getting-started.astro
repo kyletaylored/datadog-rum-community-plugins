@@ -3,115 +3,107 @@ import Base from '../../layouts/Base.astro'
 import { url } from '../../lib/url'
 ---
 
-<Base title="Getting started" description="Add RUM, add a plugin, and check the events arrive in the RUM Explorer.">
-  <h1>Getting started</h1>
+<Base title="Install" description="Add a Datadog RUM plugin with one script tag, and check the events arrive." docs>
+  <h1>Install</h1>
   <p class="lede">
-    Three steps: get RUM running, add a plugin to the init you already have, then confirm the events
-    arrive. Budget an hour, most of which is waiting for a real order to come through.
+    One script tag next to your existing RUM snippet. Plugins never call <code>init</code>, so your
+    application ID, sampling and privacy settings stay in charge.
   </p>
 
-  <p>
-    Before installing anything, <a href={url('/sandbox/')}>the sandbox</a> runs these adapters
-    against recorded platform payloads in your browser and shows every RUM call they make. It is the
-    quickest way to see what a plugin will and will not send.
+  <h2>1. Paste the tags</h2>
+  <p>Both go before <code>&lt;/head&gt;</code>. Consent plugins go first in <code>plugins</code>.</p>
+  <pre><code>{`<script src="https://www.datadoghq-browser-agent.com/us1/v6/datadog-rum.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-onetrust@0.1.0/dist/plugin.js"
+        integrity="sha384-REPLACE_FROM_RELEASE" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-woocommerce@0.1.0/dist/plugin.js"
+        integrity="sha384-REPLACE_FROM_RELEASE" crossorigin="anonymous"></script>
+<script>
+  window.DD_RUM.init({
+    applicationId: 'YOUR_APPLICATION_ID',
+    clientToken: 'YOUR_CLIENT_TOKEN',
+    site: 'datadoghq.com',
+    service: 'storefront',
+    sessionSampleRate: 100,
+    plugins: [
+      window.DD_RUM_PLUGINS['onetrust']({ category: 'C0002' }),
+      window.DD_RUM_PLUGINS['woocommerce'](),
+    ],
+  })
+</script>`}</code></pre>
+  <p class="small muted">
+    Swap <code>us1</code> for your Datadog site. Versions are pinned and each tag needs the
+    <code>integrity</code> hash from that release; there is no <code>latest</code> URL.
   </p>
 
-  <h2>1. Add RUM</h2>
-  <p>
-    If RUM is already on the site, skip this. These plugins never call <code>init</code> themselves, so your
-    application ID, sampling and privacy settings stay in charge. Follow Datadog's own
-    <a href="https://docs.datadoghq.com/real_user_monitoring/browser/setup/">browser setup</a> first and
-    confirm sessions appear before adding a plugin.
-  </p>
+  <h3>Where to paste it</h3>
+  <div class="scroll-x">
+    <table>
+      <tbody>
+        <tr><th scope="row">Shopify</th><td>Settings → Customer events → Add custom pixel. Add the official <code>shopifyPlugin</code> alongside ours; see the <a href={url('/plugins/shopify/')}>Shopify page</a>.</td></tr>
+        <tr><th scope="row">WordPress / WooCommerce</th><td>Theme header, or a header-scripts plugin. Order data needs a thank-you page payload — see the <a href={url('/plugins/woocommerce/')}>WooCommerce page</a>.</td></tr>
+        <tr><th scope="row">Google Tag Manager</th><td>A Custom HTML tag firing on All Pages, Initialization.</td></tr>
+        <tr><th scope="row">Squarespace / Wix / Webflow</th><td>The site's custom-code or header-injection field.</td></tr>
+        <tr><th scope="row">A build you control</th><td>Use npm instead — see any plugin page.</td></tr>
+      </tbody>
+    </table>
+  </div>
 
-  <h2>2. Add a plugin</h2>
-  <p>
-    Put <strong>consent adapters first</strong> in <code>plugins: [...]</code>. A consent adapter sets
-    <code>trackingConsent = 'not-granted'</code> before the SDK starts, so nothing is collected on a page
-    where the banner has not been answered.
-  </p>
-  <pre><code>{`import { datadogRum } from '@datadog/browser-rum'
-import { oneTrustPlugin } from '@kyletaylored/datadog-rum-plugin-onetrust'
-import { wooCommercePlugin } from '@kyletaylored/datadog-rum-plugin-woocommerce'
-
-datadogRum.init({
-  applicationId, clientToken, site, service, env, version,
-  plugins: [
-    oneTrustPlugin({ category: 'C0002' }), // holds RUM until analytics is accepted
-    wooCommercePlugin({ identifyUsers: true, includeItems: false }),
-  ],
-})`}</code></pre>
-
-  <p>
-    On Shopify checkout the community adapter composes with the official one rather than replacing it. Both
-    read the same sandbox <code>analytics</code> global, and they subscribe to different events, so there is
-    no overlap.
-  </p>
-  <pre><code>{`// Settings > Customer events > custom pixel
-DD_RUM.init({
-  /* ... */
-  plugins: [
-    DD_RUM.shopifyPlugin({ shopifyAnalytics: analytics }), // official: sandbox fixes, views, clicks, errors
-    DD_RUM_PLUGINS['shopify']({ analytics }),              // community: checkout events, order value, setUser
-  ],
-})`}</code></pre>
-
-  <h2>3. Check the events</h2>
+  <h2>2. Check it works</h2>
   <ol class="steps">
     <li>
-      Turn on <code>debug: true</code> and reload. Every mapped event prints to the console with its
-      attributes, along with the plugin's declared footprint. If nothing prints, the adapter is not seeing
-      the platform's events — check that you are on the right page type.
+      Add <code>{`{ debug: true }`}</code> and reload. Every mapped event prints to the console.
+      Nothing printing means the plugin isn't seeing the platform's events — check the page type.
     </li>
     <li>
-      Query the RUM Explorer. Start with the cheapest event to produce:
+      Query the RUM Explorer for the cheapest event to produce:
       <pre><code>@type:action @action.name:commerce.add_to_cart</code></pre>
     </li>
     <li>
-      Place a test order and confirm one <code>commerce.purchase</code>, with <code>value</code> as a number:
-      <pre><code>@type:action @action.name:commerce.purchase</code></pre>
-      Reload the thank-you page. A second purchase must <strong>not</strong> appear; the core deduplicates on
-      <code>transaction_id</code> for 24 hours.
+      Place a test order. Confirm one <code>commerce.purchase</code> with <code>value</code> as a
+      number, then reload the thank-you page — a second one must <strong>not</strong> appear.
     </li>
-    <li>
-      Import the <a href={url('/docs/datadog-assets/')}>asset pack</a>. The generated metrics need to exist
-      before the dashboard shows anything.
-    </li>
+    <li>Import the <a href={url('/docs/datadog-assets/')}>dashboards and monitors</a>.</li>
   </ol>
 
-  <h2>Before you trust the numbers</h2>
+  <h2>3. Reconcile before you trust it</h2>
   <p>
-    Reconcile order count against the platform's admin report over a week. The accuracy bar is within 5%.
-    Further out than that usually means one of three things:
-  </p>
-  <ul>
-    <li><strong>Consent coverage.</strong> Declined visitors send nothing at all, by design.</li>
-    <li><strong>The thank-you page is never reached.</strong> Some payment flows redirect elsewhere, or the shopper closes the tab.</li>
-    <li><strong>Sampling.</strong> <code>sessionSampleRate</code> below 100 scales every count down with it.</li>
-  </ul>
-  <p>
-    These are browser-measured and directional by design. They exist to correlate business outcomes with
-    performance, errors and replays — not to replace the platform's order reporting.
+    Compare order count against the platform's admin report over a week. The bar is within 5%.
+    Further out is usually one of: declined consent (those visitors send nothing, by design), a
+    thank-you page that is never reached, or <code>sessionSampleRate</code> below 100.
   </p>
 
-  <h2>Common options</h2>
-  <p>
-    The same options work on every adapter, so one settings form covers all of them. See a plugin's page for
-    its defaults.
-  </p>
+  <h2>Options</h2>
+  <p class="small muted">The same on every plugin. Defaults are on each plugin's page.</p>
   <div class="scroll-x">
     <table>
       <thead><tr><th>Option</th><th>Default</th><th>Use it when</th></tr></thead>
       <tbody>
         <tr><td><code>events</code></td><td class="muted">all</td><td>You only want part of the funnel</td></tr>
-        <tr><td><code>identifyUsers</code></td><td class="muted"><code>true</code></td><td>Turn off to send no user ID at all</td></tr>
-        <tr><td><code>includeEmail</code> / <code>includeName</code></td><td class="muted"><code>false</code></td><td>You have a lawful basis and want them on the session</td></tr>
-        <tr><td><code>includeItems</code></td><td class="muted"><code>false</code></td><td>You want line-item detail, at up to 20 entries per action</td></tr>
-        <tr><td><code>actionPrefix</code></td><td class="muted"><code>commerce.</code></td><td>The site already has its own naming convention. Only commerce is renamed; other families keep theirs</td></tr>
-        <tr><td><code>consent</code></td><td class="muted"><code>auto</code></td><td><code>ignore</code> when the host page already owns <code>trackingConsent</code>, or pass a resolver</td></tr>
-        <tr><td><code>beforeTrack</code></td><td class="muted">none</td><td>You need to edit or drop an event. It cannot reintroduce a blocked attribute</td></tr>
-        <tr><td><code>debug</code></td><td class="muted"><code>false</code></td><td>Working out why an event is not arriving</td></tr>
+        <tr><td><code>identifyUsers</code></td><td class="muted"><code>true</code></td><td>Off sends no user ID at all</td></tr>
+        <tr><td><code>includeEmail</code> / <code>includeName</code></td><td class="muted"><code>false</code></td><td>You have a lawful basis for the session to carry them</td></tr>
+        <tr><td><code>includeItems</code></td><td class="muted"><code>false</code></td><td>You want line items, up to 20 per action</td></tr>
+        <tr><td><code>actionPrefix</code></td><td class="muted"><code>commerce.</code></td><td>You have your own naming convention</td></tr>
+        <tr><td><code>consent</code></td><td class="muted"><code>auto</code></td><td><code>ignore</code> when the page already owns <code>trackingConsent</code></td></tr>
+        <tr><td><code>beforeTrack</code></td><td class="muted">none</td><td>You need to edit or drop an event</td></tr>
+        <tr><td><code>debug</code></td><td class="muted"><code>false</code></td><td>Working out why an event isn't arriving</td></tr>
       </tbody>
     </table>
+  </div>
+
+  <p><a class="primary" href={url('/sandbox/')}>Try it before installing →</a></p>
+
+  <div class="next-cards">
+    <a class="card" href={url('/sandbox/')}>
+      <h3>Sandbox</h3>
+      <p>Watch what a plugin sends before you install it.</p>
+    </a>
+    <a class="card" href={url('/docs/datadog-assets/')}>
+      <h3>Dashboards</h3>
+      <p>Import the metrics, dashboard and monitors.</p>
+    </a>
+    <a class="card" href={url('/docs/privacy/')}>
+      <h3>Privacy rules</h3>
+      <p>Exactly what is and is not sent.</p>
+    </a>
   </div>
 </Base>

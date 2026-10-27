@@ -15,29 +15,40 @@ managed platforms cannot ship at all.
 **Status: Phase 0.** The core, the harness, three adapters, the asset pack, the build and release
 pipeline and the site are in place. Nothing is published to npm yet.
 
-**[Try the sandbox](https://kyletaylored.github.io/datadog-rum-community-plugins/sandbox/)** — it runs
-the real adapters against the same recorded payloads the test suite uses, in your browser, and shows
-every RUM call they make. No Datadog account, and it never asks for an application ID or client
-token. It is the only way to see the parts that matter most, because in each case the correct
-behaviour is that nothing is sent: the consent gate holding events back, a second order being
-refused, card data being stripped.
+**[Try the sandbox](https://kyletaylored.github.io/datadog-rum-community-plugins/sandbox/)** — a
+shopper clicks through a store and you watch exactly what the plugin sends, and what it refuses to
+send. Runs the real plugin in your browser; no Datadog account, and it never asks for an application
+ID or client token.
 
 ## Install
 
-Consent adapters go first, so nothing is collected before the visitor accepts.
+A script tag, because most of these sites cannot run a build. Consent plugins go first, so nothing
+is collected before the visitor accepts.
+
+```html
+<script src="https://www.datadoghq-browser-agent.com/us1/v6/datadog-rum.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-onetrust@0.1.0/dist/plugin.js"
+        integrity="sha384-REPLACE_FROM_RELEASE" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-woocommerce@0.1.0/dist/plugin.js"
+        integrity="sha384-REPLACE_FROM_RELEASE" crossorigin="anonymous"></script>
+<script>
+  window.DD_RUM.init({
+    applicationId: 'YOUR_APPLICATION_ID',
+    clientToken: 'YOUR_CLIENT_TOKEN',
+    site: 'datadoghq.com',
+    plugins: [
+      window.DD_RUM_PLUGINS['onetrust']({ category: 'C0002' }),
+      window.DD_RUM_PLUGINS['woocommerce'](),
+    ],
+  })
+</script>
+```
+
+Versions are pinned and each tag carries an SRI hash; there is no `latest` URL. npm works too:
 
 ```js
-import { datadogRum } from '@datadog/browser-rum'
-import { oneTrustPlugin } from '@kyletaylored/datadog-rum-plugin-onetrust'
 import { wooCommercePlugin } from '@kyletaylored/datadog-rum-plugin-woocommerce'
-
-datadogRum.init({
-  applicationId, clientToken, site, service, env, version,
-  plugins: [
-    oneTrustPlugin({ category: 'C0002' }), // holds RUM until analytics is accepted
-    wooCommercePlugin({ identifyUsers: true }),
-  ],
-})
+datadogRum.init({ /* ... */, plugins: [wooCommercePlugin()] })
 ```
 
 On Shopify checkout the community adapter **composes with the official plugin** rather than

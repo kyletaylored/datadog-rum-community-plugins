@@ -41,15 +41,12 @@ const tierLabel: Record<string, string> = { seed: 'Maintainer', verified: 'Verif
   {plugin.events.length === 0 ? (
     <p class="muted">
       {plugin.family === 'consent'
-        ? 'None. A consent adapter emits no custom actions of its own: it holds RUM until the visitor accepts, then reports the accepted categories as session context.'
-        : 'No fixture run has been recorded yet, so there is nothing to show. Run the test suite to generate it.'}
+        ? 'None. It holds RUM until the visitor accepts, then reports the accepted categories as session context.'
+        : 'No fixture run recorded yet.'}
     </p>
   ) : (
     <>
-      <p class="small muted">
-        Generated from this adapter's fixture run, not written by hand, so it describes what the code
-        actually does. Attribute types are the schema's.
-      </p>
+      <p class="small muted">Generated from this plugin's fixture run, so it is what the code actually does.</p>
       {plugin.events.map((event) => (
         <>
           <h3><code>{event.name}</code></h3>
@@ -143,23 +140,15 @@ const tierLabel: Record<string, string> = { seed: 'Maintainer', verified: 'Verif
     </table>
   </div>
 
-  <h2>Verify the install</h2>
+  <h2>Verify</h2>
   <ol class="steps">
+    <li>Add <code>{`{ debug: true }`}</code> and reload — every mapped event prints to the console.</li>
     <li>
-      Pass <code>debug: true</code> and reload. Every mapped event prints to the console, along with the
-      plugin's declared footprint.
-      <pre><code>{`plugins: [${fnName}({ debug: true })]`}</code></pre>
-    </li>
-    <li>
-      Query the RUM Explorer for the first action. It should appear within a minute of the first matching
-      interaction on the site.
+      Query the RUM Explorer:
       <pre><code>{plugin.events.length > 0
         ? `@type:action @action.name:${plugin.events[0].name}`
         : '@type:session @context.consent.categories:*'}</code></pre>
     </li>
-    <li>
-      Reconcile against the platform's own report before trusting the numbers. These are browser-measured
-      and will undercount; the accuracy bar is within 5% of the platform admin over 7 days.
-    </li>
+    <li>Reconcile against the platform's own report. These are browser-measured and undercount; the bar is within 5%.</li>
   </ol>
 </Base>

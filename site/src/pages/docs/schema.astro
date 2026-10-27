@@ -1,12 +1,13 @@
 ---
 import Base from '../../layouts/Base.astro'
+import { url } from '../../lib/url'
 import schema from '../../data/schema.json'
 
 // Entirely generated from packages/core/src/schema. Editing this page cannot change the schema;
 // changing the schema regenerates this page.
 ---
 
-<Base title="Schema reference" description="Every action and attribute in the community commerce schema, with its GA4 equivalent.">
+<Base title="Schema reference" description="Every action and attribute in the community commerce schema, with its GA4 equivalent." docs>
   <h1>Schema <code>{schema.version}</code></h1>
   <p class="lede">
     Action names are <a href="https://developers.google.com/analytics/devguides/collection/ga4/ecommerce">GA4's
@@ -95,4 +96,15 @@ import schema from '../../data/schema.json'
     merchant opts into email. Inventing an action name for it would break the promise that one dashboard
     works across every platform.
   </p>
+
+  <div class="next-cards">
+    <a class="card" href={url('/docs/datadog-assets/')}>
+      <h3>Dashboards</h3>
+      <p>The metrics these events feed.</p>
+    </a>
+    <a class="card" href={url('/docs/contributing/')}>
+      <h3>Contribute</h3>
+      <p>Map a new platform onto this schema.</p>
+    </a>
+  </div>
 </Base>

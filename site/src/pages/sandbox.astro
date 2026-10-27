@@ -3,334 +3,355 @@ import Base from '../layouts/Base.astro'
 import { url } from '../lib/url'
 import plugins from '../data/plugins.json'
 
-// Only adapters the sandbox has a platform double for, commerce first: they exercise the most.
 const order = ['shopify', 'woocommerce', 'onetrust']
 const runnable = order
   .map((name) => plugins.find((plugin) => plugin.name === name))
   .filter((plugin) => plugin !== undefined)
-
-const fixtureSources = [...new Set(runnable.flatMap((p) => p.fixtures.map((f) => f.source).filter(Boolean)))]
 ---
 
-<Base
-  title="Sandbox"
-  description="Run the real adapters against recorded platform payloads in your browser and watch exactly which RUM calls they make."
->
+<Base title="Sandbox" description="Watch exactly what a Datadog RUM plugin sends, and what it refuses to send.">
   <h1>Sandbox</h1>
   <p class="lede">
-    This runs the <strong>real adapters</strong>, from the same published builds you would install,
-    against the <strong>same recorded payloads the test suite uses</strong>. It records the RUM calls
-    each adapter makes instead of sending them, and shows you every one.
-  </p>
-
-  <p class="notice">
-    <strong>Nothing leaves your browser and no Datadog account is involved.</strong> The sandbox never
-    initializes RUM and never asks for an application ID or client token. Recording the calls rather
-    than sending them is also the only way to show the parts that matter most — the consent gate
-    holding events back, a second order being refused, card data being stripped — because in all
-    three cases the correct behaviour is that <em>nothing is sent at all</em>.
+    A shopper clicks through a store. Watch exactly what the plugin sends to Datadog — and what it
+    refuses to send. Runs the real plugin in your browser; no Datadog account needed.
   </p>
 
   <div class="sandbox" data-sandbox>
-    <div class="sandbox-controls">
-      <div class="field">
-        <label for="adapter">Adapter</label>
+    <div class="bar">
+      <label class="pick">
+        <span>Plugin</span>
         <select id="adapter">
           {runnable.map((plugin, index) => (
             <option value={plugin.name} selected={index === 0}>{plugin.title ?? plugin.name}</option>
           ))}
         </select>
-      </div>
+      </label>
+      <div class="presets" data-presets></div>
+    </div>
 
-      <fieldset data-commerce-only>
-        <legend>Options</legend>
-        <label><input type="checkbox" data-option="includeItems" /> <code>includeItems</code></label>
-        <label><input type="checkbox" data-option="includeEmail" /> <code>includeEmail</code></label>
-        <label><input type="checkbox" data-option="includeName" /> <code>includeName</code></label>
-        <label><input type="checkbox" data-option="identifyUsers" checked /> <code>identifyUsers</code></label>
-        <label>
-          <input type="checkbox" data-option="consentIgnore" />
-          <code>consent: 'ignore'</code>
-          <span class="small muted">— skip the gate, as if a consent plugin already granted</span>
+    <p class="explain" data-explain></p>
+
+    <div class="panes">
+      <section class="pane">
+        <h2>A shopper on the store</h2>
+        <ol class="step-list" data-steps></ol>
+        <button type="button" class="primary" data-run-all>Run every step</button>
+        <button type="button" class="ghost" data-reset>Reset</button>
+      </section>
+
+      <section class="pane">
+        <h2>What Datadog receives</h2>
+        <div class="log" data-log aria-live="polite"></div>
+      </section>
+    </div>
+
+    <details class="settings">
+      <summary>Plugin options</summary>
+      <div class="opts">
+        <label><input type="checkbox" data-option="consentIgnore" /> Visitor has accepted the cookie banner</label>
+        <label><input type="checkbox" data-option="includeItems" /> Send line items <code>includeItems</code></label>
+        <label><input type="checkbox" data-option="includeEmail" /> Send email address <code>includeEmail</code></label>
+        <label><input type="checkbox" data-option="includeName" /> Send customer name <code>includeName</code></label>
+        <label><input type="checkbox" data-option="identifyUsers" checked /> Identify the customer <code>identifyUsers</code></label>
+        <label class="inline" data-shopify-only>
+          Shopify consent API
+          <select id="privacy">
+            <option value="absent" selected>Not present (pixel sandbox)</option>
+            <option value="allowed">Allows analytics</option>
+            <option value="denied">Blocks analytics</option>
+          </select>
         </label>
-      </fieldset>
-
-      <div class="field" data-shopify-only>
-        <label for="privacy">Shopify Customer Privacy API</label>
-        <select id="privacy">
-          <option value="absent" selected>Not present (pixel sandbox)</option>
-          <option value="allowed">analyticsProcessingAllowed() → true</option>
-          <option value="denied">analyticsProcessingAllowed() → false</option>
-        </select>
+        <label class="inline" data-onetrust-only hidden>
+          Required category
+          <input id="category" type="text" value="C0002" spellcheck="false" size="8" />
+        </label>
+        <label class="inline" data-commerce-prefix>
+          Action prefix
+          <input id="prefix" type="text" value="commerce." spellcheck="false" size="12" />
+        </label>
       </div>
-
-      <div class="field" data-onetrust-only hidden>
-        <label for="category">Required OneTrust category</label>
-        <input id="category" type="text" value="C0002" spellcheck="false" />
-      </div>
-
-      <div class="field">
-        <label for="prefix">Action prefix</label>
-        <input id="prefix" type="text" value="commerce." spellcheck="false" />
-      </div>
-
-      <div class="actions">
-        <button type="button" data-run-all>Run every step</button>
-        <button type="button" data-reset>Reset</button>
-      </div>
-
-      <p class="small muted" data-status></p>
-    </div>
-
-    <div class="sandbox-steps">
-      <h2>Steps</h2>
-      <p class="small muted">
-        Fire them one at a time, or run them all. Each is a payload recorded from the real platform.
-      </p>
-      <ol class="step-list" data-steps></ol>
-    </div>
-
-    <div class="sandbox-output">
-      <h2>RUM calls</h2>
-      <p class="small muted">
-        What the adapter asked the SDK to do, in order. An entry in red is something the core
-        refused to send, with the reason.
-      </p>
-      <div class="log" data-log aria-live="polite">
-        <p class="muted small">Fire a step to see the calls.</p>
-      </div>
-    </div>
+    </details>
   </div>
 
-  <h2>Things worth trying</h2>
-
-  <h3>The refusals</h3>
-  <p>
-    These are the behaviours a live demo cannot show, because in each case the correct outcome is
-    that nothing is sent. The adapters run with <code>debug: true</code>, so each refusal appears in
-    the log with the core's own reason — the same output you get by following
-    <a href={url('/docs/getting-started/')}>the verify step</a> on a real site.
-  </p>
-  <ul>
-    <li>
-      <strong>Fire the order step twice</strong> (WooCommerce "order received", or Shopify's two
-      <code>checkout_completed</code> steps — the second is a refreshed thank-you page). The second
-      is refused: <code>commerce.purchase</code> fires once per <code>transaction_id</code>, which is
-      what stops a reload double-counting revenue. <em>Reset</em> clears it.
-    </li>
-    <li>
-      <strong>WooCommerce with <code>consent: 'ignore'</code> off.</strong> Run every step: nothing is
-      sent, not even <code>setUser</code>, and <code>trackingConsent</code> is set to
-      <code>not-granted</code> before the SDK would start. Events during a pending decision are
-      dropped rather than queued, so granting afterwards does not backfill them.
-    </li>
-    <li>
-      <strong>Shopify with the Customer Privacy API set to <code>false</code>.</strong> Same result,
-      through the platform's own consent signal. Set it to <em>not present</em> and events flow —
-      that is the pixel sandbox, where the Pixel Manager has already applied the merchant's
-      categories before the pixel runs. Those three branches are the whole of Shopify's consent
-      behaviour.
-    </li>
-    <li>
-      <strong>Narrow the action prefix, then watch a non-commerce action.</strong> Renaming commerce
-      to <code>shop.</code> moves commerce actions only; <code>account.*</code> and
-      <code>lead.*</code> keep their own prefix, so renaming commerce cannot silently rename a login.
-    </li>
-  </ul>
-
-  <h3>What gets stripped</h3>
-  <ul>
-    <li>
-      <strong>Shopify's payment step and WooCommerce's order</strong> both carry a
-      <code>card_number</code> in the recorded payload — WooCommerce's also carries a
-      <code>billing_address</code>. Neither reaches the output. The fixtures carry them precisely so
-      the stripping is exercised rather than assumed.
-    </li>
-    <li>
-      <strong>Shopify's search step</strong> sends <code>search_term_length: 14</code>. The query was
-      "red tee medium"; the text never leaves the browser.
-    </li>
-    <li>
-      <strong>Turn <code>includeEmail</code> on.</strong> It appears on <code>setUser</code> and
-      nowhere else — never on an action. Turn <code>identifyUsers</code> off and <code>setUser</code>
-      stops entirely.
-    </li>
-  </ul>
-
-  <h3>Consent, end to end</h3>
-  <ul>
-    <li>
-      <strong>Pick OneTrust and walk the steps in order.</strong> An unanswered banner reports
-      nothing; reject-all reports <code>not-granted</code>; accepting performance grants; accepting
-      everything is already granted, so it is not reported again; withdrawing denies.
-    </li>
-    <li>
-      <strong>Change the required category to <code>C0004</code></strong> and walk them again. Now
-      only the accept-everything step grants.
-    </li>
-  </ul>
-
-  <h2>Where the payloads come from</h2>
-  <ul class="small">
-    {fixtureSources.map((source) => <li>{source}</li>)}
-  </ul>
   <p class="small muted">
-    Live demos against a real Datadog organization live in the RUM playground site, linked from each
-    plugin's page once the packages are published. This sandbox exists for the part a live demo
-    cannot show: what an adapter refuses to send.
+    Nothing leaves your browser. The sandbox never starts RUM and never asks for an application ID or
+    client token — it records the calls the plugin would make. That is also the only way to show a
+    <em>refusal</em>, since a blocked event produces nothing at all.
+    <a href={url('/docs/privacy/')}>How the rules work →</a>
   </p>
-  <p><a href={url('/plugins/')}>Browse the plugins →</a></p>
 </Base>
 
-<style>
-  /* The site has no global [hidden] rule, and the display rules below would otherwise beat it. */
-  [hidden] { display: none !important; }
+<style is:global>
+  /* Global on purpose: the rows and log entries are built in the client script, so Astro's
+     scoped-style hash never reaches them. Every selector is namespaced under .sandbox. */
+  .sandbox { margin: 1.5rem 0 1rem; }
 
-  .sandbox {
-    display: grid;
-    grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
-    gap: 1.5rem;
-    margin: 1.5rem 0 2rem;
-    align-items: start;
+  .sandbox .bar {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 0.9rem;
   }
-  @media (max-width: 54rem) {
-    /* The site has no global [hidden] rule, and the display rules below would otherwise beat it. */
-  [hidden] { display: none !important; }
-
-  .sandbox { grid-template-columns: 1fr; }
-  }
-  .sandbox-controls, .sandbox-steps, .sandbox-output {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem 1.1rem;
-    background: var(--surface);
-  }
-  .sandbox-output { grid-column: 2; grid-row: 1 / span 2; }
-  @media (max-width: 54rem) {
-    .sandbox-output { grid-column: 1; grid-row: auto; }
-  }
-  .sandbox-controls .field { margin-bottom: 0.85rem; }
-  .sandbox-controls label { display: block; font-size: 0.875rem; margin-bottom: 0.25rem; }
-  .sandbox-controls select, .sandbox-controls input[type='text'] {
+  .sandbox .pick { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
+  .sandbox .pick select {
     font: inherit;
-    width: 100%;
-    padding: 0.4rem 0.55rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--bg);
+    font-size: 1rem;
+    text-transform: none;
+    letter-spacing: normal;
     color: var(--text);
-  }
-  fieldset {
-    border: 1px solid var(--border);
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius);
-    padding: 0.6rem 0.75rem;
-    margin: 0 0 0.85rem;
+    background: var(--raised);
   }
-  legend { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); padding: 0 0.3rem; }
-  fieldset label { display: flex; gap: 0.4rem; align-items: baseline; flex-wrap: wrap; margin-bottom: 0.3rem; }
-  fieldset input[type='checkbox'] { margin: 0; }
-  .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  .actions button, .step-list button {
+  .sandbox .presets { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-left: auto; }
+  .sandbox .presets button {
     font: inherit;
-    font-size: 0.875rem;
-    padding: 0.4rem 0.75rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
     cursor: pointer;
   }
-  .actions button[data-run-all] { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
-  .actions button:hover, .step-list button:hover { border-color: var(--accent); }
+  .sandbox .presets button:hover { background: var(--accent); color: var(--accent-ink); }
 
-  .step-list { list-style: none; padding: 0; margin: 0; counter-reset: s; }
-  .step-list li {
+  .sandbox .explain {
+    margin: 0 0 1rem;
+    padding: 0.6rem 0.9rem;
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: 0.925rem;
+  }
+  .sandbox .explain:empty { display: none; }
+
+  .sandbox .panes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 1rem; align-items: start; }
+  @media (max-width: 52rem) { .sandbox .panes { grid-template-columns: 1fr; } }
+
+  .sandbox .pane {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--raised);
+    box-shadow: var(--shadow);
+    padding: 1rem 1.1rem;
+  }
+  .sandbox .pane h2 {
+    margin: 0 0 0.75rem;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .sandbox .pane .primary { margin-top: 0.75rem; }
+  .sandbox .pane .ghost {
+    font: inherit;
+    font-size: 0.875rem;
+    margin-left: 0.4rem;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .sandbox .pane .ghost:hover { color: var(--text); border-color: var(--accent); }
+
+  .sandbox .step-list { list-style: none; padding: 0; margin: 0; }
+  .sandbox .step-list li {
     display: flex;
     gap: 0.6rem;
-    align-items: baseline;
+    align-items: center;
     padding: 0.4rem 0;
     border-bottom: 1px solid var(--border);
   }
-  .step-list li:last-child { border-bottom: none; }
-  .step-list .step-name { flex: 1; font-size: 0.875rem; }
-  .step-list .step-event { font-size: 0.75rem; }
+  .sandbox .step-list li:last-child { border-bottom: none; }
+  .sandbox .step-list .n {
+    width: 1.5rem; height: 1.5rem; flex: none;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: grid; place-items: center;
+    font-size: 0.75rem; font-weight: 700; color: var(--muted);
+  }
+  .sandbox .step-list li[data-done] .n { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
+  .sandbox .step-list .what { flex: 1; font-size: 0.9rem; }
+  .sandbox .step-list button {
+    font: inherit;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--raised);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .sandbox .step-list button:hover { border-color: var(--accent); color: var(--accent); }
 
-  .log { max-height: 34rem; overflow-y: auto; font-size: 0.8125rem; }
-  .log-entry { border-bottom: 1px solid var(--border); padding: 0.5rem 0; }
-  .log-entry:last-child { border-bottom: none; }
-  .log-api { font-weight: 650; }
-  .log-blocked .log-api { color: #c0392b; }
-  @media (prefers-color-scheme: dark) { .log-blocked .log-api { color: #ff8a7a; } }
-  .log-entry pre { margin: 0.35rem 0 0; padding: 0.5rem 0.6rem; font-size: 0.75rem; }
-  .log-step { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 0.9rem 0 0.1rem; }
-  .log-step:first-child { margin-top: 0; }
+  .sandbox .log { min-height: 16rem; max-height: 32rem; overflow-y: auto; font-size: 0.8125rem; }
+  .sandbox .log .empty { color: var(--muted); font-size: 0.875rem; }
+  .sandbox .entry { padding: 0.45rem 0; border-bottom: 1px solid var(--border); }
+  .sandbox .entry:last-child { border-bottom: none; }
+  .sandbox .entry .api { font-weight: 700; }
+  .sandbox .entry.sent .api { color: var(--ok); }
+  .sandbox .entry.stopped { background: var(--stop-soft); border-radius: 6px; padding: 0.45rem 0.6rem; margin: 0.25rem 0; }
+  .sandbox .entry.stopped .api { color: var(--stop); }
+  .sandbox .entry.meta .api { color: var(--muted); font-weight: 600; }
+  .sandbox .entry pre { margin: 0.3rem 0 0; padding: 0.45rem 0.6rem; font-size: 0.75rem; background: var(--code-bg); }
+  .sandbox .heading {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--muted); font-weight: 700;
+    margin: 0.9rem 0 0.2rem; padding-top: 0.4rem; border-top: 1px dashed var(--border);
+  }
+  .sandbox .heading:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+
+  .sandbox .settings { margin-top: 1rem; }
+  .sandbox .settings summary {
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 0.4rem 0;
+  }
+  .sandbox .settings summary:hover { color: var(--text); }
+  .sandbox .opts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 0.5rem 1.25rem;
+    padding: 0.75rem 0 0;
+  }
+  .sandbox .opts label { display: flex; gap: 0.45rem; align-items: center; font-size: 0.875rem; }
+  .sandbox .opts label.inline { gap: 0.5rem; }
+  .sandbox .opts input[type='text'],
+  .sandbox .opts select {
+    font: inherit; font-size: 0.85rem;
+    padding: 0.25rem 0.45rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--raised);
+    color: var(--text);
+  }
 </style>
 
 <script>
   import { clearDedupe, startSession, type SandboxAdapter, type SandboxCall, type SandboxFixture } from '../lib/sandbox'
+  import { labelFor } from '../lib/sandboxLabels'
   import plugins from '../data/plugins.json'
 
   const root = document.querySelector<HTMLElement>('[data-sandbox]')
   if (root) {
-    const adapterSelect = root.querySelector<HTMLSelectElement>('#adapter')!
-    const prefixInput = root.querySelector<HTMLInputElement>('#prefix')!
-    const privacySelect = root.querySelector<HTMLSelectElement>('#privacy')!
-    const categoryInput = root.querySelector<HTMLInputElement>('#category')!
-    const shopifyOnly = root.querySelector<HTMLElement>('[data-shopify-only]')!
-    const onetrustOnly = root.querySelector<HTMLElement>('[data-onetrust-only]')!
-    const stepList = root.querySelector<HTMLOListElement>('[data-steps]')!
-    const log = root.querySelector<HTMLElement>('[data-log]')!
-    const status = root.querySelector<HTMLElement>('[data-status]')!
+    const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!
+    const adapterSelect = $<HTMLSelectElement>('#adapter')
+    const prefixInput = $<HTMLInputElement>('#prefix')
+    const privacySelect = $<HTMLSelectElement>('#privacy')
+    const categoryInput = $<HTMLInputElement>('#category')
+    const stepList = $<HTMLOListElement>('[data-steps]')
+    const log = $<HTMLElement>('[data-log]')
+    const explain = $<HTMLElement>('[data-explain]')
+    const presetBar = $<HTMLElement>('[data-presets]')
     const optionInputs = [...root.querySelectorAll<HTMLInputElement>('[data-option]')]
+    const option = (name: string) => optionInputs.find((input) => input.dataset.option === name)!
 
     type PluginData = { name: string; fixtures: SandboxFixture[] }
     const byName = new Map((plugins as PluginData[]).map((plugin) => [plugin.name, plugin]))
 
     let session: ReturnType<typeof startSession> | null = null
+    let sentThisStep = 0
 
-    const currentOptions = () => {
-      const flags = Object.fromEntries(optionInputs.map((input) => [input.dataset.option, input.checked]))
-      return {
-        includeItems: flags.includeItems === true,
-        includeEmail: flags.includeEmail === true,
-        includeName: flags.includeName === true,
-        identifyUsers: flags.identifyUsers === true,
-        ...(flags.consentIgnore === true ? { consent: 'ignore' as const } : {}),
-        actionPrefix: prefixInput.value || 'commerce.',
-        shopifyPrivacy: privacySelect.value as 'absent' | 'allowed' | 'denied',
-        category: categoryInput.value || 'C0002',
-      }
+    /**
+     * Each preset configures the plugin, runs the whole flow, and says in one line what to look
+     * for. Telling someone to go and set four checkboxes is how the previous version lost people.
+     */
+    const PRESETS: Record<string, { label: string; apply: () => void; note: string }[]> = {
+      shopify: [
+        {
+          label: 'Happy path',
+          apply: () => { privacySelect.value = 'absent'; option('includeItems').checked = true },
+          note: 'The normal case: every step maps to one Datadog action. The order arrives once, with its value, tax, shipping and coupon.',
+        },
+        {
+          label: 'Shopper declines cookies',
+          apply: () => { privacySelect.value = 'denied' },
+          note: 'Shopify’s consent API says no, so the plugin sends nothing at all — not even the order. Every step is refused, with the reason.',
+        },
+        {
+          label: 'Thank-you page reloaded',
+          apply: () => { privacySelect.value = 'absent' },
+          note: 'The last two steps are the same order: a reload. The second is refused, so revenue is not counted twice.',
+        },
+        {
+          label: 'Card data in the payload',
+          apply: () => { privacySelect.value = 'absent' },
+          note: 'The payment step’s recorded payload contains a card number and CVV. Look at what arrives: only the payment method name.',
+        },
+      ],
+      woocommerce: [
+        {
+          label: 'Happy path',
+          apply: () => { option('consentIgnore').checked = true; option('includeItems').checked = true },
+          note: 'Cart events come from WooCommerce’s own DOM events; the order comes from the thank-you page. Note the card number and billing address in the payload never arrive.',
+        },
+        {
+          label: 'Cookie banner unanswered',
+          apply: () => { option('consentIgnore').checked = false },
+          note: 'Nothing is sent, not even the customer ID, and RUM itself is held at not-granted. Pending events are dropped rather than queued, so accepting later does not backfill them.',
+        },
+        {
+          label: 'Send the email address',
+          apply: () => { option('consentIgnore').checked = true; option('includeEmail').checked = true },
+          note: 'Opted in, the email appears on setUser — and nowhere else. It is never attached to an action.',
+        },
+      ],
+      onetrust: [
+        {
+          label: 'Walk the banner',
+          apply: () => { categoryInput.value = 'C0002' },
+          note: 'RUM is held until the analytics category is accepted, then released. Turning it back off withdraws consent.',
+        },
+        {
+          label: 'Require a stricter category',
+          apply: () => { categoryInput.value = 'C0004' },
+          note: 'Now only "accepts all cookies" releases RUM. Accepting analytics alone is not enough.',
+        },
+      ],
     }
 
-    /** Only show a control on the adapter it applies to. */
-    function syncControls() {
-      const adapter = adapterSelect.value
-      shopifyOnly.hidden = adapter !== 'shopify'
-      onetrustOnly.hidden = adapter !== 'onetrust'
-      // A consent adapter emits no actions of its own, so the commerce options and the action
-      // prefix mean nothing for it. Hide the whole fieldset rather than its labels, or the legend
-      // is left behind as an empty box.
-      const commerceOnly = adapter !== 'onetrust'
-      root.querySelector<HTMLElement>('[data-commerce-only]')!.hidden = !commerceOnly
-      prefixInput.closest<HTMLElement>('.field')!.hidden = !commerceOnly
-    }
+    const currentOptions = () => ({
+      includeItems: option('includeItems').checked,
+      includeEmail: option('includeEmail').checked,
+      includeName: option('includeName').checked,
+      identifyUsers: option('identifyUsers').checked,
+      ...(option('consentIgnore').checked ? { consent: 'ignore' as const } : {}),
+      actionPrefix: prefixInput.value || 'commerce.',
+      shopifyPrivacy: privacySelect.value as 'absent' | 'allowed' | 'denied',
+      category: categoryInput.value || 'C0002',
+    })
 
-    function appendStepHeading(text: string) {
-      const heading = document.createElement('p')
-      heading.className = 'log-step'
-      heading.textContent = text
-      log.append(heading)
+    function heading(text: string) {
+      const el = document.createElement('p')
+      el.className = 'heading'
+      el.textContent = text
+      log.append(el)
       log.scrollTop = log.scrollHeight
     }
 
-    function appendCall(call: SandboxCall) {
+    // Green means business data actually reached Datadog. Session setup — context properties, the
+    // consent state — is listed but muted: it is not an order, and colouring it the same as one is
+    // what makes "nothing was sent" look like "seven things were sent".
+    const DATA_CALLS = new Set(['addAction', 'setUser', 'setAccount'])
+
+    function render(call: SandboxCall) {
       const entry = document.createElement('div')
-      entry.className = call.blocked ? 'log-entry log-blocked' : 'log-entry'
+      const kind = call.blocked ? 'stopped' : DATA_CALLS.has(call.api) ? 'sent' : 'meta'
+      entry.className = `entry ${kind}`
 
       const head = document.createElement('div')
       const api = document.createElement('span')
-      api.className = 'log-api'
-      api.textContent = call.api
+      api.className = 'api'
+      api.textContent = call.blocked ? `✕ not sent` : call.api
       head.append(api)
 
       if (call.label) {
@@ -346,9 +367,10 @@ const fixtureSources = [...new Set(runnable.flatMap((p) => p.fixtures.map((f) =>
       }
       entry.append(head)
 
-      if (call.detail !== undefined && Object.keys(call.detail as object ?? {}).length > 0) {
+      const detail = call.detail as Record<string, unknown> | undefined
+      if (detail !== undefined && Object.keys(detail ?? {}).length > 0) {
         const pre = document.createElement('pre')
-        pre.textContent = JSON.stringify(call.detail, null, 2)
+        pre.textContent = JSON.stringify(detail, null, 2)
         entry.append(pre)
       }
 
@@ -356,89 +378,125 @@ const fixtureSources = [...new Set(runnable.flatMap((p) => p.fixtures.map((f) =>
       log.scrollTop = log.scrollHeight
     }
 
-    let callsThisStep = 0
-
-    function reset({ keepDedupe = false } = {}) {
+    function emptyLog() {
       log.replaceChildren()
-      if (!keepDedupe) clearDedupe()
-      // Options are read at init, so changing one rebuilds the adapter; stop the previous
-      // session's console capture first or the forwarders stack up.
+      const p = document.createElement('p')
+      p.className = 'empty'
+      p.textContent = 'Run a step to see what the plugin sends.'
+      log.append(p)
+    }
+
+    function reset() {
+      emptyLog()
+      clearDedupe()
+      for (const li of stepList.querySelectorAll('li')) li.removeAttribute('data-done')
       session?.dispose()
       session = startSession(adapterSelect.value as SandboxAdapter, currentOptions(), (call) => {
-        callsThisStep += 1
-        appendCall(call)
+        if (log.querySelector('.empty')) log.replaceChildren()
+        sentThisStep += 1
+        render(call)
       })
+    }
 
-      const consentState = session.initConfiguration.trackingConsent
-      status.textContent = session.initialized
-        ? consentState
-          ? `onInit ran. trackingConsent is "${consentState}", so nothing will be sent until consent is granted.`
-          : 'onInit ran. The adapter left trackingConsent alone.'
-        : 'The adapter opted out of this page (onInit returned false), so it subscribed to nothing.'
+    function fire(fixture: SandboxFixture, label: string, li?: HTMLElement) {
+      if (log.querySelector('.empty')) log.replaceChildren()
+      sentThisStep = 0
+      heading(label)
+      session?.emit(fixture)
+      if (sentThisStep === 0) render({ api: '', blocked: 'the plugin sent nothing for this step' })
+      li?.setAttribute('data-done', '')
+    }
+
+    function fixturesFor(adapter: string) {
+      const list = byName.get(adapter)?.fixtures ?? []
+      const seen = new Set<string>()
+      return list.map((fixture) => {
+        const before = seen.has(fixture.event)
+        seen.add(fixture.event)
+        return { fixture, label: labelFor(fixture.name, fixture.event, before) }
+      })
     }
 
     function renderSteps() {
-      const plugin = byName.get(adapterSelect.value)
       stepList.replaceChildren()
+      fixturesFor(adapterSelect.value).forEach((step, index) => {
+        const li = document.createElement('li')
 
-      for (const fixture of plugin?.fixtures ?? []) {
-        const item = document.createElement('li')
+        const n = document.createElement('span')
+        n.className = 'n'
+        n.textContent = String(index + 1)
 
-        const name = document.createElement('span')
-        name.className = 'step-name'
-        name.textContent = fixture.name
-        if (fixture.description) name.title = fixture.description
+        const what = document.createElement('span')
+        what.className = 'what'
+        what.textContent = step.label
+        what.title = `${step.fixture.name} · ${step.fixture.event}`
 
-        const event = document.createElement('code')
-        event.className = 'step-event'
-        event.textContent = fixture.event
+        const run = document.createElement('button')
+        run.type = 'button'
+        run.textContent = 'Run'
+        run.addEventListener('click', () => fire(step.fixture, step.label, li))
 
-        const fire = document.createElement('button')
-        fire.type = 'button'
-        fire.textContent = 'Fire'
-        fire.addEventListener('click', () => {
-          callsThisStep = 0
-          appendStepHeading(fixture.name)
-          session?.emit(fixture)
-          if (callsThisStep === 0) {
-            appendCall({ api: 'no RUM calls', blocked: 'the adapter sent nothing for this payload' })
-          }
-        })
+        li.append(n, what, run)
+        stepList.append(li)
+      })
+    }
 
-        item.append(name, event, fire)
-        stepList.append(item)
+    function runAll() {
+      reset()
+      for (const step of fixturesFor(adapterSelect.value)) {
+        const li = [...stepList.querySelectorAll('li')].find((el) => el.querySelector('.what')?.textContent === step.label)
+        fire(step.fixture, step.label, li)
       }
     }
 
-    root.querySelector('[data-run-all]')!.addEventListener('click', () => {
-      reset()
-      for (const fixture of byName.get(adapterSelect.value)?.fixtures ?? []) {
-        callsThisStep = 0
-        appendStepHeading(fixture.name)
-        session?.emit(fixture)
-        if (callsThisStep === 0) {
-          appendCall({ api: 'no RUM calls', blocked: 'the adapter sent nothing for this payload' })
-        }
+    function renderPresets() {
+      presetBar.replaceChildren()
+      for (const preset of PRESETS[adapterSelect.value] ?? []) {
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.textContent = preset.label
+        button.addEventListener('click', () => {
+          // Start from the defaults so presets don't inherit each other's state.
+          for (const input of optionInputs) input.checked = input.dataset.option === 'identifyUsers'
+          privacySelect.value = 'absent'
+          prefixInput.value = 'commerce.'
+          preset.apply()
+          explain.textContent = preset.note
+          runAll()
+        })
+        presetBar.append(button)
       }
-    })
+    }
 
-    root.querySelector('[data-reset]')!.addEventListener('click', () => reset())
+    function syncControls() {
+      const adapter = adapterSelect.value
+      $<HTMLElement>('[data-shopify-only]').hidden = adapter !== 'shopify'
+      $<HTMLElement>('[data-onetrust-only]').hidden = adapter !== 'onetrust'
+      // A consent plugin emits no actions of its own, so the commerce options mean nothing for it.
+      const commerce = adapter !== 'onetrust'
+      for (const input of optionInputs) input.closest('label')!.hidden = !commerce
+      $<HTMLElement>('[data-commerce-prefix]').hidden = !commerce
+    }
+
+    $('[data-run-all]').addEventListener('click', () => { explain.textContent = ''; runAll() })
+    $('[data-reset]').addEventListener('click', () => { explain.textContent = ''; reset() })
 
     adapterSelect.addEventListener('change', () => {
+      explain.textContent = ''
       syncControls()
+      renderPresets()
       renderSteps()
       reset()
     })
 
-    // Changing an option rebuilds the adapter, because options are read at init.
     for (const input of [...optionInputs, prefixInput, privacySelect, categoryInput]) {
       input.addEventListener('change', () => reset())
     }
 
-    // Leave the console capture clean if the page goes away mid-session.
     window.addEventListener('pagehide', () => session?.dispose(), { once: true })
 
     syncControls()
+    renderPresets()
     renderSteps()
     reset()
   }

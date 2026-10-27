@@ -1,106 +1,116 @@
 ---
 import Base from '../../layouts/Base.astro'
+import Icon from '../../components/Icon.astro'
 import { url } from '../../lib/url'
 import plugins from '../../data/plugins.json'
 
+const order = ['shopify', 'woocommerce', 'onetrust']
+const sorted = [
+  ...order.map((name) => plugins.find((plugin) => plugin.name === name)).filter((p) => p !== undefined),
+  ...plugins.filter((plugin) => !order.includes(plugin.name)),
+]
+
 const families = [...new Set(plugins.map((plugin) => plugin.family))].sort()
-const platforms = [...new Set(plugins.flatMap((plugin) => (plugin.platforms ?? []).map((p) => p.name)))].sort()
-const tiers = ['seed', 'verified', 'listed']
-const tierLabel: Record<string, string> = { seed: 'Maintainer', verified: 'Verified community', listed: 'Community' }
+const tierLabel: Record<string, string> = { seed: 'Maintainer', verified: 'Verified', listed: 'Community' }
+const familyIcon: Record<string, 'cart' | 'shield' | 'user' | 'puzzle'> = {
+  commerce: 'cart',
+  consent: 'shield',
+  identity: 'user',
+}
+
+const planned = [
+  { name: 'Adobe Commerce', family: 'commerce' },
+  { name: 'BigCommerce', family: 'commerce' },
+  { name: 'Salesforce Commerce', family: 'commerce' },
+  { name: 'Cookiebot', family: 'consent' },
+  { name: 'WP Consent API', family: 'consent' },
+  { name: 'Auth0', family: 'identity' },
+  { name: 'Firebase Auth', family: 'identity' },
+  { name: 'Clerk', family: 'identity' },
+]
 ---
 
-<Base title="Plugins" description="Every Datadog RUM community plugin: commerce platforms, consent managers and login providers.">
-  <h1>Plugins</h1>
-  <p class="lede">
-    Every adapter emits the same schema, so one dashboard and one monitor set work across all of them.
-    Each card links to the plugin's page: install snippets, options, the events it actually sends, and
-    what it touches.
-  </p>
+<Base title="Plugins" description="Datadog RUM plugins for commerce platforms, consent managers and login providers.">
+  <div class="wrap">
+    <h1>Plugins</h1>
+    <p class="lede">
+      Pick your platform. Every plugin sends the same events, so one dashboard works across all of them.
+    </p>
 
-  <div class="filters">
-    <input type="search" id="q" placeholder="Search plugins…" aria-label="Search plugins" />
-    <select id="family" aria-label="Filter by family">
-      <option value="">All families</option>
-      {families.map((family) => <option value={family}>{family}</option>)}
-    </select>
-    <select id="platform" aria-label="Filter by platform">
-      <option value="">All platforms</option>
-      {platforms.map((platform) => <option value={platform}>{platform}</option>)}
-    </select>
-    <select id="tier" aria-label="Filter by tier">
-      <option value="">All tiers</option>
-      {tiers.map((tier) => <option value={tier}>{tierLabel[tier]}</option>)}
-    </select>
-  </div>
+    <div class="grid" style="margin-top:1.75rem">
+      {sorted.map((plugin) => (
+        <a class="card" href={url(`/plugins/${plugin.name}/`)} data-plugin={plugin.name} data-family={plugin.family}>
+          <span class="card-icon"><Icon name={familyIcon[plugin.family] ?? 'puzzle'} /></span>
+          <h3>{plugin.title ?? plugin.name}</h3>
+          <p>{plugin.description}</p>
+          <div class="badges">
+            <span class={`badge ${plugin.tier}`}>{tierLabel[plugin.tier]}</span>
+            <span class="badge">{plugin.family}</span>
+            {plugin.events.length > 0 && <span class="badge">{plugin.events.length} events</span>}
+          </div>
+        </a>
+      ))}
+    </div>
 
-  <div class="grid" id="gallery">
-    {plugins.map((plugin) => (
-      <div
-        class="card"
-        data-plugin={plugin.name}
-        data-family={plugin.family}
-        data-tier={plugin.tier}
-        data-platforms={(plugin.platforms ?? []).map((p) => p.name).join('|')}
-        data-search={`${plugin.name} ${plugin.title ?? ''} ${plugin.description}`.toLowerCase()}
-      >
-        <h3><a href={url(`/plugins/${plugin.name}/`)}>{plugin.title ?? plugin.name}</a></h3>
-        <p>{plugin.description}</p>
-        <div class="badges">
-          <span class={`badge ${plugin.tier}`}>{tierLabel[plugin.tier]}</span>
-          <span class="badge">{plugin.family}</span>
-          <span class="badge">v{plugin.version}</span>
-          {plugin.events.length > 0 && <span class="badge">{plugin.events.length} actions</span>}
-        </div>
+    {plugins.length > 6 && (
+      <div class="filters" style="margin-top:1.5rem">
+        <input type="search" id="q" placeholder="Search plugins…" aria-label="Search plugins" />
+        <select id="family" aria-label="Filter by family">
+          <option value="">All families</option>
+          {families.map((family) => <option value={family}>{family}</option>)}
+        </select>
       </div>
-    ))}
+    )}
+
+    <h2>On the roadmap</h2>
+    <p class="lede">
+      Open for contributors. Each needs a documented browser event source — see
+      <a href={url('/docs/contributing/')}>how to build one</a>.
+    </p>
+    <div class="scroll-x">
+      <table>
+        <thead><tr><th>Platform</th><th>Family</th><th>Status</th></tr></thead>
+        <tbody>
+          {planned.map((item) => (
+            <tr>
+              <td><strong>{item.name}</strong></td>
+              <td class="muted">{item.family}</td>
+              <td class="muted">Open — no maintainer yet</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Tiers</h2>
+    <div class="scroll-x">
+      <table>
+        <thead><tr><th>Tier</th><th>Who maintains it</th><th>Bar</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge seed">Maintainer</span></td><td>Project maintainer, best effort</td><td>Core, schema, asset pack and the launch plugins</td></tr>
+          <tr><td><span class="badge verified">Verified</span></td><td>A named community maintainer</td><td>Passes conformance, has a demo, reviewed for the privacy rules</td></tr>
+          <tr><td><span class="badge">Community</span></td><td>Anyone</td><td>Valid manifest and passing CI</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <p id="empty" hidden class="muted">No plugin matches those filters.</p>
+  <script>
+    // Filters only appear once the gallery is big enough to need them.
+    const query = document.getElementById('q') as HTMLInputElement | null
+    const family = document.getElementById('family') as HTMLSelectElement | null
 
-  <h2>Tiers</h2>
-  <div class="scroll-x">
-    <table>
-      <thead>
-        <tr><th>Tier</th><th>Who maintains it</th><th>Bar to be listed</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><span class="badge seed">Maintainer</span></td><td>Project maintainer, best effort</td><td>Core, schema, asset pack and the launch adapters</td></tr>
-        <tr><td><span class="badge verified">Verified community</span></td><td>A named community maintainer</td><td>Passes the conformance suite, has a demo page, reviewed by a core maintainer</td></tr>
-        <tr><td><span class="badge">Community</span></td><td>Anyone</td><td>Valid manifest and passing CI</td></tr>
-      </tbody>
-    </table>
-  </div>
-</Base>
-
-<script>
-  // Client-side filtering over the cards the build already rendered, so the gallery works
-  // without a search service and stays usable with JS off (every card is in the HTML).
-  const gallery = document.getElementById('gallery')!
-  const empty = document.getElementById('empty')!
-  const query = document.getElementById('q') as HTMLInputElement
-  const family = document.getElementById('family') as HTMLSelectElement
-  const platform = document.getElementById('platform') as HTMLSelectElement
-  const tier = document.getElementById('tier') as HTMLSelectElement
-
-  function apply() {
-    const text = query.value.trim().toLowerCase()
-    let visible = 0
-
-    for (const card of gallery.querySelectorAll<HTMLElement>('[data-plugin]')) {
-      const matches =
-        (text === '' || (card.dataset.search ?? '').includes(text)) &&
-        (family.value === '' || card.dataset.family === family.value) &&
-        (tier.value === '' || card.dataset.tier === tier.value) &&
-        (platform.value === '' || (card.dataset.platforms ?? '').split('|').includes(platform.value))
-
-      card.hidden = !matches
-      if (matches) visible += 1
+    function apply() {
+      const text = (query?.value ?? '').trim().toLowerCase()
+      for (const card of document.querySelectorAll<HTMLElement>('[data-plugin]')) {
+        const haystack = `${card.dataset.plugin} ${card.textContent}`.toLowerCase()
+        card.hidden =
+          (text !== '' && !haystack.includes(text)) ||
+          (family?.value !== '' && card.dataset.family !== family?.value)
+      }
     }
 
-    empty.hidden = visible > 0
-  }
-
-  for (const control of [query, family, platform, tier]) {
-    control.addEventListener('input', apply)
-  }
-</script>
+    query?.addEventListener('input', apply)
+    family?.addEventListener('change', apply)
+  </script>
+</Base>

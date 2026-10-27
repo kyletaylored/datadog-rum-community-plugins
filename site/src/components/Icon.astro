@@ -1,0 +1,32 @@
+---
+/** Small inline icon set. Inline so there is no sprite request and no icon-font weight. */
+interface Props {
+  name: 'cart' | 'shield' | 'user' | 'bolt' | 'chart' | 'code' | 'check' | 'arrow' | 'block' | 'puzzle'
+  size?: string
+}
+const { name, size = '1.15rem' } = Astro.props
+
+const paths: Record<Props['name'], string> = {
+  cart: '<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2.2l2.3 11.4a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H5"/>',
+  shield: '<path d="M12 3 5 6v5.5c0 4.2 2.9 8 7 9.5 4.1-1.5 7-5.3 7-9.5V6z"/><path d="m9 12 2 2 4-4"/>',
+  user: '<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>',
+  bolt: '<path d="M13 2 4 14h6l-1 8 9-12h-6z"/>',
+  chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  code: '<path d="m8 6-6 6 6 6M16 6l6 6-6 6"/>',
+  check: '<path d="m4 12 5.5 5.5L20 6"/>',
+  arrow: '<path d="M4 12h15M13 6l6 6-6 6"/>',
+  block: '<circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/>',
+  puzzle: '<path d="M10 3h4v2.5a2 2 0 1 0 4 0V8h3v4h-2.5a2 2 0 1 0 0 4H21v5h-5v-2.5a2 2 0 1 0-4 0V21H7v-5H4.5a2 2 0 1 0 0-4H7V8h3z"/>',
+}
+---
+<svg
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.8"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  style={`width:${size};height:${size}`}
+  aria-hidden="true"
+  set:html={paths[name]}
+/>
