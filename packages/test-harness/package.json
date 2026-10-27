@@ -9,6 +9,6 @@
   "types": "./src/index.ts",
   "exports": { ".": "./src/index.ts" },
   "dependencies": {
-    "@kyletaylored/datadog-rum-community-plugins": "0.1.0"
+    "@kyletaylored/datadog-rum-community-plugins": "0.2.0"
   }
 }
