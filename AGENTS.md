@@ -139,9 +139,12 @@ The main checkout often holds the maintainer's own uncommitted, in-progress work
 - Open the PR with `gh pr create --base main`.
 - Work that depends on an open PR is a stacked PR in that PR's worktree, not a new worktree; see below.
 
-**Stacked PRs.** Multi-PR work lands as a GitHub stack (`gh stack`, the `github/gh-stack` extension; see the [stacked PRs docs](https://docs.github.com/en/pull-requests/get-started/stacked-prs-quickstart)). Each layer's PR targets the branch below it, the bottom one targets `main`, and reviewers see only their layer's diff.
+**Stacked PRs: the default for anything bigger than one concern.** Use a GitHub stack whenever you can (`gh stack`, the `github/gh-stack` extension; see the [stacked PRs docs](https://docs.github.com/en/pull-requests/get-started/stacked-prs-quickstart)). Each layer's PR targets the branch below it, the bottom one targets `main`, and reviewers see only their layer's diff, so a large change arrives as several small reviews instead of one long one.
 
-- Stack when a plan has phases that build on each other (a core change, then the plugins that use it, then the site), or when a change depends on a PR that hasn't merged.
+- Plan the layers before writing code. If a change has parts that build on each other, each part is a layer: a core or schema change, then the plugins that use it, then the site and docs that show it. Stack, too, when a change depends on a PR that hasn't merged, rather than waiting for it or folding it in.
+- One concern per layer, small enough to review in one sitting. A layer that mixes a refactor with a behaviour change should be two layers, refactor first.
+- Unrelated changes are separate PRs, not a stack: a stack implies order, so only stack what really depends on what's below it. Two independent fixes found in one session get two worktrees and two PRs against `main`.
+- A single small change is still a single PR. Don't split for the sake of it.
 - One worktree per stack. Create it from `origin/main` as above, then `gh stack init <first-branch>` (or `gh stack init <branches...>` to adopt existing branches, bottom first). Add each layer with `gh stack add <branch>` (`-Am "<msg>"` stages and commits in one go), and move between layers with `gh stack up` / `down` / `top` / `bottom`.
 - Open or update the PRs with `gh stack submit --auto --open` (without `--open`, new PRs are drafts in a non-interactive shell). It pushes every layer, chains the bases and links the stack. `gh stack view` shows the stack and its PRs.
 - Keep each layer independently reviewable: its own tests, its own changeset, and its own `fixtures/.generated/events.json`, `plugin.json` and docs updates for what that layer changes. The bot-comment and screenshot rules below apply to every layer's PR.
