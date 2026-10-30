@@ -27,6 +27,7 @@
     "verify": "npm run build && npm test && npm run lint:manifests && npm run size && npm run site:build",
     "site:build": "npm run build:site --workspace site",
     "site:dev": "npm run dev --workspace site",
+    "screenshots": "node scripts/site-screenshots.mjs",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish"

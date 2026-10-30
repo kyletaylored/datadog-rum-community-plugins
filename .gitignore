@@ -25,3 +25,9 @@ site/src/data/*.json
 
 # tsc --build output: a typecheck only. Published declarations come from vite-plugin-dts.
 .tsbuild/
+
+# PR screenshots from scripts/site-screenshots.mjs; attached via the pr-screenshots branch, never committed here
+.screenshots/
+
+# Per-change git worktrees (AGENTS.md § "Workspaces")
+.claude/worktrees/
