@@ -1,5 +1,5 @@
 ---
-import Base from '../layouts/Base.astro'
+import Page from '../layouts/Page.astro'
 import { url } from '../lib/url'
 import plugins from '../data/plugins.json'
 
@@ -9,13 +9,11 @@ const runnable = order
   .filter((plugin) => plugin !== undefined)
 ---
 
-<Base title="Sandbox" description="Watch exactly what a Datadog RUM plugin sends, and what it refuses to send.">
-  <h1>Sandbox</h1>
-  <p class="lede">
-    A shopper clicks through a store. Watch exactly what the plugin sends to Datadog — and what it
-    refuses to send. Runs the real plugin in your browser; no Datadog account needed.
-  </p>
-
+<Page
+  title="Sandbox"
+  description="Watch exactly what a Datadog RUM plugin sends, and what it refuses to send."
+  lede="A shopper clicks through a store. Watch exactly what the plugin sends to Datadog — and what it refuses to send. Runs the real plugin in your browser; no Datadog account needed."
+>
   <div class="sandbox" data-sandbox>
     <div class="bar">
       <label class="pick">
@@ -79,7 +77,7 @@ const runnable = order
     <em>refusal</em>, since a blocked event produces nothing at all.
     <a href={url('/docs/privacy/')}>How the rules work →</a>
   </p>
-</Base>
+</Page>
 
 <style is:global>
   /* Global on purpose: the rows and log entries are built in the client script, so Astro's

@@ -84,7 +84,7 @@ if (problems.length > 0) {
   console.error(`${problems.length} manifest problem(s):`)
   for (const problem of problems) console.error(`  ${problem}`)
   if (problems.some((problem) => problem.includes('package.json says'))) {
-    console.error('Version drift: run "node scripts/sync-plugin-versions.mjs" and commit the result.')
+    console.error('Version drift: run "node scripts/sync-manifest-versions.mjs" and commit the result.')
   }
   process.exit(1)
 }

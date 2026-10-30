@@ -1,0 +1,35 @@
+---
+/**
+ * A standard content page: optional back link, heading, lede, then the body. Base supplies the
+ * `.wrap` container, so a page built on this cannot lose its bounding box.
+ *
+ * Slots: `heading` replaces the h1 text (for markup, e.g. a version in <code>), `lede` replaces the
+ * `lede` prop when it needs links or emphasis, `meta` sits under the lede (badges), and the default
+ * slot is the body.
+ */
+import Base from './Base.astro'
+import { url } from '../lib/url'
+
+interface Props {
+  title: string
+  description?: string
+  /** The h1. Defaults to `title`. */
+  heading?: string
+  lede?: string
+  back?: { href: string; label: string }
+  docs?: boolean
+}
+
+const { title, description, heading = title, lede, back, docs = false } = Astro.props
+const hasLede = lede !== undefined || Astro.slots.has('lede')
+---
+
+<Base title={title} description={description} docs={docs}>
+  <header class="page-head">
+    {back && <p class="small"><a href={url(back.href)}>← {back.label}</a></p>}
+    <h1><slot name="heading">{heading}</slot></h1>
+    {hasLede && <p class="lede"><slot name="lede">{lede}</slot></p>}
+    {Astro.slots.has('meta') && <div class="page-meta"><slot name="meta" /></div>}
+  </header>
+  <slot />
+</Base>

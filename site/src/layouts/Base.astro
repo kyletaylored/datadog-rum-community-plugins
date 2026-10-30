@@ -7,7 +7,7 @@ interface Props {
   description?: string
   /** Renders the docs sidebar alongside the content. */
   docs?: boolean
-  /** Full-bleed hero pages skip the default top padding. */
+  /** Full-bleed hero pages skip the default top padding and the `.wrap` container, and place their own. */
   hero?: boolean
 }
 
@@ -117,8 +117,10 @@ const isHere = (href: string) => here === url(href)
           </aside>
           <div><slot /></div>
         </div>
-      ) : (
+      ) : hero ? (
         <slot />
+      ) : (
+        <div class="wrap"><slot /></div>
       )}
     </main>
 

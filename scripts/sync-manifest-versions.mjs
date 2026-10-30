@@ -14,7 +14,7 @@
  * edit here is checked rather than trusted: if it ever disagrees with what the plugin sends, CI
  * fails.
  *
- *   node scripts/sync-plugin-versions.mjs
+ *   node scripts/sync-manifest-versions.mjs
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { relative } from 'node:path'
