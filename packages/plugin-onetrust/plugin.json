@@ -2,7 +2,7 @@
   "name": "onetrust",
   "package": "@kyletaylored/datadog-rum-plugin-onetrust",
   "exportName": "oneTrustPlugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "family": "consent",
   "title": "OneTrust",
   "description": "Holds Datadog RUM until the visitor accepts OneTrust's analytics category, then reports the accepted categories as session context.",

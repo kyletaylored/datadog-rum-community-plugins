@@ -29,7 +29,7 @@
     "site:dev": "npm run dev --workspace site",
     "screenshots": "node scripts/site-screenshots.mjs",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version-packages": "changeset version && node scripts/sync-manifest-versions.mjs",
     "release": "changeset publish"
   },
   "devDependencies": {
