@@ -10,7 +10,7 @@ import {
 import { cartCurrency, cartValue, itemCounts, lineValue, toItems, toPurchase } from './mapping.js'
 import type { WooCart, WooCartItem, WooGlobalPayload, WooOrderPayload } from './types.js'
 
-export const PLUGIN_VERSION = '0.1.0'
+export const PLUGIN_VERSION = '0.2.0'
 
 /** Where the WordPress plugin prints store, customer and order data. */
 export const DATA_GLOBAL = 'ddRumWooCommerce'

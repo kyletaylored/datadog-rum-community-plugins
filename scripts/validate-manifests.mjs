@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Validates every plugin.json against the manifest JSON schema, and cross-checks the facts that
-// a schema cannot: the package name, the version, and the schema version the core ships.
+// a schema cannot: the package name, the version (in plugin.json and PLUGIN_VERSION), and the
+// schema version the core ships.
 import Ajv from 'ajv'
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { relative } from 'node:path'
@@ -55,6 +56,11 @@ for (const dir of readdirSync(fromRoot('packages')).sort()) {
     if (!source.includes(`export function ${manifest.exportName}(`)) {
       problems.push(`${where}: exportName "${manifest.exportName}" is not exported by src/index.ts`)
     }
+    // Sent on every event as commerce.plugin_version, so a stale one mislabels every session.
+    const sourceVersion = /export const PLUGIN_VERSION = '([^']*)'/.exec(source)?.[1]
+    if (sourceVersion !== pkg.version) {
+      problems.push(`${where}: src/index.ts PLUGIN_VERSION is ${sourceVersion} but package.json says ${pkg.version}`)
+    }
   }
 
   if (manifest.name !== dir.replace(/^plugin-/, '')) {
@@ -77,6 +83,9 @@ for (const dir of readdirSync(fromRoot('packages')).sort()) {
 if (problems.length > 0) {
   console.error(`${problems.length} manifest problem(s):`)
   for (const problem of problems) console.error(`  ${problem}`)
+  if (problems.some((problem) => problem.includes('package.json says'))) {
+    console.error('Version drift: run "node scripts/sync-plugin-versions.mjs" and commit the result.')
+  }
   process.exit(1)
 }
 

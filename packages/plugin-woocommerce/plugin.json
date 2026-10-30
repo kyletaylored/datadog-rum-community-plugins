@@ -2,7 +2,7 @@
   "name": "woocommerce",
   "package": "@kyletaylored/datadog-rum-plugin-woocommerce",
   "exportName": "wooCommercePlugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "family": "commerce",
   "title": "WooCommerce",
   "description": "Cart, checkout and order events from WooCommerce's own storefront DOM events, plus order data printed on the order-received page.",

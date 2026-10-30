@@ -28,7 +28,7 @@
     "site:build": "npm run build:site --workspace site",
     "site:dev": "npm run dev --workspace site",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version-packages": "changeset version && node scripts/sync-plugin-versions.mjs",
     "release": "changeset publish"
   },
   "devDependencies": {
