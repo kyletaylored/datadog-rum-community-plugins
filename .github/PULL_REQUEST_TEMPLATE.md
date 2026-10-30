@@ -17,6 +17,7 @@
 - [ ] `npx vitest run --project browser` passes, if this touches the core or the plugin contract
 - [ ] A changeset is included (`npm run changeset`), unless this is docs or tooling only
 - [ ] `plugin.json` matches the code: `exportName`, `actions`, `options`, `footprint`
+- [ ] Screenshots are attached, if this changes how a site page looks (`scripts/pr-screenshots.sh`)
 
 ## If this changes what gets sent
 

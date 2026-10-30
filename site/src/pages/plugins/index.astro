@@ -1,5 +1,5 @@
 ---
-import Base from '../../layouts/Base.astro'
+import Page from '../../layouts/Page.astro'
 import Icon from '../../components/Icon.astro'
 import { url } from '../../lib/url'
 import plugins from '../../data/plugins.json'
@@ -35,88 +35,65 @@ const planned = [
 ]
 ---
 
-<Base title="Plugins" description="Datadog RUM plugins for commerce platforms, consent managers and login providers.">
-  <div class="wrap">
-    <h1>Plugins</h1>
-    <p class="lede">
-      The generic kit works on any site. Platform plugins add orders, consent and identity. All of
-      them speak the same schema, so one dashboard works across the lot.
-    </p>
-
-    <div class="grid" style="margin-top:1.75rem">
-      {sorted.map((plugin) => (
-        <a class="card" href={url(`/plugins/${plugin.name}/`)} data-plugin={plugin.name} data-family={plugin.family}>
-          <span class="card-icon"><Icon name={familyIcon[plugin.family] ?? 'puzzle'} /></span>
-          <h3>{plugin.title ?? plugin.name}</h3>
-          <p>{plugin.description}</p>
-          <div class="badges">
-            <span class={`badge ${plugin.tier}`}>{tierLabel[plugin.tier]}</span>
-            <span class="badge">{plugin.family}</span>
-            {plugin.events.length > 0 && <span class="badge">{plugin.events.length} events</span>}
-          </div>
-        </a>
-      ))}
-    </div>
-
-    {plugins.length > 6 && (
-      <div class="filters" style="margin-top:1.5rem">
-        <input type="search" id="q" placeholder="Search plugins…" aria-label="Search plugins" />
-        <select id="family" aria-label="Filter by family">
-          <option value="">All families</option>
-          {families.map((family) => <option value={family}>{family}</option>)}
-        </select>
-      </div>
-    )}
-
-    <h2>On the roadmap</h2>
-    <p class="lede">
-      Open for contributors. Each needs a documented browser event source — see
-      <a href={url('/docs/contributing/')}>how to build one</a>.
-    </p>
-    <div class="scroll-x">
-      <table>
-        <thead><tr><th>Platform</th><th>Family</th><th>Status</th></tr></thead>
-        <tbody>
-          {planned.map((item) => (
-            <tr>
-              <td><strong>{item.name}</strong></td>
-              <td class="muted">{item.family}</td>
-              <td class="muted">Open — no maintainer yet</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-
-    <h2>Tiers</h2>
-    <div class="scroll-x">
-      <table>
-        <thead><tr><th>Tier</th><th>Who maintains it</th><th>Bar</th></tr></thead>
-        <tbody>
-          <tr><td><span class="badge seed">Maintainer</span></td><td>Project maintainer, best effort</td><td>Core, schema, asset pack and the launch plugins</td></tr>
-          <tr><td><span class="badge verified">Verified</span></td><td>A named community maintainer</td><td>Passes conformance, has a demo, reviewed for the privacy rules</td></tr>
-          <tr><td><span class="badge">Community</span></td><td>Anyone</td><td>Valid manifest and passing CI</td></tr>
-        </tbody>
-      </table>
-    </div>
+<Page
+  title="Plugins"
+  description="Datadog RUM plugins for commerce platforms, consent managers and login providers."
+  lede="The generic kit works on any site. Platform plugins add orders, consent and identity. All of them speak the same schema, so one dashboard works across the lot."
+>
+  <div class="grid" style="margin-top:1.25rem">
+    {sorted.map((plugin) => (
+      <a class="card" href={url(`/plugins/${plugin.name}/`)} data-plugin={plugin.name} data-family={plugin.family}>
+        <span class="card-icon"><Icon name={familyIcon[plugin.family] ?? 'puzzle'} /></span>
+        <h3>{plugin.title ?? plugin.name}</h3>
+        <p>{plugin.description}</p>
+        <div class="badges">
+          <span class={`badge ${plugin.tier}`}>{tierLabel[plugin.tier]}</span>
+          <span class="badge">{plugin.family}</span>
+          {plugin.events.length > 0 && <span class="badge">{plugin.events.length} events</span>}
+        </div>
+      </a>
+    ))}
   </div>
 
-  <script>
-    // Filters only appear once the gallery is big enough to need them.
-    const query = document.getElementById('q') as HTMLInputElement | null
-    const family = document.getElementById('family') as HTMLSelectElement | null
+  {plugins.length > 6 && (
+    <div class="filters" style="margin-top:1.5rem">
+      <input type="search" id="q" placeholder="Search plugins…" aria-label="Search plugins" />
+      <select id="family" aria-label="Filter by family">
+        <option value="">All families</option>
+        {families.map((family) => <option value={family}>{family}</option>)}
+      </select>
+    </div>
+  )}
 
-    function apply() {
-      const text = (query?.value ?? '').trim().toLowerCase()
-      for (const card of document.querySelectorAll<HTMLElement>('[data-plugin]')) {
-        const haystack = `${card.dataset.plugin} ${card.textContent}`.toLowerCase()
-        card.hidden =
-          (text !== '' && !haystack.includes(text)) ||
-          (family?.value !== '' && card.dataset.family !== family?.value)
-      }
-    }
+  <h2>On the roadmap</h2>
+  <p class="lede">
+    Open for contributors. Each needs a documented browser event source — see
+    <a href={url('/docs/contributing/')}>how to build one</a>.
+  </p>
+  <div class="scroll-x">
+    <table>
+      <thead><tr><th>Platform</th><th>Family</th><th>Status</th></tr></thead>
+      <tbody>
+        {planned.map((item) => (
+          <tr>
+            <td><strong>{item.name}</strong></td>
+            <td class="muted">{item.family}</td>
+            <td class="muted">Open — no maintainer yet</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
 
-    query?.addEventListener('input', apply)
-    family?.addEventListener('change', apply)
-  </script>
-</Base>
+  <h2>Tiers</h2>
+  <div class="scroll-x">
+    <table>
+      <thead><tr><th>Tier</th><th>Who maintains it</th><th>Bar</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge seed">Maintainer</span></td><td>Project maintainer, best effort</td><td>Core, schema, asset pack and the launch plugins</td></tr>
+        <tr><td><span class="badge verified">Verified</span></td><td>A named community maintainer</td><td>Passes conformance, has a demo, reviewed for the privacy rules</td></tr>
+        <tr><td><span class="badge">Community</span></td><td>Anyone</td><td>Valid manifest and passing CI</td></tr>
+      </tbody>
+    </table>
+  </div>
+</Page>

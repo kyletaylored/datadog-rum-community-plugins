@@ -458,3 +458,8 @@ footer.site a:hover { color: var(--accent); }
 
 main { padding: 0 0 3rem; min-height: 60vh; }
 .page-top { padding-top: 2.5rem; }
+
+/* Page header from layouts/Page.astro */
+.page-head { margin-bottom: 1.5rem; }
+.page-head .lede { margin-bottom: 0; }
+.page-meta .badges { margin-top: 0.85rem; padding-top: 0; }
