@@ -5,7 +5,7 @@ import {
   type RumPlugin,
 } from '@kyletaylored/datadog-rum-community-plugins'
 
-export const PLUGIN_VERSION = '0.1.0'
+export const PLUGIN_VERSION = '0.2.0'
 
 /** Analytics/performance cookies in OneTrust's default category set. */
 export const DEFAULT_CATEGORY = 'C0002'

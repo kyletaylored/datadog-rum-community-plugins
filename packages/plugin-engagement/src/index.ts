@@ -16,7 +16,7 @@ import {
   type LinkFacts,
 } from './dom.js'
 
-export const PLUGIN_VERSION = '0.1.0'
+export const PLUGIN_VERSION = '0.2.0'
 
 export const DEFAULT_SCROLL_THRESHOLDS = [25, 50, 75, 90]
 export const DEFAULT_VIDEO_THRESHOLDS = [10, 25, 50, 75]
