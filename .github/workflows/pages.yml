@@ -31,6 +31,9 @@ jobs:
       # built and the fixture reports must be present before the site builds.
       - run: npm run build
       - run: npx vitest run --project unit
+      # scripts/site-meta.mjs renders each page's share image in Chromium after the Astro build.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
       - run: npm run site:build
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
