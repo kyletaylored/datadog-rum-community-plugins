@@ -48,7 +48,12 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 /** A brief outline on whatever a scenario is about to touch, so a viewer can follow it. */
 function flash(element) {
-  element.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  // Scroll this page only. scrollIntoView would also scroll the sandbox page that frames the
+  // demo, dragging the whole sandbox down every time a scenario touches something.
+  const box = element.getBoundingClientRect()
+  if (box.top < 0 || box.bottom > window.innerHeight) {
+    window.scrollBy({ top: box.top - window.innerHeight / 2 + box.height / 2, behavior: 'smooth' })
+  }
   element.classList.add('demo-flash')
   setTimeout(() => element.classList.remove('demo-flash'), 600)
 }
