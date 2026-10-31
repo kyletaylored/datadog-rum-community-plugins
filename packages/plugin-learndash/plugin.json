@@ -1,0 +1,111 @@
+{
+  "name": "learndash",
+  "package": "@kyletaylored/datadog-rum-plugin-learndash",
+  "exportName": "learndashPlugin",
+  "version": "0.1.0",
+  "family": "learning",
+  "title": "LearnDash",
+  "description": "Course enrolment, completed lessons and topics, quiz attempts and scores, and course completion from LearnDash, the WordPress LMS. Pair it with the engagement kit for lesson video.",
+  "maintainer": {
+    "name": "Kyle Taylor",
+    "github": "kyletaylored"
+  },
+  "tier": "listed",
+  "schemaVersion": "1.2.0",
+  "rumSdk": ">=7.0.0 <8.0.0",
+  "platforms": [
+    {
+      "name": "LearnDash",
+      "versions": ">=4.0",
+      "notes": "Needs the companion WordPress plugin, which prints the learner, the page and the learning events recorded since the last page."
+    },
+    {
+      "name": "WordPress",
+      "versions": ">=6.4"
+    }
+  ],
+  "install": {
+    "npm": true,
+    "cdn": true,
+    "platform": "WordPress plugin"
+  },
+  "actions": [
+    "learning.course_enroll",
+    "learning.lesson_complete",
+    "learning.quiz_start",
+    "learning.quiz_complete",
+    "learning.course_complete"
+  ],
+  "journey": [
+    { "label": "Enrols in a course", "fixture": "enrols in a course" },
+    { "label": "Finishes a lesson", "fixture": "completes a lesson" },
+    { "label": "Finishes a topic", "fixture": "completes a topic" },
+    { "label": "Starts the quiz", "fixture": "starts the quiz" },
+    { "label": "Passes the quiz, 8 out of 10", "fixture": "passes the quiz" },
+    { "label": "Finishes the last lesson and the course", "fixture": "completes the course" },
+    { "label": "Reloads the completion page", "fixture": "completes the course" }
+  ],
+  "options": [
+    {
+      "name": "events",
+      "type": "array",
+      "default": null,
+      "description": "Allow-list of learning actions. Every action in the family by default."
+    },
+    {
+      "name": "identifyUsers",
+      "type": "boolean",
+      "default": true,
+      "description": "Call setUser with the WordPress user ID. Never the email or name."
+    },
+    {
+      "name": "consent",
+      "type": "string",
+      "default": "auto",
+      "description": "auto waits for a consent plugin, ignore skips the gate, or supply a resolver callback."
+    },
+    {
+      "name": "quizStartSelector",
+      "type": "string",
+      "default": "[name=\"startQuiz\"]",
+      "description": "The element that starts a quiz attempt. WP Pro Quiz's start button by default."
+    },
+    {
+      "name": "dataGlobal",
+      "type": "string",
+      "default": "ddRumLearnDash",
+      "description": "Global holding the server-printed learner, page and learning events."
+    },
+    {
+      "name": "beforeTrack",
+      "type": "function",
+      "default": null,
+      "description": "Edit or drop an event before it is sent."
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "default": false,
+      "description": "Log every mapped event to the console."
+    }
+  ],
+  "footprint": {
+    "globals": [
+      "window.ddRumLearnDash",
+      "document"
+    ],
+    "events": [
+      "click"
+    ],
+    "storageKeys": [
+      "dd_rum_learning_seen"
+    ],
+    "rumApis": [
+      "addAction",
+      "setGlobalContextProperty",
+      "setUser"
+    ],
+    "consentSource": null
+  },
+  "docs": "https://kyletaylored.github.io/datadog-rum-community-plugins/plugins/learndash/"
+}

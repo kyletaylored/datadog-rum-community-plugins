@@ -1,0 +1,81 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`conformance > matches the committed snapshot, and generates the published event list 1`] = `
+[
+  {
+    "api": "addAction",
+    "context": {
+      "course_id": "1204",
+      "course_name": "Incident response basics",
+    },
+    "name": "learning.course_enroll",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "course_id": "1204",
+      "course_name": "Incident response basics",
+      "lesson_id": "1311",
+      "lesson_name": "Writing a status update",
+      "progress_percent": 40,
+      "step_type": "lesson",
+    },
+    "name": "learning.lesson_complete",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "course_id": "1204",
+      "course_name": "Incident response basics",
+      "lesson_id": "1321",
+      "lesson_name": "Severity in practice",
+      "progress_percent": 60,
+      "step_type": "topic",
+    },
+    "name": "learning.lesson_complete",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "course_id": "1204",
+      "quiz_id": "1402",
+      "quiz_name": "Status updates check",
+    },
+    "name": "learning.quiz_start",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "attempt": 1,
+      "course_id": "1204",
+      "course_name": "Incident response basics",
+      "passed": true,
+      "quiz_id": "1402",
+      "quiz_name": "Status updates check",
+      "score": 8,
+      "score_max": 10,
+    },
+    "name": "learning.quiz_complete",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "course_id": "1204",
+      "course_name": "Incident response basics",
+      "lesson_id": "1331",
+      "lesson_name": "Running the retro",
+      "progress_percent": 100,
+      "step_type": "lesson",
+    },
+    "name": "learning.lesson_complete",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "course_id": "1204",
+      "course_name": "Incident response basics",
+    },
+    "name": "learning.course_complete",
+  },
+]
+`;

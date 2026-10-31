@@ -1,0 +1,66 @@
+{
+  "source": "One learner's path through a LearnDash course, as the companion WordPress plugin prints it on each page in window.ddRumLearnDash (the shape is in src/types.ts). Not captured from a live LearnDash site: built to that contract, to be replaced with captures once the companion plugin ships. A `page` fixture is a page load, which starts a fresh plugin; `click` is a click on the quiz's start button. The learner's email and display name are included on purpose, to prove they are never sent.",
+  "fixtures": [
+    {
+      "name": "enrols in a course",
+      "event": "page",
+      "payload": {
+        "user": { "id": 57, "email": "learner@example.com", "display_name": "Sam Learner" },
+        "course": { "id": 1204, "title": "Incident response basics" },
+        "events": [{ "id": "enroll-57-1204", "type": "course_enroll", "course_id": 1204, "course_title": "Incident response basics" }]
+      }
+    },
+    {
+      "name": "completes a lesson",
+      "event": "page",
+      "payload": {
+        "user": { "id": 57 },
+        "course": { "id": 1204, "title": "Incident response basics" },
+        "step": { "id": 1312, "title": "Choosing a severity", "type": "lesson" },
+        "events": [
+          { "id": "step-57-1311", "type": "step_complete", "course_id": 1204, "step_id": 1311, "step_title": "Writing a status update", "step_type": "lesson", "progress_percent": 40 }
+        ]
+      }
+    },
+    {
+      "name": "completes a topic",
+      "event": "page",
+      "payload": {
+        "user": { "id": 57 },
+        "course": { "id": 1204, "title": "Incident response basics" },
+        "step": { "id": 1402, "title": "Status updates check", "type": "quiz" },
+        "events": [
+          { "id": "step-57-1321", "type": "step_complete", "course_id": 1204, "step_id": 1321, "step_title": "Severity in practice", "step_type": "topic", "progress_percent": 60 }
+        ]
+      }
+    },
+    {
+      "name": "starts the quiz",
+      "event": "click",
+      "payload": { "html": "<input type=\"button\" name=\"startQuiz\" value=\"Start quiz\" class=\"wpProQuiz_button\">" }
+    },
+    {
+      "name": "passes the quiz",
+      "event": "page",
+      "payload": {
+        "user": { "id": 57 },
+        "course": { "id": 1204, "title": "Incident response basics" },
+        "events": [
+          { "id": "quiz-57-1402-1", "type": "quiz_graded", "course_id": 1204, "quiz_id": 1402, "quiz_title": "Status updates check", "score": 8, "score_max": 10, "passed": true, "attempt": 1, "answers": ["B", "D", "A"] }
+        ]
+      }
+    },
+    {
+      "name": "completes the course",
+      "event": "page",
+      "payload": {
+        "user": { "id": 57 },
+        "course": { "id": 1204, "title": "Incident response basics" },
+        "events": [
+          { "id": "step-57-1331", "type": "step_complete", "course_id": 1204, "step_id": 1331, "step_title": "Running the retro", "step_type": "lesson", "progress_percent": 100 },
+          { "id": "complete-57-1204", "type": "course_complete", "course_id": 1204, "course_title": "Incident response basics" }
+        ]
+      }
+    }
+  ]
+}
