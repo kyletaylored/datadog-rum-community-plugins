@@ -15,6 +15,7 @@ import {
   COMMERCE_FAMILY,
   ENGAGEMENT_FAMILY,
   LEAD_FAMILY,
+  LEARNING_FAMILY,
   SUPPORT_FAMILY,
 } from './families/index.js'
 
@@ -27,7 +28,7 @@ export * from './keys.js'
 import { bareEvent } from './keys.js'
 export * from './families/index.js'
 
-export type FamilyName = 'commerce' | 'engagement' | 'account' | 'lead' | 'support'
+export type FamilyName = 'commerce' | 'engagement' | 'account' | 'lead' | 'support' | 'learning'
 
 
 
@@ -41,7 +42,7 @@ export type FamilyName = 'commerce' | 'engagement' | 'account' | 'lead' | 'suppo
  * and an uncalled function is dropped outright.
  */
 export function allFamilies(): RuntimeFamilyList {
-  return [COMMERCE_FAMILY, ENGAGEMENT_FAMILY, ACCOUNT_FAMILY, LEAD_FAMILY, SUPPORT_FAMILY]
+  return [COMMERCE_FAMILY, ENGAGEMENT_FAMILY, ACCOUNT_FAMILY, LEAD_FAMILY, SUPPORT_FAMILY, LEARNING_FAMILY]
 }
 
 /** Bare event names per family. Tooling only. */

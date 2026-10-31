@@ -11,7 +11,7 @@
     "github": "__GITHUB__"
   },
   "tier": "listed",
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.2.0",
   "rumSdk": ">=7.0.0 <8.0.0",
   "platforms": [
     {

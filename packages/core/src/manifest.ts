@@ -7,7 +7,7 @@ export interface PluginManifest {
   /** The factory this package exports, e.g. `wooCommercePlugin`. Used verbatim in install snippets. */
   exportName: string
   version: string
-  family: 'commerce' | 'engagement' | 'consent' | 'identity' | 'support' | 'lead'
+  family: 'commerce' | 'engagement' | 'consent' | 'identity' | 'support' | 'lead' | 'learning'
   title?: string
   description: string
   maintainer: { name: string; github: string }

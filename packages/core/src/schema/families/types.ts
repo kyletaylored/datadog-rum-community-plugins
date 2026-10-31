@@ -7,7 +7,7 @@
  * engagement family pushed two of them over the 5 KB budget at once.
  */
 export interface RuntimeFamily {
-  readonly name: 'commerce' | 'engagement' | 'account' | 'lead' | 'support'
+  readonly name: 'commerce' | 'engagement' | 'account' | 'lead' | 'support' | 'learning'
   readonly prefix: string
   readonly events: readonly string[]
 }
