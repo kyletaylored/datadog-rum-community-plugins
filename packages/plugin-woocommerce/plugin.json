@@ -55,7 +55,7 @@
     },
     {
       "label": "Adds socks on a classic theme",
-      "fixture": "added to cart on a classic theme"
+      "fixture": "added to cart on a classic theme, through jQuery"
     },
     {
       "label": "Opens the cart",
@@ -95,7 +95,7 @@
       },
       {
         "title": "Classic themes and jQuery",
-        "detail": "`window.jQuery` is in the footprint because classic themes raise `added_to_cart` through it. The plugin listens with native `addEventListener` only, so it sees the event when a theme dispatches it as a DOM event, and not when a theme fires it only through jQuery."
+        "detail": "Classic themes raise `added_to_cart` and `removed_from_cart` with jQuery's `trigger`, which a native listener never sees. So when the page has `window.jQuery`, the plugin also listens through it, and reads the product ID, SKU and quantity from the button Woo passes. That event carries no price, so no value is sent. The block scripts also re-dispatch a jQuery add as an empty native event, which the plugin skips, so one add is counted once."
       },
       {
         "title": "Reports the checkout funnel on request",

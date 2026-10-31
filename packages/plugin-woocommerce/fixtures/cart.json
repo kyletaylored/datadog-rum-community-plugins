@@ -73,8 +73,8 @@
       }
     },
     {
-      "name": "added to cart on a classic theme",
-      "description": "Classic (non-block) themes dispatch the jQuery added_to_cart event, which carries no cart object.",
+      "name": "added to cart, as a native DOM event",
+      "description": "A theme or plugin that dispatches added_to_cart as a native DOM event with the cart attached. Woo's own classic script raises it through jQuery instead; see classic-jquery.json.",
       "event": "added_to_cart",
       "payload": {
         "productId": 212,

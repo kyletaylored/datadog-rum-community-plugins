@@ -15,17 +15,37 @@ const page = document.body.dataset.page
 // ---- Catalogue and cart, from the fixtures --------------------------------------------------
 
 const added = fixtures['added to cart'].payload
-const classic = fixtures['added to cart on a classic theme'].payload
+const native = fixtures['added to cart, as a native DOM event'].payload
+const jqueryAdd = fixtures['added to cart on a classic theme, through jQuery'].payload
 const order = fixtures['order received'].payload
 
-/** Store API cart items, keyed by product ID. Socks come from the classic-theme recording. */
+/** Store API cart items, keyed by product ID. Socks come from the native-event recording. */
 const CATALOGUE = Object.fromEntries(
-  [...added.cart.items, ...classic.cart.items].map((item) => [String(item.id), item]),
+  [...added.cart.items, ...native.cart.items].map((item) => [String(item.id), item]),
 )
 const CART_KEY = added.cart.cart_key
 const CURRENCY = { currency_code: 'USD', currency_minor_unit: 2 }
-/** The classic-theme product: added from the grid with jQuery's `added_to_cart`, not a block. */
-const CLASSIC_ID = String(classic.productId)
+/** The classic-theme product: added from the grid the way Woo's classic script does, through jQuery. */
+const CLASSIC_ID = jqueryAdd.button['data-product_id']
+
+/**
+ * A classic theme's jQuery: just `$(element).on(types, handler)` and `.trigger(type, args)`, enough
+ * for the plugin to listen through and for the socks button to raise `added_to_cart` the way Woo's
+ * add-to-cart.js does. A jQuery-only event never reaches a native listener, which is the point.
+ */
+const jqueryHandlers = new Map()
+window.jQuery = (element) => ({
+  on(types, handler) {
+    for (const type of types.split(' ')) jqueryHandlers.set(type, [...(jqueryHandlers.get(type) ?? []), handler])
+    return this
+  },
+  trigger(type, args = []) {
+    for (const handler of jqueryHandlers.get(type) ?? []) handler({ type, target: element }, ...args)
+    return this
+  },
+})
+/** Woo passes the add-to-cart link as a jQuery object; the plugin reads its data-* attributes. */
+const button = (attributes) => ({ attr: (name) => attributes[name] })
 
 const minor = (item) => Number(item.prices.price)
 const dollars = (cents) => `$${(cents / 100).toFixed(2)}`
@@ -70,11 +90,18 @@ function storeCart(quantities = lines()) {
 function addToCart(id, quantity) {
   const next = { ...lines(), [id]: (lines()[id] ?? 0) + quantity }
   demo.state('cart', next)
-  const detail = { productId: Number(id), quantity, cart: storeCart(next) }
-  const event = id === CLASSIC_ID ? 'added_to_cart' : 'wc-blocks_added_to_cart'
-  demo.as(id === CLASSIC_ID ? 'jQuery added_to_cart (classic theme)' : event, () => {
-    document.body.dispatchEvent(new CustomEvent(event, { detail }))
-  })
+  if (id === CLASSIC_ID) {
+    // Woo's classic add-to-cart.js: $(document.body).trigger('added_to_cart', [fragments, cart_hash, $button])
+    const { fragments, cart_hash: cartHash, button: attributes } = jqueryAdd
+    demo.as('jQuery added_to_cart (classic theme)', () => {
+      window.jQuery(document.body).trigger('added_to_cart', [fragments, cartHash, button({ ...attributes, 'data-quantity': String(quantity) })])
+    })
+  } else {
+    const detail = { productId: Number(id), quantity, cart: storeCart(next) }
+    demo.as('wc-blocks_added_to_cart', () => {
+      document.body.dispatchEvent(new CustomEvent('wc-blocks_added_to_cart', { detail }))
+    })
+  }
   paintCount()
 }
 

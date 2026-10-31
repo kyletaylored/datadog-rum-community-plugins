@@ -76,7 +76,7 @@
           "type": "number"
         }
       ],
-      "occurrences": 2,
+      "occurrences": 3,
       "example": {
         "value": 56,
         "currency": "USD",
@@ -132,7 +132,6 @@
         "value": 68,
         "currency": "USD",
         "cart_id": "c1-8f2a",
-        "coupon": "WELCOME10",
         "items": [
           {
             "item_id": "TEE-RED-M",
@@ -150,7 +149,8 @@
           }
         ],
         "item_count": 3,
-        "unique_items": 2
+        "unique_items": 2,
+        "coupon": "WELCOME10"
       }
     },
     {
@@ -260,7 +260,7 @@
           "type": "number"
         }
       ],
-      "occurrences": 1,
+      "occurrences": 2,
       "example": {
         "value": 28.5,
         "currency": "USD",
@@ -459,16 +459,13 @@
       },
       {
         "label": "Adds socks on a classic theme",
-        "fixture": "added to cart on a classic theme",
-        "event": "added_to_cart",
+        "fixture": "added to cart on a classic theme, through jQuery",
+        "event": "jquery:added_to_cart",
         "calls": [
           {
             "api": "addAction",
             "label": "commerce.add_to_cart",
             "detail": {
-              "value": 12,
-              "currency": "USD",
-              "cart_id": "c1-8f2a",
               "item_count": 1,
               "unique_items": 1
             }
@@ -505,9 +502,9 @@
               "value": 68,
               "currency": "USD",
               "cart_id": "c1-8f2a",
-              "coupon": "WELCOME10",
               "item_count": 3,
-              "unique_items": 2
+              "unique_items": 2,
+              "coupon": "WELCOME10"
             }
           }
         ]

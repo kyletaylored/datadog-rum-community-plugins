@@ -1,0 +1,24 @@
+{
+  "source": "What a classic (non-block) theme sends: WooCommerce's add-to-cart.js runs $(document.body).trigger('added_to_cart', [fragments, cart_hash, $thisbutton]), a jQuery-only event that no native listener sees. The arguments are in the order Woo passes them; the button is the add-to-cart link with its data-* attributes, here for the socks recorded in cart.json. Not captured from a live store. The event field names the jQuery event, prefixed jquery:, so the test replays it through a jQuery double.",
+  "fixtures": [
+    {
+      "name": "added to cart on a classic theme, through jQuery",
+      "description": "No cart object and no price: only the button's product ID, SKU and quantity.",
+      "event": "jquery:added_to_cart",
+      "payload": {
+        "fragments": { "div.widget_shopping_cart_content": "<div class=\"widget_shopping_cart_content\">…</div>" },
+        "cart_hash": "4f1c2b7e9a0d",
+        "button": { "data-product_id": "212", "data-product_sku": "SOCK-WHT-L", "data-quantity": "1" }
+      }
+    },
+    {
+      "name": "removed from cart on a classic theme, through jQuery",
+      "event": "jquery:removed_from_cart",
+      "payload": {
+        "fragments": { "div.widget_shopping_cart_content": "<div class=\"widget_shopping_cart_content\">…</div>" },
+        "cart_hash": "9b03e1d4c7aa",
+        "button": { "data-product_id": "212", "data-product_sku": "SOCK-WHT-L", "data-quantity": "1" }
+      }
+    }
+  ]
+}

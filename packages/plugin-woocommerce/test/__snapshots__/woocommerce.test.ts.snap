@@ -175,5 +175,33 @@ exports[`storefront cart events > matches the committed snapshot for every mappe
     },
     "name": "commerce.search",
   },
+  {
+    "api": "addAction",
+    "context": {
+      "item_count": 1,
+      "items": [
+        {
+          "item_id": "SOCK-WHT-L",
+          "quantity": 1,
+        },
+      ],
+      "unique_items": 1,
+    },
+    "name": "commerce.add_to_cart",
+  },
+  {
+    "api": "addAction",
+    "context": {
+      "item_count": 1,
+      "items": [
+        {
+          "item_id": "SOCK-WHT-L",
+          "quantity": 1,
+        },
+      ],
+      "unique_items": 1,
+    },
+    "name": "commerce.remove_from_cart",
+  },
 ]
 `;
