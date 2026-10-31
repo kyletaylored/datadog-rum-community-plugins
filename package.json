@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
-    "@datadog/browser-rum": "^7.16.1",
+    "@datadog/browser-rum": "^7.16.2",
     "@types/node": "^26.6.5",
     "@typescript/typescript6": "^6.0.2",
     "@vitest/browser": "^5.0.5",
