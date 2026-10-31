@@ -44,6 +44,12 @@ function play(fixture: (typeof fixtures)[number], rum: FakeRum) {
   const element = host.firstElementChild as HTMLElement | null
   if (!element) return
 
+  // A browser knows a video's duration once its metadata loads; jsdom never does. The fixture
+  // records it as data-duration, so give the element that, or the run under-reports video_start.
+  if (element instanceof HTMLVideoElement && element.dataset.duration) {
+    Object.defineProperty(element, 'duration', { value: Number(element.dataset.duration), configurable: true })
+  }
+
   switch (fixture.event) {
     case 'click':
       element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
@@ -55,8 +61,7 @@ function play(fixture: (typeof fixtures)[number], rum: FakeRum) {
     case 'timeupdate': {
       const video = element as HTMLVideoElement
       const percent = Number(fixture.payload.percent ?? 0)
-      Object.defineProperty(video, 'duration', { value: 200, configurable: true })
-      Object.defineProperty(video, 'currentTime', { value: (percent / 100) * 200, configurable: true })
+      Object.defineProperty(video, 'currentTime', { value: (percent / 100) * video.duration, configurable: true })
       video.dispatchEvent(new Event('timeupdate'))
       break
     }
@@ -77,6 +82,20 @@ describe('link reading', () => {
     const link = readLink(anchor, HOST)
     expect(link).toEqual({ type: 'email', text: 'Email sales' })
     expect(JSON.stringify(link)).not.toContain('sales@example.com')
+  })
+
+  it('drops the link text when the text is the address', () => {
+    const anchor = document.createElement('a')
+    anchor.href = 'mailto:sales@relay.example'
+    anchor.textContent = 'sales@relay.example'
+    expect(readLink(anchor, HOST)).toEqual({ type: 'email', text: undefined })
+  })
+
+  it('drops the link text when the text is the number, however it is formatted', () => {
+    const anchor = document.createElement('a')
+    anchor.href = 'tel:+15550100199'
+    anchor.textContent = '+1 (555) 010-0199'
+    expect(readLink(anchor, HOST)).toEqual({ type: 'phone', text: undefined })
   })
 
   it('never returns the number behind a tel link', () => {

@@ -144,6 +144,10 @@
       "name": "engagement.video_start",
       "attributes": [
         {
+          "name": "video_duration",
+          "type": "integer"
+        },
+        {
           "name": "video_provider",
           "type": "string"
         },
@@ -155,7 +159,8 @@
       "occurrences": 1,
       "example": {
         "video_title": "Product tour",
-        "video_provider": "html5"
+        "video_provider": "html5",
+        "video_duration": 212
       }
     },
     {
