@@ -1,0 +1,20 @@
+/* A generic consent banner over the Relay page. Deliberately not OneTrust's own look. */
+.consent-banner { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 10; display: flex; gap: 24px; align-items: center; padding: 18px 22px; border-radius: 14px; background: #fff; border: 1px solid var(--line); box-shadow: 0 18px 50px -20px rgb(20 22 31 / 0.45); }
+.consent-banner[hidden], .consent-backdrop[hidden], .consent-pill[hidden] { display: none; }
+.consent-banner p { margin: 4px 0 0; color: var(--dim); font-size: 14px; }
+.consent-buttons { display: flex; gap: 10px; flex: none; margin-left: auto; }
+.consent-buttons button { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--ink); background: #fff; color: var(--ink); font-weight: 650; font-size: 14px; }
+.consent-buttons .strong { background: var(--ink); color: #fff; }
+.consent-buttons .link { border-color: transparent; text-decoration: underline; }
+.consent-backdrop { position: fixed; inset: 0; z-index: 11; display: grid; place-items: center; background: rgb(20 22 31 / 0.45); }
+.consent-dialog { width: min(440px, calc(100vw - 32px)); padding: 22px; border-radius: 14px; background: #fff; }
+.consent-dialog h2 { margin: 0 0 12px; font-size: 20px; }
+.category { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 0; border: none; border-bottom: 1px solid var(--line); background: none; text-align: left; }
+.category[aria-disabled='true'] { cursor: default; }
+.category small { display: block; color: var(--dim); font-family: ui-monospace, monospace; }
+.category .track { position: relative; width: 36px; height: 20px; border-radius: 999px; background: #d5d7e2; flex: none; }
+.category .track i { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 999px; background: #fff; transition: left 0.15s; }
+.category[aria-checked='true'] .track { background: var(--ink); }
+.category[aria-checked='true'] .track i { left: 18px; }
+.consent-dialog .consent-buttons { margin-top: 18px; }
+.consent-pill { position: fixed; left: 16px; bottom: 16px; z-index: 10; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--ink); font-weight: 650; font-size: 13px; box-shadow: 0 8px 24px -12px rgb(20 22 31 / 0.5); }

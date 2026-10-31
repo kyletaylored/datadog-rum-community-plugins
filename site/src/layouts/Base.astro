@@ -9,9 +9,11 @@ interface Props {
   docs?: boolean
   /** Full-bleed hero pages skip the default top padding and the `.wrap` container, and place their own. */
   hero?: boolean
+  /** Widens the `.wrap` container to 86rem, for a workspace page such as the sandbox. */
+  wide?: boolean
 }
 
-const { title, description, docs = false, hero = false } = Astro.props
+const { title, description, docs = false, hero = false, wide = false } = Astro.props
 const here = Astro.url.pathname
 
 const nav = [
@@ -120,7 +122,7 @@ const isHere = (href: string) => here === url(href)
       ) : hero ? (
         <slot />
       ) : (
-        <div class="wrap"><slot /></div>
+        <div class:list={['wrap', { wide }]}><slot /></div>
       )}
     </main>
 

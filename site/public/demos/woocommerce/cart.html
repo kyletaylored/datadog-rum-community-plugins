@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cart · Thread &amp; Co. (a demo store)</title>
+  <link rel="stylesheet" href="../_shared/demo.css" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- The sandbox's recorder, the plugin's built CDN bundle, and its recorded fixtures. -->
+  <script src="../_shared/runtime.js"></script>
+  <script src="../_shared/plugins/woocommerce.js"></script>
+  <script src="../_shared/fixtures/woocommerce.js"></script>
+  <script type="module" src="demo.js"></script>
+</head>
+<body data-page="cart">
+  <header class="top">
+    <a class="logo" href="index.html">Thread &amp; Co.</a>
+    <nav><a href="index.html">Shop</a><a href="#about">About</a></nav>
+    <label class="search"><span class="visually-hidden">Search products</span><input type="search" placeholder="Search products" data-search /></label>
+    <a class="cart-link" href="cart.html" data-cart-link>Cart (<span data-cart-count>0</span>)</a>
+  </header>
+  <main>
+    <h1>Cart</h1>
+    <div data-lines></div>
+    <div class="summary">
+      <p>Subtotal <strong data-subtotal></strong></p>
+      <a class="primary" href="checkout.html" data-checkout>Proceed to checkout</a>
+    </div>
+  </main>
+</body>
+</html>

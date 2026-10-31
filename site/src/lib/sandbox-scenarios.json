@@ -1,0 +1,108 @@
+{
+  "$comment": "The sandbox's plugins, in picker order, and the scenarios each demo must be able to play. Read by sandbox.astro, scripts/lint-demos.mjs and the demo browser test. A scenario's state is applied over DEFAULT_STATE in site/src/lib/sandbox.ts.",
+  "order": ["engagement", "shopify", "woocommerce", "onetrust"],
+  "plugins": {
+    "engagement": {
+      "demo": "Relay · SaaS marketing site",
+      "note": "Every interaction on this page is read from the DOM. Nothing on the site was instrumented.",
+      "scenarios": [
+        {
+          "id": "a-visit-end-to-end",
+          "label": "A visit, end to end",
+          "state": { "consent": true },
+          "note": "Every step is a real interaction on a page. Watch the contact clicks: an email and a phone link report only that a click happened, never the address."
+        },
+        {
+          "id": "links-carrying-secrets",
+          "label": "Links carrying secrets",
+          "state": { "consent": true },
+          "note": "Two of these links carry an access token and a signed URL in their query strings. Only the host and path arrive — the query is dropped, not truncated."
+        },
+        {
+          "id": "a-form-with-personal-data-in-it",
+          "label": "A form with personal data in it",
+          "state": { "consent": true },
+          "note": "The newsletter form has a filled email field. Its identity and destination host arrive; no field value does, on start or on submit."
+        },
+        {
+          "id": "cookie-banner-unanswered",
+          "label": "Cookie banner unanswered",
+          "state": { "consent": false },
+          "note": "Pair it with a consent plugin and nothing is sent until the visitor accepts — every interaction is refused, with the reason."
+        }
+      ]
+    },
+    "shopify": {
+      "demo": "Northline · store + checkout",
+      "note": "Each step is a Shopify Web Pixels event; the plugin maps it to one Datadog action.",
+      "scenarios": [
+        {
+          "id": "happy-path",
+          "label": "Happy path",
+          "state": { "customerPrivacy": "absent", "includeItems": true },
+          "note": "The normal case: every step maps to one Datadog action. The order arrives once, with its value, tax, shipping and coupon."
+        },
+        {
+          "id": "shopper-declines-cookies",
+          "label": "Shopper declines cookies",
+          "state": { "customerPrivacy": "denied" },
+          "note": "Shopify’s consent API says no, so the plugin sends nothing at all — not even the order. Every step is refused, with the reason."
+        },
+        {
+          "id": "thank-you-page-reloaded",
+          "label": "Thank-you page reloaded",
+          "state": { "customerPrivacy": "absent" },
+          "note": "The last two steps are the same order: a reload. The second is refused, so revenue is not counted twice."
+        },
+        {
+          "id": "card-data-in-the-payload",
+          "label": "Card data in the payload",
+          "state": { "customerPrivacy": "absent" },
+          "note": "The payment step’s recorded payload contains a card number and CVV. Look at what arrives: only the payment method name."
+        }
+      ]
+    },
+    "woocommerce": {
+      "demo": "Thread & Co. · store + checkout",
+      "note": "Cart events come from WooCommerce’s own DOM events; the order comes from the thank-you page.",
+      "scenarios": [
+        {
+          "id": "happy-path",
+          "label": "Happy path",
+          "state": { "consent": true, "includeItems": true },
+          "note": "Cart events come from WooCommerce’s own DOM events; the order comes from the thank-you page. Note the card number and billing address in the payload never arrive."
+        },
+        {
+          "id": "cookie-banner-unanswered",
+          "label": "Cookie banner unanswered",
+          "state": { "consent": false },
+          "note": "Nothing is sent, not even the customer ID, and RUM itself is held at not-granted. Pending events are dropped rather than queued, so accepting later does not backfill them."
+        },
+        {
+          "id": "send-the-email-address",
+          "label": "Send the email address",
+          "state": { "consent": true, "includeEmail": true },
+          "note": "Opted in, the email appears on setUser — and nowhere else. It is never attached to an action."
+        }
+      ]
+    },
+    "onetrust": {
+      "demo": "Relay with a cookie banner",
+      "note": "RUM is held until the analytics category is accepted.",
+      "scenarios": [
+        {
+          "id": "walk-the-banner",
+          "label": "Walk the banner",
+          "state": { "category": "C0002" },
+          "note": "RUM is held until the analytics category is accepted, then released. Turning it back off withdraws consent."
+        },
+        {
+          "id": "require-a-stricter-category",
+          "label": "Require a stricter category",
+          "state": { "category": "C0004" },
+          "note": "Now only \"accepts all cookies\" releases RUM. Accepting analytics alone is not enough."
+        }
+      ]
+    }
+  }
+}

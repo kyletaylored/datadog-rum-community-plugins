@@ -1,34 +1,20 @@
 /**
- * The sandbox runtime: it instantiates the **real** adapters from the workspace packages and runs
- * them against a recording `publicApi`.
+ * The sandbox runtime, shared by the sandbox page and the demo sites it frames.
+ *
+ * Each demo under `public/demos/<name>/` loads the plugin's **built** CDN bundle and starts it
+ * against the recording `publicApi` below (bundled into `demos/_shared/runtime.js` by
+ * `scripts/build-demos.mjs`). The sandbox page only renders what the demo posts back.
  *
  * It never initializes RUM and never asks for an application ID or client token — the site must
  * not handle credentials. That is not only a safety rule, it is what makes the sandbox useful:
- * recording the calls an adapter *would* make is the only way to show the consent gate holding
+ * recording the calls a plugin *would* make is the only way to show the consent gate holding
  * events back, the purchase dedupe refusing a second order, and card data being stripped. A live
  * RUM demo could show none of those, because the whole point is that nothing is sent.
  */
-import { engagementPlugin } from '@kyletaylored/datadog-rum-plugin-engagement'
-import { oneTrustPlugin } from '@kyletaylored/datadog-rum-plugin-onetrust'
-import { shopifyPlugin } from '@kyletaylored/datadog-rum-plugin-shopify'
-import { wooCommercePlugin } from '@kyletaylored/datadog-rum-plugin-woocommerce'
 import { DEDUPE_STORAGE_KEY } from '@kyletaylored/datadog-rum-community-plugins'
-import type {
-  CommonPluginOptions,
-  RumInitConfigurationLike,
-  RumPlugin,
-  RumPublicApi,
-} from '@kyletaylored/datadog-rum-community-plugins'
+import type { RumPublicApi } from '@kyletaylored/datadog-rum-community-plugins'
 
-export interface SandboxFixture {
-  name: string
-  description?: string
-  event: string
-  payload: unknown
-  file: string
-}
-
-/** One recorded call, as the log renders it. */
+/** One recorded call, as the feed renders it. */
 export interface SandboxCall {
   api: string
   /** Action name, context key, or consent state — whatever identifies the call at a glance. */
@@ -36,40 +22,54 @@ export interface SandboxCall {
   detail?: unknown
   /** Set when the core refused to send something, with the reason. */
   blocked?: string
+  /** The platform event or page signal the call came from, e.g. `wc-blocks_added_to_cart`. */
+  source?: string
+  /** What the platform payload carried that this call does not, e.g. `card_number, cvv`. */
+  stripped?: string
 }
 
-export interface SandboxOptions extends CommonPluginOptions {
-  category?: string
-  /**
-   * Simulates `window.Shopify.customerPrivacy.analyticsProcessingAllowed()`. `absent` is the pixel
-   * sandbox, where there is no Customer Privacy API because the Pixel Manager has already applied
-   * the merchant's categories before the pixel runs.
-   */
-  shopifyPrivacy?: 'absent' | 'allowed' | 'denied'
+// ---- Bridge protocol --------------------------------------------------------------------------
+
+export const MESSAGE = {
+  /** demo → sandbox, once per recorded call, refusals included. */
+  call: 'ddrum-sandbox:call',
+  /** demo → sandbox, on every page load inside the demo. */
+  ready: 'ddrum-sandbox:ready',
+  /** demo → sandbox, when a scenario has played its last step. */
+  done: 'ddrum-sandbox:done',
+  /** sandbox → demo: store these options, clear the session, reload the entry page. */
+  configure: 'ddrum-sandbox:configure',
+  /** sandbox → demo: drive the real UI through one scenario. */
+  play: 'ddrum-sandbox:play',
+} as const
+
+export type BridgeMessage =
+  | { type: typeof MESSAGE.call; plugin: string; page: string; call: SandboxCall }
+  | { type: typeof MESSAGE.ready; plugin: string; page: string; url: string }
+  | { type: typeof MESSAGE.done; plugin: string; scenario: string }
+  | { type: typeof MESSAGE.configure; options: Record<string, unknown>; platform?: Record<string, unknown> }
+  | { type: typeof MESSAGE.play; scenario: string; stepMs?: number }
+
+/** Both sides ignore anything not from their own origin, and anything not shaped like the protocol. */
+export function readMessage(event: MessageEvent): BridgeMessage | null {
+  if (event.origin !== location.origin) return null
+  const data = event.data as { type?: unknown } | null
+  if (!data || typeof data.type !== 'string' || !data.type.startsWith('ddrum-sandbox:')) return null
+  return data as BridgeMessage
 }
 
-export type SandboxAdapter = 'engagement' | 'shopify' | 'woocommerce' | 'onetrust'
-
-export interface SandboxSession {
-  /** Hand one recorded payload to the platform double the adapter subscribed to. */
-  emit: (fixture: SandboxFixture) => void
-  initConfiguration: RumInitConfigurationLike
-  /** False when the adapter opted out of this page, the way shopifyPlugin does off checkout. */
-  initialized: boolean
-  /** Stop forwarding the adapter's debug output. */
-  dispose: () => void
-}
+// ---- Recording ----------------------------------------------------------------------------------
 
 /**
  * Forwards the core's own debug log into the sandbox.
  *
- * The adapters run with `debug: true`, and the core reports every refusal through
+ * The plugins run with `debug: true`, and the core reports every refusal through
  * `logger.dropped(...)` on `console.log`. Reading that channel rather than inventing one means the
  * sandbox shows exactly what a merchant sees when they follow the docs and turn debug on — and it
  * is the only way to surface a *refusal*, which by definition produces no RUM call. Without it the
  * purchase dedupe looks like nothing happening.
  */
-function captureDebugLog(
+export function captureDebugLog(
   platform: string,
   onCall: (call: SandboxCall) => void,
   isActive: () => boolean,
@@ -108,12 +108,12 @@ function captureDebugLog(
   }
 }
 
-/** Records instead of sending, and reports each call as it happens so the log can stream. */
-function createRecorder(onCall: (call: SandboxCall) => void, isActive: () => boolean): RumPublicApi {
+/** Records instead of sending, and reports each call as it happens so the feed can stream. */
+export function createRecorder(onCall: (call: SandboxCall) => void, isActive: () => boolean): RumPublicApi {
   const report = (call: SandboxCall) => {
-    // A superseded session must stay silent. Adapters subscribe for the life of the page — the
+    // A superseded session must stay silent. Plugins subscribe for the life of the page — the
     // OneTrust one registers a window listener and never removes it, which is correct on a real
-    // site — so after a reset the previous adapter is still listening and would report twice.
+    // site — so a stale instance would otherwise report twice.
     if (isActive()) onCall(call)
   }
   return {
@@ -130,27 +130,10 @@ function createRecorder(onCall: (call: SandboxCall) => void, isActive: () => boo
   }
 }
 
-/** The Web Pixel sandbox's `analytics` global, as a custom pixel receives it. */
-function shopifyAnalyticsDouble() {
-  const handlers = new Map<string, ((event: unknown) => void)[]>()
-  return {
-    api: {
-      subscribe(event: string, callback: (event: never) => void) {
-        const list = handlers.get(event) ?? []
-        list.push(callback as (event: unknown) => void)
-        handlers.set(event, list)
-      },
-    },
-    emit(fixture: SandboxFixture) {
-      for (const handler of handlers.get(fixture.event) ?? []) handler(fixture.payload)
-    },
-  }
-}
-
 /**
- * Clears the core's purchase-dedupe entry. The sandbox resets between runs so a demo does not
- * look broken on a second visit — but "fire the order twice" deliberately does not reset, because
- * that is the behaviour being demonstrated.
+ * Clears the core's purchase-dedupe entry. A fresh session starts with it empty, so a demo does
+ * not look broken on a second visit — but a reload of the thank-you page inside one session
+ * deliberately keeps it, because that is the behaviour being demonstrated.
  */
 export function clearDedupe(): void {
   try {
@@ -160,124 +143,91 @@ export function clearDedupe(): void {
   }
 }
 
-export function startSession(
-  adapter: SandboxAdapter,
-  options: SandboxOptions,
-  onCall: (call: SandboxCall) => void,
-): SandboxSession {
-  let active = true
-  const isActive = () => active
-  const publicApi = createRecorder(onCall, isActive)
-  const initConfiguration: RumInitConfigurationLike = {}
+// ---- Options ------------------------------------------------------------------------------------
 
-  let plugin: RumPlugin
-  let emit: (fixture: SandboxFixture) => void
+/** The sandbox's controls, which are not one-to-one with any single plugin's options. */
+export interface SandboxState {
+  /** "Visitor has accepted the cookie banner": `consent: 'ignore'` on the plugin. */
+  consent: boolean
+  /** Simulates `window.Shopify.customerPrivacy`. `absent` is the pixel sandbox. */
+  customerPrivacy: 'absent' | 'allowed' | 'denied'
+  identifyUsers: boolean
+  includeEmail: boolean
+  includeName: boolean
+  includeItems: boolean
+  actionPrefix: string
+  category: string
+}
 
-  // Debug on, so the core reports refusals; captureDebugLog turns them into log entries.
-  const debugOptions = { ...options, debug: true }
-  const stopCapture = captureDebugLog(adapter, onCall, isActive)
+export const DEFAULT_STATE: SandboxState = {
+  consent: true,
+  customerPrivacy: 'absent',
+  identifyUsers: true,
+  includeEmail: false,
+  includeName: false,
+  includeItems: false,
+  actionPrefix: 'commerce.',
+  category: 'C0002',
+}
 
-  if (adapter === 'shopify') {
-    // Stand in for window.Shopify, so the Customer Privacy API's three branches can be exercised.
-    const privacy = options.shopifyPrivacy ?? 'absent'
-    const shopifyGlobal: Record<string, unknown> = {
-      shop: 'acme-demo.myshopify.com',
-      currency: { active: 'USD' },
-      locale: 'en-US',
-    }
-    if (privacy !== 'absent') {
-      shopifyGlobal.customerPrivacy = {
-        analyticsProcessingAllowed: () => privacy === 'allowed',
-        currentVisitorConsent: () => ({ analytics: privacy === 'allowed' ? 'yes' : 'no' }),
-      }
-    }
-    ;(window as unknown as Record<string, unknown>).Shopify = shopifyGlobal
+interface ManifestOption {
+  name: string
+  default: unknown
+}
 
-    const analytics = shopifyAnalyticsDouble()
-    plugin = shopifyPlugin({ ...debugOptions, analytics: analytics.api as never })
-    emit = (fixture) => analytics.emit(fixture)
-  } else if (adapter === 'woocommerce') {
-    // Woo dispatches its block events on an element, so the adapter listens on one here too.
-    const target = new EventTarget()
-    const orderFixtureRef: { current: unknown } = { current: null }
-    plugin = wooCommercePlugin({
-      ...debugOptions,
-      target,
-      // The order-received payload is read at init, so it is supplied lazily: the sandbox lets
-      // you fire "order received" as a step rather than only at page load.
-      get data() {
-        return orderFixtureRef.current as never
-      },
-    })
-    emit = (fixture) => {
-      if (fixture.event === 'order_received') {
-        // A reload of the thank-you page is a fresh adapter reading the same payload.
-        orderFixtureRef.current = fixture.payload
-        const reloaded = wooCommercePlugin({ ...debugOptions, target, data: fixture.payload as never })
-        void reloaded.onInit?.({ initConfiguration, publicApi })
-        return
-      }
-      target.dispatchEvent(new CustomEvent(fixture.event, { detail: fixture.payload }))
-    }
-  } else if (adapter === 'engagement') {
-    // The kit reads the page, so its "fixtures" are markup. Each step builds the element it
-    // describes inside a scratch container and fires the event the plugin listens for.
-    const stage = document.createElement('div')
-    stage.setAttribute('data-sandbox-stage', '')
-    stage.style.display = 'none'
-    document.body.append(stage)
+/**
+ * The options object the plugin is actually called with, holding only what differs from the
+ * plugin's own defaults (read from its `plugin.json`). The demo is started with exactly this, and
+ * the generated `init()` prints exactly this, so the snippet cannot describe a different setup
+ * from the one the feed shows.
+ */
+export function pluginOptions(plugin: string, state: SandboxState, manifestOptions: ManifestOption[]): Record<string, unknown> {
+  const defaults = new Map(manifestOptions.map((option) => [option.name, option.default]))
+  const wanted: Record<string, unknown> = {}
 
-    // The demo markup contains real anchors and real forms, so a dispatched click or submit would
-    // navigate the browser away from the sandbox. jsdom never navigates, which is why the unit
-    // tests did not catch this. The guard sits in the bubble phase, so the plugin's own capture
-    // listener has already seen the event by the time the default action is cancelled.
-    const preventNavigation = (event: Event) => event.preventDefault()
-    stage.addEventListener('click', preventNavigation)
-    stage.addEventListener('submit', preventNavigation)
-
-    plugin = engagementPlugin({ ...debugOptions, root: stage, trackScroll: false })
-    emit = (fixture) => {
-      const payload = fixture.payload as { html?: string; percent?: number; depth?: number }
-      if (!payload.html) return
-      stage.innerHTML = payload.html
-      const element = stage.firstElementChild as HTMLElement | null
-      if (!element) return
-
-      if (fixture.event === 'click') {
-        element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
-      } else if (fixture.event === 'timeupdate') {
-        const video = element as HTMLVideoElement
-        Object.defineProperty(video, 'duration', { value: 200, configurable: true })
-        Object.defineProperty(video, 'currentTime', {
-          value: ((payload.percent ?? 0) / 100) * 200,
-          configurable: true,
-        })
-        video.dispatchEvent(new Event('timeupdate'))
-      } else if (fixture.event === 'focusin') {
-        element.querySelector('input')?.dispatchEvent(new Event('focusin', { bubbles: true }))
-      } else {
-        element.dispatchEvent(new Event(fixture.event, { bubbles: true, cancelable: true }))
-      }
-    }
+  if (plugin === 'onetrust') {
+    wanted.category = state.category
   } else {
-    plugin = oneTrustPlugin({ category: options.category ?? 'C0002', debug: true })
-    emit = (fixture) => {
-      // Set the global the way the banner script does, then fire the signal OneTrust fires.
-      const groups = (fixture.payload as { activeGroups?: string }).activeGroups ?? ''
-      ;(window as unknown as Record<string, unknown>).OnetrustActiveGroups = groups
-      window.dispatchEvent(new Event('OneTrustGroupsUpdated'))
+    if (plugin !== 'shopify' && state.consent) wanted.consent = 'ignore'
+    if (plugin !== 'engagement') {
+      wanted.identifyUsers = state.identifyUsers
+      wanted.includeEmail = state.includeEmail
+      wanted.includeName = state.includeName
+      wanted.includeItems = state.includeItems
+      wanted.actionPrefix = state.actionPrefix || 'commerce.'
     }
   }
 
-  const outcome = plugin.onInit?.({ initConfiguration, publicApi })
-
-  return {
-    emit,
-    initConfiguration,
-    initialized: outcome !== false,
-    dispose: () => {
-      active = false
-      stopCapture()
-    },
+  const options: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(wanted)) {
+    // An option missing from the manifest has no declared default, so it is always printed.
+    if (!defaults.has(key) || defaults.get(key) !== value) options[key] = value
   }
+  return options
+}
+
+/** Platform doubles the demo stands up, which are not plugin options. */
+export function platformState(plugin: string, state: SandboxState): Record<string, unknown> {
+  return plugin === 'shopify' ? { customerPrivacy: state.customerPrivacy } : {}
+}
+
+function literal(value: unknown): string {
+  return typeof value === 'string' ? `'${value.replace(/'/g, "\\'")}'` : JSON.stringify(value)
+}
+
+/** The `init()` a merchant would paste for this exact setup. Never holds a real ID or token. */
+export function initSnippet(plugin: string, options: Record<string, unknown>): string {
+  const entries = Object.entries(options).map(([key, value]) => `${key}: ${literal(value)}`)
+  const args = entries.length > 0 ? `{ ${entries.join(', ')} }` : ''
+  const comment = plugin === 'shopify' ? '\n    // Settings › Customer events › custom pixel' : ''
+  return [
+    'window.DD_RUM.init({',
+    "  applicationId: 'YOUR_APPLICATION_ID',",
+    "  clientToken: 'YOUR_CLIENT_TOKEN',",
+    "  site: 'datadoghq.com',",
+    `  plugins: [${comment}`,
+    `    window.DD_RUM_PLUGINS['${plugin}'](${args}),`,
+    '  ],',
+    '})',
+  ].join('\n')
 }

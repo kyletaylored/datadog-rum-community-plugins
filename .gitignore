@@ -31,3 +31,9 @@ site/src/data/*.json
 
 # Per-change git worktrees (AGENTS.md § "Workspaces")
 .claude/worktrees/
+
+# Generated into the demo sites by scripts/build-demos.mjs: the recorder, the built plugin
+# bundles and the fixtures. Committing them would let a demo run a stale plugin.
+site/public/demos/_shared/runtime.js
+site/public/demos/_shared/plugins/
+site/public/demos/_shared/fixtures/

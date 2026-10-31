@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Relay · status pages for product teams (a demo site, with a cookie banner)</title>
+  <link rel="stylesheet" href="../_shared/demo.css" />
+  <link rel="stylesheet" href="../_shared/relay.css" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- The sandbox's recorder, the plugin's built CDN bundle, and its recorded fixtures. -->
+  <script src="../_shared/runtime.js"></script>
+  <script src="../_shared/plugins/onetrust.js"></script>
+  <script src="../_shared/fixtures/onetrust.js"></script>
+  <script type="module" src="demo.js"></script>
+</head>
+<body data-page="home">
+  <header class="nav">
+    <a class="logo" href="#top"><i aria-hidden="true"></i>Relay</a>
+    <nav>
+      <a href="product/" data-link="product">Product</a>
+      <a href="https://partner.example.org/pricing" data-link="pricing">Pricing ↗</a>
+      <a href="docs/" data-link="docs">Docs</a>
+    </nav>
+    <a class="cta" href="signup/" data-link="trial">Start free trial</a>
+  </header>
+  <main id="top">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Status pages for product teams</p>
+        <h1>Tell customers what's broken before they ask.</h1>
+        <p>Relay posts incident updates to your status page, Slack and email from one place.</p>
+        <div class="buttons">
+          <a class="cta" href="signup/" data-link="hero-trial">Start free trial</a>
+          <a class="cta ghost" href="https://partner.example.org/pricing" data-link="hero-pricing">See pricing ↗</a>
+        </div>
+      </div>
+      <div class="player">
+        <span class="label">video · Relay in two minutes</span>
+        <!-- No media file: the demo plays it by advancing time and firing the element's own
+             play, timeupdate and ended events, which is what the plugin listens for. -->
+        <video title="Relay in two minutes" preload="none" data-video></video>
+        <button type="button" class="play" aria-label="Play the video" data-play-video><span data-video-icon>▶</span></button>
+        <div class="progress"><i data-video-progress></i></div>
+      </div>
+    </section>
+    <section class="features" id="features">
+      <article class="feature"><h2>One update, every channel</h2><p>Write it once; Relay posts it to the page, Slack and subscribers.</p></article>
+      <article class="feature"><h2>Private pages</h2><p><a href="https://status.relay.example/s/acme?token=8f2a91c4&amp;sig=c0ffee12" data-link="token">Open a shared status page</a> with a signed link.</p></article>
+      <article class="feature"><h2>Uptime reports</h2><p><a href="files/q3-report.pdf?sig=abc123" data-link="download">Download the Q3 report (PDF)</a></p></article>
+    </section>
+    <section class="spacer"><p>Trusted by on-call teams who would rather be asleep.</p></section>
+    <section class="newsletter" id="newsletter">
+      <div class="inner">
+        <div><h2>Get the incident newsletter</h2><p>Postmortems from teams we admire, monthly.</p></div>
+        <form id="newsletter-form" aria-label="Newsletter signup" action="https://hooks.example.com/subscribe" method="post" data-lead data-form>
+          <label class="visually-hidden" for="email">Email</label>
+          <input id="email" name="email" type="email" placeholder="you@company.com" autocomplete="off" data-email />
+          <button type="submit" data-subscribe>Subscribe</button>
+        </form>
+      </div>
+    </section>
+    <footer>
+      <span>Talk to sales: <a href="mailto:sales@relay.example" data-link="email">sales@relay.example</a></span>
+      <span>Call: <a href="tel:+15550100199" data-link="phone">+1 (555) 010-0199</a></span>
+      <span class="copy">© Relay, a demo site</span>
+    </footer>
+  </main>
+
+  <!-- A generic consent banner, not OneTrust's own UI. It answers the way OneTrust's script does:
+       it sets window.OnetrustActiveGroups and fires OneTrustGroupsUpdated. -->
+  <div class="consent-banner" role="region" aria-label="Cookie consent" data-banner hidden>
+    <div><strong>We use cookies</strong><p>Strictly necessary cookies keep the site working. With your OK we'd also measure performance (C0002), remember preferences (C0003) and personalise ads (C0004).</p></div>
+    <div class="consent-buttons">
+      <button type="button" class="link" data-open-prefs>Cookie settings</button>
+      <button type="button" data-reject-all>Reject all</button>
+      <button type="button" class="strong" data-accept-all>Accept all</button>
+    </div>
+  </div>
+  <div class="consent-backdrop" data-prefs hidden>
+    <div class="consent-dialog" role="dialog" aria-modal="true" aria-labelledby="prefs-title">
+      <h2 id="prefs-title">Cookie preferences</h2>
+      <div data-categories></div>
+      <div class="consent-buttons">
+        <button type="button" data-accept-all>Accept all</button>
+        <button type="button" class="strong" data-confirm>Confirm my choices</button>
+      </div>
+    </div>
+  </div>
+  <button type="button" class="consent-pill" data-reopen hidden>Cookie settings</button>
+</body>
+</html>

@@ -16,15 +16,16 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present && node scripts/build-demos.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --build",
     "lint:manifests": "node scripts/validate-manifests.mjs",
+    "lint:demos": "node scripts/lint-demos.mjs",
     "size": "node scripts/size-check.mjs",
     "gen:schema-docs": "node scripts/gen-schema-docs.mjs",
     "new-plugin": "node scripts/new-plugin.mjs",
-    "verify": "npm run build && npm test && npm run lint:manifests && npm run size && npm run site:build",
+    "verify": "npm run build && npm test && npm run lint:manifests && npm run lint:demos && npm run size && npm run site:build",
     "site:build": "npm run build:site --workspace site",
     "site:dev": "npm run dev --workspace site",
     "screenshots": "node scripts/site-screenshots.mjs",

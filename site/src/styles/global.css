@@ -140,6 +140,7 @@ h3 { font-size: 1.08rem; font-weight: 680; margin-top: 1.8rem; }
 p { margin: 0 0 1rem; }
 
 .wrap { max-width: var(--max); margin: 0 auto; padding: 0 1.5rem; }
+.wrap.wide { max-width: 86rem; }
 .narrow { max-width: 46rem; }
 .lede { font-size: clamp(1.02rem, 1.6vw, 1.18rem); color: var(--text-dim); max-width: 44rem; }
 .muted { color: var(--muted); }
