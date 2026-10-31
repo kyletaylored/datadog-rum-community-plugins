@@ -3,6 +3,7 @@ import {
   COMMERCE_ATTRIBUTES,
   ENGAGEMENT_ATTRIBUTES,
   LEAD_ATTRIBUTES,
+  LEARNING_ATTRIBUTES,
   SUPPORT_ATTRIBUTES,
   type AttributeSpec,
 } from './attributes.js'
@@ -10,12 +11,11 @@ import {
 export * from './attributes.js'
 export * from './registry.js'
 
+// Prefixes below are literals, not FAMILY.prefix. A property read on an imported object is one
+// the bundler cannot prove free of side effects, so each `X_FAMILY.prefix` here survived into
+// every plugin's CDN bundle as a bare `{...every event name...}.prefix` expression, even though
+// nothing used it. schema.test.ts holds these literals and the registry in agreement.
 import {
-  ACCOUNT_FAMILY,
-  COMMERCE_FAMILY,
-  ENGAGEMENT_FAMILY,
-  LEAD_FAMILY,
-  SUPPORT_FAMILY,
   allFamilies,
   bareEvent,
   type FamilyName,
@@ -52,7 +52,7 @@ export interface FamilySpec {
 
 export const COMMERCE: FamilySpec = {
   family: 'commerce',
-  prefix: COMMERCE_FAMILY.prefix,
+  prefix: 'commerce.',
   attributes: COMMERCE_ATTRIBUTES,
   actions: [
     { event: 'view_item_list', ga4: 'view_item_list', firesWhen: 'Collection or category page shown', keyAttributes: ['item_list_name', 'items'] },
@@ -75,7 +75,7 @@ export const COMMERCE: FamilySpec = {
  */
 export const ENGAGEMENT: FamilySpec = {
   family: 'engagement',
-  prefix: ENGAGEMENT_FAMILY.prefix,
+  prefix: 'engagement.',
   attributes: ENGAGEMENT_ATTRIBUTES,
   actions: [
     { event: 'scroll', ga4: 'scroll', firesWhen: 'The visitor reaches a depth threshold', keyAttributes: ['percent_scrolled'] },
@@ -91,7 +91,7 @@ export const ENGAGEMENT: FamilySpec = {
 
 export const ACCOUNT: FamilySpec = {
   family: 'account',
-  prefix: ACCOUNT_FAMILY.prefix,
+  prefix: 'account.',
   attributes: ACCOUNT_ATTRIBUTES,
   actions: [
     { event: 'login', ga4: 'login', firesWhen: 'Auth state becomes signed in', keyAttributes: ['method'] },
@@ -102,7 +102,7 @@ export const ACCOUNT: FamilySpec = {
 
 export const LEAD: FamilySpec = {
   family: 'lead',
-  prefix: LEAD_FAMILY.prefix,
+  prefix: 'lead.',
   attributes: LEAD_ATTRIBUTES,
   actions: [
     { event: 'generate_lead', ga4: 'generate_lead', firesWhen: 'A lead form is submitted', keyAttributes: ['form_id', 'form_name'] },
@@ -111,10 +111,28 @@ export const LEAD: FamilySpec = {
 
 export const SUPPORT: FamilySpec = {
   family: 'support',
-  prefix: SUPPORT_FAMILY.prefix,
+  prefix: 'support.',
   attributes: SUPPORT_ATTRIBUTES,
   actions: [
     { event: 'chat_opened', ga4: null, firesWhen: 'The support widget is shown', keyAttributes: ['provider'] },
+  ],
+}
+
+/**
+ * Learning: course platforms. Enrolment, completed lessons and topics, quiz attempts and course
+ * completion. None has a GA4 equivalent. Video inside a lesson comes from the engagement kit,
+ * which reads it from the page on any platform.
+ */
+export const LEARNING: FamilySpec = {
+  family: 'learning',
+  prefix: 'learning.',
+  attributes: LEARNING_ATTRIBUTES,
+  actions: [
+    { event: 'course_enroll', ga4: null, firesWhen: 'The learner enrols in a course', keyAttributes: ['course_id', 'course_name'] },
+    { event: 'lesson_complete', ga4: null, firesWhen: 'A lesson or topic is marked complete', keyAttributes: ['course_id', 'lesson_id', 'step_type', 'progress_percent'] },
+    { event: 'quiz_start', ga4: null, firesWhen: 'The learner starts a quiz attempt', keyAttributes: ['course_id', 'quiz_id'] },
+    { event: 'quiz_complete', ga4: null, firesWhen: 'A quiz attempt is graded', keyAttributes: ['quiz_id', 'score', 'score_max', 'passed', 'attempt'] },
+    { event: 'course_complete', ga4: null, firesWhen: 'Every required step of a course is complete', keyAttributes: ['course_id', 'course_name'] },
   ],
 }
 
@@ -124,6 +142,7 @@ export const FAMILIES: Record<FamilyName, FamilySpec> = {
   account: ACCOUNT,
   lead: LEAD,
   support: SUPPORT,
+  learning: LEARNING,
 }
 
 

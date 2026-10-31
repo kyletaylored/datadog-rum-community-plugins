@@ -126,6 +126,29 @@ export const LEAD_ATTRIBUTES: Record<string, AttributeSpec> = {
   form_name: { type: 'string', origin: 'extension', description: 'Form name.', example: 'Contact sales' },
 }
 
+/**
+ * Learning attributes, for course platforms (LearnDash first). GA4 has no learning events, so
+ * these are extensions, named the way GA4 names things.
+ *
+ * Course and lesson titles are content, not personal data, and are sent. Answers never are: a
+ * quiz reports its score and whether it was passed, not what the learner wrote. The learner is
+ * identified only through `setUser`, by the platform's user ID.
+ */
+export const LEARNING_ATTRIBUTES: Record<string, AttributeSpec> = {
+  course_id: { type: 'string', origin: 'extension', description: 'The platform ID of the course.', example: '1204' },
+  course_name: { type: 'string', origin: 'extension', description: 'Course title, truncated.', example: 'Incident response basics' },
+  lesson_id: { type: 'string', origin: 'extension', description: 'The platform ID of the lesson or topic.', example: '1311' },
+  lesson_name: { type: 'string', origin: 'extension', description: 'Lesson or topic title, truncated.', example: 'Writing a status update' },
+  step_type: { type: 'string', origin: 'extension', description: 'lesson or topic: which level of the course the step is.', example: 'lesson' },
+  quiz_id: { type: 'string', origin: 'extension', description: 'The platform ID of the quiz.', example: '1402' },
+  quiz_name: { type: 'string', origin: 'extension', description: 'Quiz title, truncated.', example: 'Status updates check' },
+  score: { type: 'number', origin: 'ga4', description: 'Points scored, as GA4 post_score sends it. Never the answers.', example: 8 },
+  score_max: { type: 'number', origin: 'extension', description: 'Points available, so score can be read as a share.', example: 10 },
+  passed: { type: 'boolean', origin: 'extension', description: 'Whether the attempt met the pass mark.', example: true },
+  attempt: { type: 'integer', origin: 'extension', description: 'Which attempt at the quiz this was, from 1.', example: 1 },
+  progress_percent: { type: 'integer', origin: 'extension', description: "The learner's progress through the course after the step, 0-100.", example: 40 },
+}
+
 export const SUPPORT_ATTRIBUTES: Record<string, AttributeSpec> = {
   provider: { type: 'string', origin: 'extension', description: 'Chat provider name.', example: 'intercom' },
 }

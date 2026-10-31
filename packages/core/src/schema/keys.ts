@@ -8,10 +8,11 @@
 /**
  * Bumped by RFC. Adapters declare the version they emit in `plugin.json`.
  *
- * 1.1.0 adds the `engagement` family. Additive only: every 1.0.0 action and attribute is
- * unchanged, so a plugin emitting 1.0.0 stays conformant.
+ * 1.1.0 adds the `engagement` family. 1.2.0 adds the `learning` family. Both are additive only:
+ * every earlier action and attribute is unchanged, so a plugin emitting an earlier version stays
+ * conformant.
  */
-export const SCHEMA_VERSION = '1.1.0'
+export const SCHEMA_VERSION = '1.2.0'
 
 /** Global context keys the core sets. Never high cardinality: no order, cart or user IDs. */
 export const GLOBAL_CONTEXT_KEYS = {

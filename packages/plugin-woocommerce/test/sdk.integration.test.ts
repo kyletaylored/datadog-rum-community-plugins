@@ -14,6 +14,7 @@
  * they live in their own files and get their own page.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { SCHEMA_VERSION } from '@kyletaylored/datadog-rum-community-plugins'
 import { initRum, type RumHarness } from './support/initRum.js'
 import type { WooGlobalPayload } from '../src/types.js'
 import { wooCommercePlugin } from '../src/index.js'
@@ -60,7 +61,7 @@ describe('with the real browser-rum SDK', () => {
   it('carries the store and platform context the plugin set globally', () => {
     expect(purchases[0]?.context).toMatchObject({
       'commerce.platform': 'woocommerce',
-      'commerce.schema_version': '1.1.0',
+      'commerce.schema_version': SCHEMA_VERSION,
       'store.id': 'shop.example.com',
       'store.currency': 'USD',
       'customer.type': 'returning',

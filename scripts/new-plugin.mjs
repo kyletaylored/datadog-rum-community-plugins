@@ -21,7 +21,7 @@ function flag(flagName, fallback) {
 }
 
 if (!name || !/^[a-z0-9][a-z0-9-]*$/.test(name)) {
-  console.error('usage: npm run new-plugin -- <name> [--title "Title"] [--family commerce|consent|identity|support|lead]')
+  console.error('usage: npm run new-plugin -- <name> [--title "Title"] [--family commerce|consent|identity|support|lead|learning]')
   console.error('       <name> is lower-case letters, digits and hyphens, e.g. "bigcommerce" or "wp-consent-api"')
   process.exit(1)
 }

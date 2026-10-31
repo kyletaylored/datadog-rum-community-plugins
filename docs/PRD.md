@@ -156,11 +156,13 @@ These tools get installed in two kinds of places:
 | Identity | Auth0, Firebase Auth, Supabase, Clerk | The provider's auth-state listener or user getter (for example Firebase `onAuthStateChanged`, Supabase `onAuthStateChange`) | `setUser`, `setAccount` (org or tenant), `clearUser`; `account.login`, `account.sign_up` actions | MVP |
 | Support chat | Intercom, Zendesk, HubSpot chat | Widget events, such as Intercom's [`onShow`](https://developers.intercom.com/installing-intercom/web/methods) | `support.chat_opened` action | 1.5 |
 | Lead forms | HubSpot Forms, Marketo Forms, WordPress form plugins | Form submit callbacks | `lead.generate_lead` action | 1.5 |
+| Learning | LearnDash first; Tutor LMS, LifterLMS and Moodle later | A payload the companion WordPress plugin prints (enrolment, completions, graded quizzes), and the quiz's start button | `learning.course_enroll`, `lesson_complete`, `quiz_start`, `quiz_complete`, `course_complete` actions; `setUser` | 1.5 |
 | Feature flags | None; use Datadog's documented integrations | n/a | `addFeatureFlagEvaluation` | Not planned |
 
 **Rules that differ from commerce**
 
-- **Naming:** each family has its own prefix, and uses the GA4 name where GA4 has one (`login`, `sign_up`, `generate_lead`). `support.chat_opened` has no GA4 equivalent.
+- **Naming:** each family has its own prefix, and uses the GA4 name where GA4 has one (`login`, `sign_up`, `generate_lead`). `support.chat_opened` has no GA4 equivalent, and neither does any learning event.
+- **Learning (schema 1.2.0, additive):** course platforms get their own family, because enrolment, completion and quiz results have no home in GA4's events. Names follow GA4's style. `score` is GA4's `post_score` parameter; the rest are extensions: `course_id`, `lesson_id`, `step_type`, `quiz_id`, `score_max`, `passed`, `attempt`, `progress_percent`. A quiz reports its score, never the answers. Video inside a lesson is the engagement kit's job on any platform, not this family's.
 - **Consent runs first:** when a consent manager is detected, the plugin's `onInit` sets `initConfiguration.trackingConsent = 'not-granted'`, the same way `shopifyPlugin` rewrites init options. It then calls `setTrackingConsent('granted')` only after the visitor accepts the analytics category.
 - **Identity:** `usr.id` is the provider's user ID (Auth0 `sub`, Firebase `uid`). Email and name stay opt-in, as in commerce.
 - **Measure what's visible:** a declined visitor sends nothing, so RUM can't report opt-in rate. The consent plugin reports only the categories of sessions that opted in.
