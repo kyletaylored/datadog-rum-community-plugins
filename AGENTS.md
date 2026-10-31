@@ -6,10 +6,12 @@ A community-maintained library of Datadog Browser RUM plugins. Each plugin reads
 
 This is a **personal community project** under `@kyletaylored`, not an official Datadog product. Never present it as Datadog-provided or Datadog-supported.
 
-**Status:** Phase 0 built, not yet released. The core, the test harness, three adapters, the asset
-pack, the build and release pipeline and the site all exist and `npm run verify` passes. Nothing is
-published to npm, the GitHub repo is not created, and Pages is not enabled — all of which need the
-maintainer's go-ahead. The exit gate below is **not met yet**: it needs two real test stores.
+**Status:** Phase 0 built, not yet on npm. The core, the test harness, four plugins (Shopify,
+WooCommerce, OneTrust and the engagement kit), the asset pack, the build and release pipeline, the
+site and a demo site per plugin all exist, and `npm run verify` passes. The GitHub repo is public at
+`kyletaylored/datadog-rum-community-plugins` and the site is live on GitHub Pages. Nothing is
+published to npm yet; that needs the maintainer's go-ahead. The exit gate below is **not met yet**:
+it needs two real test stores.
 
 ---
 
@@ -194,7 +196,7 @@ test can stand in for.
 - **Pin everything.** Exact versions in CDN snippets, SHA-pinned GitHub Actions, a narrow `@datadog/browser-rum` peer range.
 - **Relative paths on the site.** It's served from `/datadog-rum-community-plugins/`.
 - **Never commit credentials.** No application IDs, client tokens or npm tokens in the repo. The site's snippet builder never asks for them.
-- **Ask before anything public.** Creating the GitHub repo, pushing, publishing to npm and enabling Pages all need the maintainer's go-ahead.
+- **Ask before anything public.** Pushing, opening or merging a PR, publishing to npm and changing the Pages setup all need the maintainer's go-ahead.
 
 ## Workspaces: one git worktree per change
 

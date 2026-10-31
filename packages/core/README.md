@@ -3,7 +3,7 @@
 > A personal community project under [@kyletaylored](https://github.com/kyletaylored), MIT licensed.
 > **Not provided or supported by Datadog.**
 
-The shared core behind the community RUM plugins. Adapters depend on it; sites normally don't
+The shared core behind Datadog RUM Community Plugins. Adapters depend on it; sites normally don't
 install it directly.
 
 It holds two things: the versioned event schemas, and the safety layers every adapter inherits so

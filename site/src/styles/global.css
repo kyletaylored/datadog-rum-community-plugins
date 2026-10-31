@@ -183,7 +183,10 @@ header.site nav a {
 header.site nav a:hover { color: var(--text); background: var(--surface); }
 header.site nav a[aria-current='page'] { color: var(--text); background: var(--accent-soft); }
 
-.header-tools { display: flex; align-items: center; gap: 0.4rem; margin-left: 0.4rem; }
+.header-tools { display: flex; align-items: center; gap: 0.4rem; margin-left: 0.4rem; flex: none; }
+/* The full name does not fit beside the header tools on a phone, so it wraps to two lines there
+   rather than pushing the menu button off the screen. */
+@media (max-width: 30rem) { .brand { white-space: normal; line-height: 1.15; min-width: 0; } }
 
 .icon-button {
   display: grid;
