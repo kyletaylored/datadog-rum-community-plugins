@@ -22,12 +22,20 @@ CDN, pinned to an exact version with its SRI hash from the release:
 
 ```html
 <script src="https://www.datadoghq-browser-agent.com/<site>/v6/datadog-rum.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-woocommerce@0.1.0/dist/plugin.js"
+<script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-woocommerce@0.2.0/dist/plugin.js"
         integrity="sha384-..." crossorigin="anonymous"></script>
 <script>
-  DD_RUM.init({ /* ... */, plugins: [DD_RUM_PLUGINS['woocommerce']()] })
+  const woo = DD_RUM_PLUGINS['woocommerce']()
+  DD_RUM.init({ /* ... */, plugins: [woo] })
+
+  // The checkout funnel (see below). With no tracker to hand on the CDN route, pass the plugin
+  // instance you gave init; the reporter finds its tracker once init has run.
+  const checkout = DD_RUM_PLUGINS['woocommerce'].createCheckoutReporter(woo)
+  checkout.beginCheckout(cart)
 </script>
 ```
+
+A step reported before `DD_RUM.init` has run is dropped with a console warning, not queued.
 
 ## Order data needs a server-rendered payload
 
@@ -90,7 +98,8 @@ exports them for a theme or the WordPress plugin to drive from the Cart and Chec
 hooks:
 
 ```js
-const reporter = createCheckoutReporter(tracker)
+// The plugin instance passed to init, or a tracker if you built one yourself.
+const reporter = createCheckoutReporter(woo)
 reporter.beginCheckout(cart)
 reporter.addShippingInfo(cart, 'Ground')
 reporter.search(term) // sends search_term_length only; the text never leaves the browser

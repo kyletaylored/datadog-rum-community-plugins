@@ -1,0 +1,307 @@
+{
+  "source": "Checkout funnel steps WooCommerce has no DOM event for, as the companion WordPress plugin reports them: createCheckoutReporter calls from the Cart and Checkout blocks' hooks, with the Store API cart. The cart is the one left after cart.json's steps (two tees and the socks; the cap was removed), built from the items recorded there. The event field names the reporter method; payload holds its arguments.",
+  "fixtures": [
+    {
+      "name": "cart viewed",
+      "event": "createCheckoutReporter.viewCart",
+      "payload": {
+        "cart": {
+          "cart_key": "c1-8f2a",
+          "items_count": 3,
+          "totals": {
+            "total_price": "6800",
+            "total_items": "6800",
+            "currency_code": "USD",
+            "currency_minor_unit": 2
+          },
+          "coupons": [
+            {
+              "code": "WELCOME10"
+            }
+          ],
+          "items": [
+            {
+              "key": "a1b2",
+              "id": 184,
+              "name": "Classic Tee",
+              "sku": "TEE-RED-M",
+              "quantity": 2,
+              "prices": {
+                "price": "2800",
+                "regular_price": "2800",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "totals": {
+                "line_total": "5600",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "variation": [
+                {
+                  "attribute": "Color",
+                  "value": "Red"
+                },
+                {
+                  "attribute": "Size",
+                  "value": "M"
+                }
+              ],
+              "categories": [
+                {
+                  "name": "Shirts"
+                }
+              ]
+            },
+            {
+              "key": "e5f6",
+              "id": 212,
+              "name": "Crew Socks",
+              "sku": "SOCK-WHT-L",
+              "quantity": 1,
+              "prices": {
+                "price": "1200",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "totals": {
+                "line_total": "1200",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "checkout started",
+      "event": "createCheckoutReporter.beginCheckout",
+      "payload": {
+        "cart": {
+          "cart_key": "c1-8f2a",
+          "items_count": 3,
+          "totals": {
+            "total_price": "6800",
+            "total_items": "6800",
+            "currency_code": "USD",
+            "currency_minor_unit": 2
+          },
+          "coupons": [
+            {
+              "code": "WELCOME10"
+            }
+          ],
+          "items": [
+            {
+              "key": "a1b2",
+              "id": 184,
+              "name": "Classic Tee",
+              "sku": "TEE-RED-M",
+              "quantity": 2,
+              "prices": {
+                "price": "2800",
+                "regular_price": "2800",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "totals": {
+                "line_total": "5600",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "variation": [
+                {
+                  "attribute": "Color",
+                  "value": "Red"
+                },
+                {
+                  "attribute": "Size",
+                  "value": "M"
+                }
+              ],
+              "categories": [
+                {
+                  "name": "Shirts"
+                }
+              ]
+            },
+            {
+              "key": "e5f6",
+              "id": 212,
+              "name": "Crew Socks",
+              "sku": "SOCK-WHT-L",
+              "quantity": 1,
+              "prices": {
+                "price": "1200",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "totals": {
+                "line_total": "1200",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "shipping chosen",
+      "event": "createCheckoutReporter.addShippingInfo",
+      "payload": {
+        "cart": {
+          "cart_key": "c1-8f2a",
+          "items_count": 3,
+          "totals": {
+            "total_price": "6800",
+            "total_items": "6800",
+            "currency_code": "USD",
+            "currency_minor_unit": 2
+          },
+          "coupons": [
+            {
+              "code": "WELCOME10"
+            }
+          ],
+          "items": [
+            {
+              "key": "a1b2",
+              "id": 184,
+              "name": "Classic Tee",
+              "sku": "TEE-RED-M",
+              "quantity": 2,
+              "prices": {
+                "price": "2800",
+                "regular_price": "2800",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "totals": {
+                "line_total": "5600",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "variation": [
+                {
+                  "attribute": "Color",
+                  "value": "Red"
+                },
+                {
+                  "attribute": "Size",
+                  "value": "M"
+                }
+              ],
+              "categories": [
+                {
+                  "name": "Shirts"
+                }
+              ]
+            },
+            {
+              "key": "e5f6",
+              "id": 212,
+              "name": "Crew Socks",
+              "sku": "SOCK-WHT-L",
+              "quantity": 1,
+              "prices": {
+                "price": "1200",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "totals": {
+                "line_total": "1200",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              }
+            }
+          ]
+        },
+        "shippingTier": "Ground"
+      }
+    },
+    {
+      "name": "payment chosen",
+      "event": "createCheckoutReporter.addPaymentInfo",
+      "payload": {
+        "cart": {
+          "cart_key": "c1-8f2a",
+          "items_count": 3,
+          "totals": {
+            "total_price": "6800",
+            "total_items": "6800",
+            "currency_code": "USD",
+            "currency_minor_unit": 2
+          },
+          "coupons": [
+            {
+              "code": "WELCOME10"
+            }
+          ],
+          "items": [
+            {
+              "key": "a1b2",
+              "id": 184,
+              "name": "Classic Tee",
+              "sku": "TEE-RED-M",
+              "quantity": 2,
+              "prices": {
+                "price": "2800",
+                "regular_price": "2800",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "totals": {
+                "line_total": "5600",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "variation": [
+                {
+                  "attribute": "Color",
+                  "value": "Red"
+                },
+                {
+                  "attribute": "Size",
+                  "value": "M"
+                }
+              ],
+              "categories": [
+                {
+                  "name": "Shirts"
+                }
+              ]
+            },
+            {
+              "key": "e5f6",
+              "id": 212,
+              "name": "Crew Socks",
+              "sku": "SOCK-WHT-L",
+              "quantity": 1,
+              "prices": {
+                "price": "1200",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "totals": {
+                "line_total": "1200",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              }
+            }
+          ]
+        },
+        "paymentType": "paypal"
+      }
+    },
+    {
+      "name": "product search",
+      "description": "Only the term's length is sent; the text never leaves the browser.",
+      "event": "createCheckoutReporter.search",
+      "payload": {
+        "term": "red tee medium"
+      }
+    }
+  ]
+}

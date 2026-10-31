@@ -3,6 +3,52 @@
   "plugin": "woocommerce",
   "actions": [
     {
+      "name": "commerce.add_payment_info",
+      "attributes": [
+        {
+          "name": "currency",
+          "type": "string"
+        },
+        {
+          "name": "payment_type",
+          "type": "string"
+        },
+        {
+          "name": "value",
+          "type": "number"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "value": 68,
+        "currency": "USD",
+        "payment_type": "paypal"
+      }
+    },
+    {
+      "name": "commerce.add_shipping_info",
+      "attributes": [
+        {
+          "name": "currency",
+          "type": "string"
+        },
+        {
+          "name": "shipping_tier",
+          "type": "string"
+        },
+        {
+          "name": "value",
+          "type": "number"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "value": 68,
+        "currency": "USD",
+        "shipping_tier": "Ground"
+      }
+    },
+    {
       "name": "commerce.add_to_cart",
       "attributes": [
         {
@@ -47,6 +93,64 @@
         ],
         "item_count": 2,
         "unique_items": 1
+      }
+    },
+    {
+      "name": "commerce.begin_checkout",
+      "attributes": [
+        {
+          "name": "cart_id",
+          "type": "string"
+        },
+        {
+          "name": "coupon",
+          "type": "string"
+        },
+        {
+          "name": "currency",
+          "type": "string"
+        },
+        {
+          "name": "item_count",
+          "type": "integer"
+        },
+        {
+          "name": "items",
+          "type": "array"
+        },
+        {
+          "name": "unique_items",
+          "type": "integer"
+        },
+        {
+          "name": "value",
+          "type": "number"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "value": 68,
+        "currency": "USD",
+        "cart_id": "c1-8f2a",
+        "coupon": "WELCOME10",
+        "items": [
+          {
+            "item_id": "TEE-RED-M",
+            "item_name": "Classic Tee",
+            "price": 28,
+            "quantity": 2,
+            "item_variant": "Red / M",
+            "item_category": "Shirts"
+          },
+          {
+            "item_id": "SOCK-WHT-L",
+            "item_name": "Crew Socks",
+            "price": 12,
+            "quantity": 1
+          }
+        ],
+        "item_count": 3,
+        "unique_items": 2
       }
     },
     {
@@ -173,6 +277,72 @@
         "item_count": 1,
         "unique_items": 1
       }
+    },
+    {
+      "name": "commerce.search",
+      "attributes": [
+        {
+          "name": "search_term_length",
+          "type": "integer"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "search_term_length": 14
+      }
+    },
+    {
+      "name": "commerce.view_cart",
+      "attributes": [
+        {
+          "name": "cart_id",
+          "type": "string"
+        },
+        {
+          "name": "currency",
+          "type": "string"
+        },
+        {
+          "name": "item_count",
+          "type": "integer"
+        },
+        {
+          "name": "items",
+          "type": "array"
+        },
+        {
+          "name": "unique_items",
+          "type": "integer"
+        },
+        {
+          "name": "value",
+          "type": "number"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "value": 68,
+        "currency": "USD",
+        "cart_id": "c1-8f2a",
+        "items": [
+          {
+            "item_id": "TEE-RED-M",
+            "item_name": "Classic Tee",
+            "price": 28,
+            "quantity": 2,
+            "item_variant": "Red / M",
+            "item_category": "Shirts"
+          },
+          {
+            "item_id": "SOCK-WHT-L",
+            "item_name": "Crew Socks",
+            "price": 12,
+            "quantity": 1
+          }
+        ],
+        "item_count": 3,
+        "unique_items": 2
+      }
     }
   ],
   "globalContext": {
@@ -238,6 +408,20 @@
     ],
     "steps": [
       {
+        "label": "Searches for \"red tee medium\"",
+        "fixture": "product search",
+        "event": "createCheckoutReporter.search",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "commerce.search",
+            "detail": {
+              "search_term_length": 14
+            }
+          }
+        ]
+      },
+      {
         "label": "Adds 2 t-shirts to the cart",
         "fixture": "added to cart",
         "event": "wc-blocks_added_to_cart",
@@ -287,6 +471,75 @@
               "cart_id": "c1-8f2a",
               "item_count": 1,
               "unique_items": 1
+            }
+          }
+        ]
+      },
+      {
+        "label": "Opens the cart",
+        "fixture": "cart viewed",
+        "event": "createCheckoutReporter.viewCart",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "commerce.view_cart",
+            "detail": {
+              "value": 68,
+              "currency": "USD",
+              "cart_id": "c1-8f2a",
+              "item_count": 3,
+              "unique_items": 2
+            }
+          }
+        ]
+      },
+      {
+        "label": "Starts checkout",
+        "fixture": "checkout started",
+        "event": "createCheckoutReporter.beginCheckout",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "commerce.begin_checkout",
+            "detail": {
+              "value": 68,
+              "currency": "USD",
+              "cart_id": "c1-8f2a",
+              "coupon": "WELCOME10",
+              "item_count": 3,
+              "unique_items": 2
+            }
+          }
+        ]
+      },
+      {
+        "label": "Chooses Ground shipping",
+        "fixture": "shipping chosen",
+        "event": "createCheckoutReporter.addShippingInfo",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "commerce.add_shipping_info",
+            "detail": {
+              "value": 68,
+              "currency": "USD",
+              "shipping_tier": "Ground"
+            }
+          }
+        ]
+      },
+      {
+        "label": "Pays with PayPal",
+        "fixture": "payment chosen",
+        "event": "createCheckoutReporter.addPaymentInfo",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "commerce.add_payment_info",
+            "detail": {
+              "value": 68,
+              "currency": "USD",
+              "payment_type": "paypal"
             }
           }
         ]

@@ -107,6 +107,7 @@ test can stand in for.
 ### Watch items
 
 - **Shopify sits at 4.99 KB against its 5 KB budget.** The per-family split bought the headroom back once; there is no second trick of that size. The next mapping added to it needs either a trim or a declared budget.
+- **WooCommerce sits at 4.97 KB against its 5 KB budget**, up from 4.66 KB once the CDN bundle carried `createCheckoutReporter`. Same rule as Shopify: the next addition needs a trim or a declared budget.
 - **Engagement video is HTML5 only.** YouTube and Vimeo are iframes needing their player APIs; `video_provider` exists so they can be added without a schema change.
 - **Engagement scroll thresholds reset on `popstate`, not on a `pushState` route change.** Observing that means patching `history`, which the plugin will not do to a merchant's page.
 - **OneTrust's callback names are still unconfirmed against vendor docs**, as the PRD flagged. The adapter listens on all four known signals and reads the state directly as a fallback, so one firing is enough — but this should still be checked against OneTrust's own documentation.
