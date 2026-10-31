@@ -1,5 +1,13 @@
 # @kyletaylored/datadog-rum-community-plugins
 
+## 0.3.0
+
+### Minor Changes
+
+- f4262ea: Export `blockedKeys(payload)`: every key in a payload the PII filter refuses. Used to say what was stripped (the sandbox feed, the plugin pages), never to decide what is sent.
+- 22551ac: The plugin manifest schema requires `howItWorks`: a summary and ordered steps saying what the plugin does on a page, meaning the listeners it adds, the platform APIs and globals it reads, and how it reports. `PluginManifest` gains the matching field.
+- fd76323: Schema 1.2.0 adds the `learning` family, for course platforms: `learning.course_enroll`, `lesson_complete`, `quiz_start`, `quiz_complete` and `course_complete`, with course, lesson and quiz IDs and names, `step_type`, `score`, `score_max`, `passed`, `attempt` and `progress_percent`. Import `LEARNING_FAMILY` into a plugin's tracker. Additive: every 1.1.0 action and attribute is unchanged.
+
 ## 0.2.0
 
 ### Minor Changes

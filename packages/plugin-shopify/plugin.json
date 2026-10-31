@@ -2,7 +2,7 @@
   "name": "shopify",
   "package": "@kyletaylored/datadog-rum-plugin-shopify",
   "exportName": "shopifyPlugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "family": "commerce",
   "title": "Shopify",
   "description": "Checkout events, order value and customer identity from Shopify Web Pixels. Composes with the official @datadog/browser-rum-shopify plugin rather than replacing it.",

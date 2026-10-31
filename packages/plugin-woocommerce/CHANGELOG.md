@@ -1,5 +1,19 @@
 # @kyletaylored/datadog-rum-plugin-woocommerce
 
+## 0.3.0
+
+### Minor Changes
+
+- cda2584: Expose the checkout reporter on the CDN bundle as `window.DD_RUM_PLUGINS.woocommerce.createCheckoutReporter`, so a page without a bundler can report `view_cart`, `begin_checkout`, `add_shipping_info`, `add_payment_info` and `search`. `createCheckoutReporter` now also takes the plugin instance passed to `init`, resolving its tracker once `init` has run; a step reported before then is dropped with a console warning. Passing a tracker still works.
+
+### Patch Changes
+
+- fd76323: Emit schema 1.2.0 (`commerce.schema_version`). Nothing a plugin sends changes otherwise. The CDN bundles are smaller, by about 140 bytes gzipped each: every other family's event names had been leaking into every bundle through the schema spec's prefix reads, and no longer do.
+- Updated dependencies [f4262ea]
+- Updated dependencies [22551ac]
+- Updated dependencies [fd76323]
+  - @kyletaylored/datadog-rum-community-plugins@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
