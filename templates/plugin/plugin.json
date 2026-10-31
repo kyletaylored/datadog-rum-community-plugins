@@ -30,6 +30,13 @@
   "journey": [
     { "label": "Describe what the visitor does, in plain words", "fixture": "describe what happened on the site" }
   ],
+  "howItWorks": {
+    "summary": "Where the plugin gets its events from, in one or two sentences: a platform API, DOM events, a global the platform prints.",
+    "steps": [
+      { "title": "Reads the platform's data", "detail": "Name every global it reads, in backticks, and what it does with each." },
+      { "title": "Listens for the platform's events", "detail": "Name every event it subscribes to, in backticks, where it listens, and what each one becomes." }
+    ]
+  },
   "options": [
     {
       "name": "identifyUsers",

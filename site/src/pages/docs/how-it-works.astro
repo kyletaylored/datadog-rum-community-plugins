@@ -1,0 +1,87 @@
+---
+import Base from '../../layouts/Base.astro'
+import InlineCode from '../../components/InlineCode.astro'
+import { url } from '../../lib/url'
+import plugins from '../../data/plugins.json'
+import schema from '../../data/schema.json'
+
+const { limits } = schema
+---
+
+<Base title="How it works" description="What a plugin actually does on your page: the hook it uses in the RUM SDK, the listeners it adds, and the checks every event passes before it is sent." docs>
+  <h1>How it works</h1>
+  <p class="lede">
+    A plugin is a few event listeners and a mapping. It hooks into the Datadog Browser SDK you already
+    load, listens for what your platform or the page already reports, and turns each event into one
+    RUM action. It adds no code to your site.
+  </p>
+
+  <h2>1. It plugs into the SDK you already have</h2>
+  <p>
+    Every plugin is a <code>RumPlugin</code>, the same shape as Datadog's own Shopify plugin. You pass
+    it in <code>plugins</code>, and the SDK calls its <code>onInit</code> once, as it starts:
+  </p>
+  <pre><code>{`window.DD_RUM.init({
+  applicationId: 'YOUR_APPLICATION_ID',
+  clientToken: 'YOUR_CLIENT_TOKEN',
+  site: 'datadoghq.com',
+  plugins: [window.DD_RUM_PLUGINS['woocommerce']()],
+})`}</code></pre>
+  <p>
+    <code>onInit</code> receives the init options and the SDK's public API. A plugin never initializes
+    RUM itself, so your <code>applicationId</code>, sampling and privacy settings stay yours, and it
+    calls only public methods: <code>addAction</code>, <code>setUser</code>,
+    <code>setGlobalContextProperty</code>, <code>setTrackingConsent</code>.
+  </p>
+
+  <h2>2. It listens where the platform already reports</h2>
+  <p>
+    What a plugin listens to depends on what the platform exposes. None of them patch your theme or wrap
+    your code:
+  </p>
+  <div class="scroll-x">
+    <table>
+      <thead><tr><th>Plugin</th><th>Where its events come from</th></tr></thead>
+      <tbody>
+        {plugins.map((plugin) => (
+          <tr>
+            <th scope="row"><a href={url(`/plugins/${plugin.name}/`)}>{plugin.title ?? plugin.name}</a></th>
+            <td><InlineCode text={plugin.howItWorks?.summary ?? plugin.description} /></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Each plugin page has a step-by-step "How it works", which names every listener it adds and every
+    global it reads. A check in CI fails if a plugin touches something its page doesn't explain.
+  </p>
+
+  <h2>3. Every event passes the same checks</h2>
+  <p>
+    A plugin only maps a platform payload onto a schema event. Everything after that lives in the
+    shared core, so every plugin behaves the same way, and a new plugin cannot forget a step:
+  </p>
+  <ol class="steps">
+    <li><strong>Declared events only.</strong> The event must belong to a family the plugin declares, and to your <code>events</code> allow-list if you set one.</li>
+    <li><strong>Consent.</strong> Until consent is granted, the event is dropped, not queued, so accepting later never backfills it. Identity (<code>setUser</code>) is held the same way.</li>
+    <li><strong>The PII filter.</strong> Card fields, addresses, email, phone, passwords and free text are removed wherever they appear in the payload, even when the platform sends them. Email and name reach <code>setUser</code> only if you opt in.</li>
+    <li><strong>Size caps.</strong> At most {limits.maxItems} entries in <code>items</code> (sent only with <code>includeItems</code>), and strings cut to {limits.maxStringLength} characters.</li>
+    <li><strong>Purchase dedupe.</strong> <code>commerce.purchase</code> is sent once per <code>transaction_id</code> per browser for {limits.dedupeTtlHours} hours, so a reloaded thank-you page does not double-count revenue.</li>
+    <li><strong>Your hook.</strong> <code>beforeTrack</code>, if you pass one, can edit or drop the event. Its result is filtered again.</li>
+    <li><strong>Sent.</strong> The event goes to <code>addAction</code> with a GA4-style name such as <code>commerce.purchase</code>, carrying session context such as <code>commerce.platform</code> and <code>store.currency</code>.</li>
+  </ol>
+
+  <h2>4. What arrives in Datadog</h2>
+  <p>
+    Each action is a RUM event you can search right away, under <code>@type:action</code>, with its
+    attributes under <code>@context</code>. Product Analytics picks the actions up with no extra setup.
+    Import the <a href={url('/docs/datadog-assets/')}>asset pack</a> and purchases and checkouts also become
+    generated metrics, which feed a dashboard and monitors.
+  </p>
+  <p class="small muted">
+    Everything here is measured in the browser, so it undercounts (ad blockers, closed tabs, declined
+    consent). Use it next to performance and errors, never instead of your platform's own order
+    reporting. <a href={url('/sandbox/')}>Watch a plugin do all of this in the sandbox →</a>
+  </p>
+</Base>

@@ -95,6 +95,19 @@ for (const dir of readdirSync(fromRoot('packages')).sort()) {
     }
   }
 
+  // howItWorks is what a merchant reads to understand what lands on their page, so it must not
+  // skip anything the plugin touches. Each footprint global and event has to appear in it; a
+  // descriptive entry such as "analytics (Web Pixel sandbox)" is matched on its first word.
+  if (manifest.howItWorks) {
+    const prose = [manifest.howItWorks.summary, ...manifest.howItWorks.steps.flatMap((step) => [step.title, step.detail])].join('\n')
+    for (const entry of [...manifest.footprint.globals, ...manifest.footprint.events]) {
+      const name = entry.split(/[\s(]/)[0]
+      if (!prose.includes(name)) {
+        problems.push(`${where}: howItWorks never explains ${name}, which footprint says the plugin touches`)
+      }
+    }
+  }
+
   if (manifest.footprint.rumApis.length === 0) {
     problems.push(`${where}: footprint.rumApis is empty; every adapter calls at least one RUM API`)
   }

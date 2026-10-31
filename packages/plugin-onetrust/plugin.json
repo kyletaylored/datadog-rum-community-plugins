@@ -47,6 +47,31 @@
       "fixture": "consent withdrawn"
     }
   ],
+  "howItWorks": {
+    "summary": "Holds RUM before it starts, then releases it when OneTrust reports that the visitor accepted the required category. It sends no actions of its own.",
+    "steps": [
+      {
+        "title": "Holds RUM before the SDK starts",
+        "detail": "In `onInit` it sets `trackingConsent` to not-granted in the init options, so the SDK collects nothing on a page where the banner hasn't been answered. Put it first in `plugins`."
+      },
+      {
+        "title": "Reads the visitor's answer",
+        "detail": "`window.OnetrustActiveGroups` is the comma-delimited list of accepted categories that OneTrust's banner script sets, e.g. `,C0001,C0002,`. The plugin reads it at init, in case the visitor answered on an earlier page."
+      },
+      {
+        "title": "Listens on every signal OneTrust sends",
+        "detail": "It listens for `OneTrustGroupsUpdated` on the window, wraps `window.OptanonWrapper` (chaining the page's own wrapper, if any), and once the banner script has loaded registers `Optanon.OnConsentChanged` on `window.Optanon`. Each one re-reads the active groups, so any one of them firing is enough."
+      },
+      {
+        "title": "Grants, or withdraws",
+        "detail": "When the required category (C0002 by default) is active it calls `setTrackingConsent('granted')`, and `'not-granted'` if the visitor later turns it off. The accepted categories go to session context as `consent.categories` through `setGlobalContextProperty`."
+      },
+      {
+        "title": "Fails closed",
+        "detail": "If OneTrust never reports within the timeout, RUM stays held and a warning is logged. A `pagehide` listener clears the timer."
+      }
+    ]
+  },
   "options": [
     {
       "name": "category",

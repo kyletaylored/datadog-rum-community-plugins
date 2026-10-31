@@ -82,6 +82,31 @@
       "fixture": "order received"
     }
   ],
+  "howItWorks": {
+    "summary": "Listens for the DOM events WooCommerce's Cart and Checkout blocks already dispatch, and reads the order the companion WordPress plugin prints on the order-received page. Nothing is added to your theme.",
+    "steps": [
+      {
+        "title": "Reads the store, the customer and the order",
+        "detail": "At init it reads `window.ddRumWooCommerce`, which the companion WordPress plugin prints: store and customer on every page, plus the order on the order-received page. The store becomes session context, the WordPress user ID goes to `setUser`, and the order becomes `commerce.purchase`."
+      },
+      {
+        "title": "Listens on document.body",
+        "detail": "It adds one native listener per WooCommerce event on `document.body`: `wc-blocks_added_to_cart`, `wc-blocks_removed_from_cart` and `wc-blocks_product_list_rendered` from the blocks, plus `added_to_cart` and `removed_from_cart` for classic themes. Each event carries the Store API cart in `detail.cart`, which the plugin maps to the commerce schema."
+      },
+      {
+        "title": "Classic themes and jQuery",
+        "detail": "`window.jQuery` is in the footprint because classic themes raise `added_to_cart` through it. The plugin listens with native `addEventListener` only, so it sees the event when a theme dispatches it as a DOM event, and not when a theme fires it only through jQuery."
+      },
+      {
+        "title": "Reports the checkout funnel on request",
+        "detail": "Cart views, checkout, shipping, payment and search have no WooCommerce DOM event. The WordPress plugin, or a theme, reports them by calling `createCheckoutReporter` from the blocks' hooks (`window.DD_RUM_PLUGINS.woocommerce.createCheckoutReporter` on the CDN)."
+      },
+      {
+        "title": "Counts each order once",
+        "detail": "The core records each sent `transaction_id` in `dd_rum_commerce_seen` in localStorage for 24 hours, so a reloaded order-received page does not send the purchase again."
+      }
+    ]
+  },
   "options": [
     {
       "name": "events",
