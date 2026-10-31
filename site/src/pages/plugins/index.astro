@@ -43,8 +43,10 @@ const planned = [
   <div class="grid" style="margin-top:1.25rem">
     {sorted.map((plugin) => (
       <a class="card" href={url(`/plugins/${plugin.name}/`)} data-plugin={plugin.name} data-family={plugin.family}>
-        <span class="card-icon"><Icon name={familyIcon[plugin.family] ?? 'puzzle'} /></span>
-        <h3>{plugin.title ?? plugin.name}</h3>
+        <div class="card-head">
+          <span class="card-icon"><Icon name={familyIcon[plugin.family] ?? 'puzzle'} /></span>
+          <h3>{plugin.title ?? plugin.name}</h3>
+        </div>
         <p>{plugin.description}</p>
         <div class="badges">
           <span class={`badge ${plugin.tier}`}>{tierLabel[plugin.tier]}</span>
