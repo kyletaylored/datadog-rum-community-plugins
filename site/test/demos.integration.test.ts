@@ -18,6 +18,8 @@ import wooManifest from '../../packages/plugin-woocommerce/plugin.json'
 import shopifyManifest from '../../packages/plugin-shopify/plugin.json'
 import engagementManifest from '../../packages/plugin-engagement/plugin.json'
 import onetrustManifest from '../../packages/plugin-onetrust/plugin.json'
+import learndashManifest from '../../packages/plugin-learndash/plugin.json'
+import learndashEvents from '../../packages/plugin-learndash/fixtures/.generated/events.json'
 import wooEvents from '../../packages/plugin-woocommerce/fixtures/.generated/events.json'
 import shopifyEvents from '../../packages/plugin-shopify/fixtures/.generated/events.json'
 import engagementEvents from '../../packages/plugin-engagement/fixtures/.generated/events.json'
@@ -32,6 +34,7 @@ const PLUGINS: Record<string, { manifest: Manifest; events: Report }> = {
   shopify: { manifest: shopifyManifest as Manifest, events: shopifyEvents as Report },
   engagement: { manifest: engagementManifest as Manifest, events: engagementEvents as Report },
   onetrust: { manifest: onetrustManifest as Manifest, events: onetrustEvents as Report },
+  learndash: { manifest: learndashManifest as Manifest, events: learndashEvents as Report },
 }
 
 /** Fast enough to keep the suite short, slow enough for the demos' own timers to keep up. */
@@ -132,13 +135,23 @@ for (const plugin of presets.order) {
         for (const secret of SECRETS) expect(sent, `must not send ${secret}`).not.toContain(secret)
 
         // What each scenario's note promises.
-        const held = (plugin === 'shopify' && state.customerPrivacy === 'denied') || ((plugin === 'woocommerce' || plugin === 'engagement') && !state.consent)
+        const held = (plugin === 'shopify' && state.customerPrivacy === 'denied') || (['woocommerce', 'engagement', 'learndash'].includes(plugin) && !state.consent)
         if (held) {
           expect(actions, 'consent was not given, yet actions were sent').toHaveLength(0)
           expect(calls.some((call) => call.api === 'setUser')).toBe(false)
           expect(calls.filter((call) => call.blocked).length).toBeGreaterThan(0)
         } else if (plugin !== 'onetrust') {
           expect(actions.length).toBeGreaterThan(0)
+        }
+        if (plugin === 'learndash' && state.consent) {
+          expect(actions.filter((call) => call.label === 'learning.course_complete')).toHaveLength(1)
+          expect(actions.find((call) => call.label === 'learning.quiz_complete')?.detail).toMatchObject({ score: 8, score_max: 10, passed: true })
+          expect(JSON.stringify(actions)).not.toContain('answers')
+          // The lesson video, from the engagement kit running alongside.
+          expect(actions.map((call) => call.label)).toEqual(expect.arrayContaining(['engagement.video_start', 'engagement.video_complete']))
+        }
+        if (scenario.id === 'completion-page-reloaded') {
+          expect(calls.filter((call) => /already reported event/.test(call.blocked ?? ''))).toHaveLength(2)
         }
         if (scenario.id === 'thank-you-page-reloaded') {
           expect(actions.filter((call) => call.label === 'commerce.purchase')).toHaveLength(1)

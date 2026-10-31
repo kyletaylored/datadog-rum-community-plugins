@@ -72,11 +72,24 @@ function rewrite(dir) {
 
 rewrite(target)
 
-// The manifest's family comes from the flag rather than the template's default.
+// Versions come from the core as it is now, not from whatever the template last said: a pinned
+// core version that no longer exists in the workspace sends `npm install` to the registry.
+const corePackage = JSON.parse(readFileSync(fromRoot('packages/core/package.json'), 'utf8'))
+const schemaVersion = /SCHEMA_VERSION = '([^']+)'/.exec(readFileSync(fromRoot('packages/core/src/schema/keys.ts'), 'utf8'))?.[1]
+
+// The manifest's family comes from the flag rather than the template's default. Its maintainer
+// is a display name, so an email given with --maintainer stays in package.json's author only.
 const manifestPath = join(target, 'plugin.json')
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
 manifest.family = family
+manifest.maintainer.name = maintainer.replace(/\s*<[^>]*>\s*$/, '')
+if (schemaVersion) manifest.schemaVersion = schemaVersion
 writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
+
+const packagePath = join(target, 'package.json')
+const pkg = JSON.parse(readFileSync(packagePath, 'utf8'))
+pkg.dependencies[corePackage.name] = corePackage.version
+writeFileSync(packagePath, `${JSON.stringify(pkg, null, 2)}\n`)
 
 // Rename the template's test to match the adapter, so `vitest` picks it up under its own name.
 renameSync(join(target, 'test/plugin.test.ts'), join(target, `test/${name}.test.ts`))

@@ -156,7 +156,7 @@ resource "datadog_rum_metric" "checkout_errors" {
 }
 
 # Non-commerce families. Counts only; no distributions, so no extra custom-metric cost beyond
-# these three.
+# these five.
 resource "datadog_rum_metric" "account_logins" {
   name       = "rum.account.logins"
   event_type = "action"
@@ -172,6 +172,27 @@ resource "datadog_rum_metric" "account_sign_ups" {
 
   filter {
     query = "@application.id:${var.rum_application_id} @action.name:account.sign_up"
+  }
+}
+
+# Learning (schema 1.2.0). Enrolments and completions give a course completion rate. Grouped by
+# nothing: course IDs are high cardinality. Quiz scores stay on the RUM events (@context.score)
+# rather than becoming a distribution, to keep to counts-only here.
+resource "datadog_rum_metric" "course_enrollments" {
+  name       = "rum.learning.course_enrollments"
+  event_type = "action"
+
+  filter {
+    query = "@application.id:${var.rum_application_id} @action.name:learning.course_enroll"
+  }
+}
+
+resource "datadog_rum_metric" "course_completions" {
+  name       = "rum.learning.course_completions"
+  event_type = "action"
+
+  filter {
+    query = "@application.id:${var.rum_application_id} @action.name:learning.course_complete"
   }
 }
 
