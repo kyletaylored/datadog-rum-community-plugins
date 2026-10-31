@@ -1,0 +1,39 @@
+/* Relay: a fictional SaaS. Shared by the engagement demo and the OneTrust demo that sits on it. */
+:root { --bg: #fbfbfd; --ink: #14161f; --dim: #5b6070; --line: #e3e5ee; --accent: #2f6bff; --ph-a: #e6e9f3; --ph-b: #f0f2f8; --ph-ink: #6b7186; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; }
+a { color: var(--accent); }
+.nav { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 28px; padding: 14px 36px; background: rgb(251 251 253 / 0.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+.logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 19px; color: var(--ink); text-decoration: none; }
+.logo i { width: 18px; height: 18px; border-radius: 5px; background: var(--accent); }
+.nav nav { display: flex; gap: 20px; font-size: 14px; }
+.nav nav a { color: var(--dim); text-decoration: none; }
+.cta { margin-left: auto; padding: 8px 16px; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 650; font-size: 14px; text-decoration: none; }
+.cta.ghost { margin: 0; background: transparent; color: var(--ink); border: 1px solid var(--line); }
+section { max-width: 1040px; margin: 0 auto; padding: 72px 36px; }
+.hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center; min-height: 80vh; }
+.eyebrow { margin: 0 0 10px; color: var(--accent); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
+.hero h1 { margin: 0 0 16px; font-size: 44px; line-height: 1.08; letter-spacing: -0.02em; }
+.hero p { color: var(--dim); font-size: 18px; margin: 0 0 24px; }
+.buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+.player { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: #fff; }
+.player video { display: block; width: 100%; aspect-ratio: 16 / 9; background: repeating-linear-gradient(135deg, var(--ph-a) 0 8px, var(--ph-b) 8px 16px); }
+.player .play { position: absolute; inset: 0; display: grid; place-items: center; border: none; background: none; }
+.player .play span { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 999px; background: var(--ink); color: #fff; font-size: 20px; }
+.player .label { position: absolute; left: 12px; top: 10px; font: 11px ui-monospace, monospace; color: var(--ph-ink); }
+.player .progress { height: 4px; background: var(--line); }
+.player .progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.25s linear; }
+.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.feature { padding: 24px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.feature h2 { margin: 0 0 8px; font-size: 18px; }
+.feature p { margin: 0; color: var(--dim); }
+.spacer { min-height: 40vh; display: grid; place-items: center; color: var(--dim); }
+.newsletter { max-width: none; background: var(--ink); color: #fff; }
+.newsletter .inner { max-width: 1040px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; }
+.newsletter h2 { margin: 0 0 6px; font-size: 26px; }
+.newsletter p { margin: 0; color: #b8bccb; }
+.newsletter form { display: flex; gap: 10px; }
+.newsletter input { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #3a3f52; background: #1f2230; color: #fff; }
+.newsletter button { padding: 10px 18px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-weight: 650; }
+footer { display: flex; gap: 28px; flex-wrap: wrap; padding: 36px; max-width: 1040px; margin: 0 auto; color: var(--dim); font-size: 14px; }
+footer .copy { margin-left: auto; }
+@media (max-width: 720px) { .hero, .features, .newsletter .inner { grid-template-columns: 1fr; } .nav nav { display: none; } }

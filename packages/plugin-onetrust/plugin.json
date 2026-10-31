@@ -25,6 +25,28 @@
     "platform": "Google Tag Manager Custom HTML tag"
   },
   "actions": [],
+  "journey": [
+    {
+      "label": "Banner appears, not answered",
+      "fixture": "banner not yet answered"
+    },
+    {
+      "label": "Rejects everything optional",
+      "fixture": "strictly necessary only"
+    },
+    {
+      "label": "Accepts analytics cookies",
+      "fixture": "performance accepted"
+    },
+    {
+      "label": "Accepts all cookies",
+      "fixture": "all categories accepted"
+    },
+    {
+      "label": "Later turns analytics off",
+      "fixture": "consent withdrawn"
+    }
+  ],
   "options": [
     {
       "name": "category",

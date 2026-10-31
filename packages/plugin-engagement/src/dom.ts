@@ -39,6 +39,19 @@ export function linkText(element: Element): string | undefined {
   return label ? label.replace(/\s+/g, ' ').trim().slice(0, 120) : undefined
 }
 
+/** A contact link's text, or nothing when the text gives the address or number away. */
+function contactText(anchor: Element, href: string): string | undefined {
+  const text = linkText(anchor)
+  if (!text) return undefined
+  const address = decodeURIComponent(href.slice(href.indexOf(':') + 1).split('?')[0] ?? '').toLowerCase()
+  const digits = (value: string) => value.replace(/\D/g, '')
+  if (address && text.toLowerCase().includes(address)) return undefined
+  if (text.includes('@')) return undefined
+  const number = digits(address)
+  if (number.length >= 6 && digits(text).includes(number.slice(-6))) return undefined
+  return text
+}
+
 /**
  * Read a clicked anchor. Returns `undefined` for links that say nothing useful (fragment-only,
  * javascript:, empty).
@@ -49,9 +62,10 @@ export function readLink(anchor: HTMLAnchorElement, currentHost: string): LinkFa
 
   const scheme = href.slice(0, href.indexOf(':') + 1).toLowerCase()
 
-  // The address is the personal data, so only its kind is reported.
-  if (scheme === 'mailto:') return { type: 'email', text: linkText(anchor) }
-  if (scheme === 'tel:' || scheme === 'sms:') return { type: 'phone', text: linkText(anchor) }
+  // The address is the personal data, so only its kind is reported — and the visible text too,
+  // unless that text is the address itself, which on most sites it is.
+  if (scheme === 'mailto:') return { type: 'email', text: contactText(anchor, href) }
+  if (scheme === 'tel:' || scheme === 'sms:') return { type: 'phone', text: contactText(anchor, href) }
   if (scheme === 'javascript:' || href.startsWith('#')) return undefined
 
   let parsed: URL

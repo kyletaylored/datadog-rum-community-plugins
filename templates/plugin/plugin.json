@@ -27,6 +27,9 @@
   "actions": [
     "commerce.add_to_cart"
   ],
+  "journey": [
+    { "label": "Describe what the visitor does, in plain words", "fixture": "describe what happened on the site" }
+  ],
   "options": [
     {
       "name": "identifyUsers",

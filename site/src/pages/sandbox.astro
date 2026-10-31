@@ -2,524 +2,874 @@
 import Page from '../layouts/Page.astro'
 import { url } from '../lib/url'
 import plugins from '../data/plugins.json'
+import presets from '../lib/sandbox-scenarios.json'
 
-const order = ['engagement', 'shopify', 'woocommerce', 'onetrust']
+const order = presets.order
 const runnable = order
   .map((name) => plugins.find((plugin) => plugin.name === name))
   .filter((plugin) => plugin !== undefined)
+  .map((plugin) => ({
+    name: plugin.name,
+    title: plugin.title ?? plugin.name,
+    family: plugin.family,
+    demo: presets.plugins[plugin.name as keyof typeof presets.plugins].demo,
+    options: plugin.options ?? [],
+  }))
+const families = [...new Set(runnable.map((plugin) => plugin.family))]
+const first = runnable[0]!
+
+const chevron = 'M5 7.5 10 12.5 15 7.5'
 ---
 
 <Page
   title="Sandbox"
-  description="Watch exactly what a Datadog RUM plugin sends, and what it refuses to send."
-  lede="A shopper clicks through a store. Watch exactly what the plugin sends to Datadog — and what it refuses to send. Runs the real plugin in your browser; no Datadog account needed."
+  description="Use a demo site and watch exactly what a Datadog RUM plugin sends, and what it refuses to send."
+  lede="Use a demo site the way a visitor would, and watch what the plugin sends to Datadog and what it refuses to send. The real plugin runs in your browser; no Datadog account needed."
+  wide
 >
-  <div class="sandbox" data-sandbox>
-    <div class="bar">
-      <label class="pick">
-        <span>Plugin</span>
-        <select id="adapter">
-          {runnable.map((plugin, index) => (
-            <option value={plugin.name} selected={index === 0}>{plugin.title ?? plugin.name}</option>
-          ))}
-        </select>
-      </label>
-      <div class="presets" data-presets></div>
-    </div>
+  <div class="sandbox" data-sandbox data-demos={url('/demos/')}>
 
-    <p class="explain" data-explain></p>
+    <section class="bar" aria-label="Sandbox controls">
+      <div class="cell pick">
+        <p class="step" id="step-plugin"><span class="n" aria-hidden="true">1</span>Pick a plugin</p>
+        <button type="button" class="select plugin-button" data-picker-button aria-haspopup="listbox" aria-expanded="false" aria-labelledby="step-plugin picker-current">
+          <span class="value" id="picker-current" data-picker-current>{first.title}</span>
+          <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d={chevron} /></svg>
+        </button>
+        <p class="demo-line">Demo: <span data-demo-name>{first.demo}</span> <span class="badge" data-family>{first.family}</span></p>
 
-    <div class="panes">
-      <section class="pane">
-        <h2>A shopper on the store</h2>
-        <ol class="step-list" data-steps></ol>
-        <button type="button" class="primary" data-run-all>Run every step</button>
-        <button type="button" class="ghost" data-reset>Reset</button>
+        <div class="panel picker" data-picker hidden>
+          <input
+            type="search"
+            class="search"
+            placeholder="Search plugins, platforms or families"
+            role="combobox"
+            aria-expanded="true"
+            aria-controls="picker-list"
+            aria-autocomplete="list"
+            aria-label="Search plugins"
+            data-picker-search
+          />
+          <div class="scroll" role="listbox" id="picker-list" aria-label="Plugins" data-picker-list>
+            {families.map((family) => (
+              <div role="group" aria-labelledby={`family-${family}`} data-family-group={family}>
+                <p class="group" id={`family-${family}`} role="presentation">{family}</p>
+                {runnable.filter((plugin) => plugin.family === family).map((plugin) => (
+                  <div
+                    class="option"
+                    role="option"
+                    id={`plugin-option-${plugin.name}`}
+                    aria-selected={plugin.name === first.name ? 'true' : 'false'}
+                    data-plugin-option={plugin.name}
+                    data-search-text={`${plugin.title} ${plugin.family} ${plugin.demo}`.toLowerCase()}
+                  >
+                    <span class="text"><span class="title">{plugin.title}</span><span class="sub">{plugin.demo}</span></span>
+                    <span class="check" aria-hidden="true">✓</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+            <p class="none" data-picker-empty hidden>No plugin matches.</p>
+          </div>
+          <div class="foot">
+            <span class="muted">{runnable.length} plugins</span>
+            <a href={url('/docs/contributing/')}>Build one for your platform →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="cell play">
+        <p class="step" id="step-scenario"><span class="n" aria-hidden="true">2</span>Click around the demo, or play a scenario</p>
+        <div class="row">
+          <div class="scenario-wrap">
+            <button type="button" class="select scenario-button" data-scenario-button aria-haspopup="listbox" aria-expanded="false" aria-labelledby="step-scenario scenario-current">
+              <span class="value placeholder" id="scenario-current" data-scenario-current>Choose a scenario</span>
+              <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d={chevron} /></svg>
+            </button>
+            <div class="panel scenarios" role="listbox" tabindex="-1" aria-label="Scenarios" data-scenario-list hidden></div>
+          </div>
+          <button type="button" class="play-button" data-play aria-disabled="true">
+            <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M6 4.2v11.6L15.5 10z" /></svg>
+            <span data-play-label>Play</span>
+          </button>
+        </div>
+        <p class="describe" data-describe></p>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <section class="frame" aria-label="Demo site">
+        <div class="chrome">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <button type="button" class="reload" title="Reload the demo" aria-label="Reload the demo" data-reload>↻</button>
+          <span class="address" data-address></span>
+          <a class="newtab" data-newtab target="_blank" rel="noopener">Open in new tab ↗</a>
+        </div>
+        <div class="body">
+          <iframe title="Demo site" data-frame></iframe>
+        </div>
       </section>
 
-      <section class="pane">
-        <h2>What Datadog receives</h2>
+      <section class="feed" aria-labelledby="feed-title">
+        <div class="feed-head">
+          <h2 id="feed-title">Custom action events</h2>
+          <span class="pill sent" data-sent-count>0 sent</span>
+          <span class="pill refused" data-refused-count>0 refused</span>
+          <button type="button" class="clear" data-clear>Clear</button>
+        </div>
         <div class="log" data-log aria-live="polite"></div>
       </section>
     </div>
 
-    <details class="settings">
-      <summary>Plugin options</summary>
-      <div class="opts">
-        <label><input type="checkbox" data-option="consentIgnore" /> Visitor has accepted the cookie banner</label>
-        <label><input type="checkbox" data-option="includeItems" /> Send line items <code>includeItems</code></label>
-        <label><input type="checkbox" data-option="includeEmail" /> Send email address <code>includeEmail</code></label>
-        <label><input type="checkbox" data-option="includeName" /> Send customer name <code>includeName</code></label>
-        <label><input type="checkbox" data-option="identifyUsers" checked /> Identify the customer <code>identifyUsers</code></label>
-        <label class="inline" data-shopify-only>
-          Shopify consent API
-          <select id="privacy">
-            <option value="absent" selected>Not present (pixel sandbox)</option>
-            <option value="allowed">Allows analytics</option>
-            <option value="denied">Blocks analytics</option>
-          </select>
-        </label>
-        <label class="inline" data-onetrust-only hidden>
-          Required category
-          <input id="category" type="text" value="C0002" spellcheck="false" size="8" />
-        </label>
-        <label class="inline" data-commerce-prefix>
-          Action prefix
-          <input id="prefix" type="text" value="commerce." spellcheck="false" size="12" />
-        </label>
-      </div>
-    </details>
+    <div class="lower">
+      <section class="options" aria-labelledby="step-options">
+        <div class="options-head">
+          <p class="step" id="step-options"><span class="n" aria-hidden="true">3</span>Change an option</p>
+          <span class="muted small">Changing one reloads the demo with a fresh session.</span>
+        </div>
+        <div class="groups" data-options></div>
+      </section>
+
+      <section class="init" aria-labelledby="init-title">
+        <h2 id="init-title">The init() for this setup</h2>
+        <pre><code data-init></code></pre>
+      </section>
+    </div>
+
+    <p class="footnote">
+      Nothing leaves your browser. The sandbox never starts RUM and never asks for an application ID or
+      client token; it records the calls the plugin would make.
+      <a href={url('/docs/privacy/')}>How the rules work →</a>
+    </p>
   </div>
 
-  <p class="small muted">
-    Nothing leaves your browser. The sandbox never starts RUM and never asks for an application ID or
-    client token — it records the calls the plugin would make. That is also the only way to show a
-    <em>refusal</em>, since a blocked event produces nothing at all.
-    <a href={url('/docs/privacy/')}>How the rules work →</a>
-  </p>
+  <script type="application/json" data-sandbox-plugins set:html={JSON.stringify(runnable)} />
 </Page>
 
 <style is:global>
-  /* Global on purpose: the rows and log entries are built in the client script, so Astro's
-     scoped-style hash never reaches them. Every selector is namespaced under .sandbox. */
-  .sandbox { margin: 1.5rem 0 1rem; }
+  /* Global on purpose: the feed entries, options and scenario rows are built in the client
+     script, so Astro's scoped-style hash never reaches them. Every selector is under .sandbox. */
+  /* Width comes from Page's `wide` container (86rem); the header and lede from Page itself. */
+  .sandbox .muted { color: var(--muted); }
+  .sandbox .small { font-size: 0.8rem; }
 
+  .sandbox .step { display: flex; gap: 0.5rem; align-items: center; margin: 0; font-size: 0.88rem; font-weight: 650; }
+  .sandbox .step .n {
+    width: 1.35rem; height: 1.35rem; flex: none; border-radius: 999px; background: var(--gradient);
+    color: #fff; font-size: 0.72rem; font-weight: 720; display: grid; place-items: center;
+  }
+
+  /* ---- Control bar ---------------------------------------------------------------------- */
   .sandbox .bar {
-    display: flex;
-    gap: 0.75rem;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    margin-bottom: 0.9rem;
+    display: grid; grid-template-columns: auto minmax(0, 1fr);
+    border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); margin-bottom: 1rem;
   }
-  .sandbox .pick { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
-  .sandbox .pick select {
-    font: inherit;
-    font-size: 1rem;
-    text-transform: none;
-    letter-spacing: normal;
-    color: var(--text);
-    padding: 0.45rem 0.6rem;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
-    background: var(--raised);
-  }
-  .sandbox .presets { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-left: auto; }
-  .sandbox .presets button {
-    font: inherit;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 0.45rem 0.75rem;
-    border: 1px solid var(--accent);
-    border-radius: 999px;
-    background: var(--accent-soft);
-    color: var(--accent);
-    cursor: pointer;
-  }
-  .sandbox .presets button:hover { background: var(--accent); color: var(--accent-ink); }
+  .sandbox .cell { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.6rem; }
+  .sandbox .cell.pick { border-right: 1px solid var(--border); position: relative; }
+  .sandbox .cell.play { min-width: 0; }
 
-  .sandbox .explain {
-    margin: 0 0 1rem;
-    padding: 0.6rem 0.9rem;
-    border-left: 3px solid var(--accent);
-    background: var(--surface);
-    border-radius: 0 var(--radius) var(--radius) 0;
-    font-size: 0.925rem;
+  .sandbox .select {
+    display: flex; align-items: center; gap: 0.5rem; text-align: left; font: inherit; color: var(--text);
+    padding: 0.55rem 0.75rem; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--raised); cursor: pointer;
   }
-  .sandbox .explain:empty { display: none; }
+  .sandbox .select[aria-expanded='true'], .sandbox .select:focus-visible { border-color: var(--accent); outline: none; }
+  .sandbox .select svg { flex: none; fill: none; stroke: var(--text-dim); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .sandbox .plugin-button { width: 18rem; max-width: 100%; }
+  .sandbox .plugin-button .value { flex: 1; font-size: 1rem; font-weight: 650; }
+  .sandbox .demo-line { margin: 0; font-size: 0.8rem; color: var(--muted); display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
 
-  .sandbox .panes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 1rem; align-items: start; }
-  @media (max-width: 52rem) { .sandbox .panes { grid-template-columns: 1fr; } }
+  .sandbox .panel {
+    position: absolute; top: 100%; left: 0; margin-top: 0.35rem; z-index: 20;
+    background: var(--raised); border: 1px solid var(--border-strong); border-radius: 12px;
+    box-shadow: 0 14px 40px -12px rgb(0 0 0 / 0.7);
+  }
+  .sandbox .panel[hidden] { display: none; }
+  .sandbox .picker { width: 26rem; max-width: calc(100vw - 3rem); }
+  .sandbox .picker .search {
+    display: block; width: calc(100% - 1.3rem); margin: 0.65rem; font: inherit; font-size: 0.9rem; color: var(--text);
+    padding: 0.45rem 0.65rem; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--code-bg);
+  }
+  .sandbox .picker .search:focus { outline: none; border-color: var(--accent); }
+  .sandbox .picker .scroll { max-height: 22rem; overflow-y: auto; }
+  .sandbox .picker .group { margin: 0; padding: 0.55rem 0.85rem 0.25rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--muted); }
+  .sandbox .option { display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.85rem; cursor: pointer; }
+  .sandbox .option .text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .sandbox .option .title { font-size: 0.9rem; font-weight: 620; }
+  .sandbox .option .sub { font-size: 0.76rem; color: var(--muted); }
+  .sandbox .option .check { color: var(--accent); visibility: hidden; }
+  .sandbox .option[aria-selected='true'] .check { visibility: visible; }
+  .sandbox .option[aria-selected='true'], .sandbox .option:hover, .sandbox .option[data-active] { background: var(--accent-soft); }
+  .sandbox .option[data-active] { box-shadow: inset 2px 0 0 var(--accent); }
+  .sandbox .picker .none { margin: 0; padding: 0.6rem 0.85rem; font-size: 0.85rem; color: var(--muted); }
+  .sandbox .picker .foot { display: flex; justify-content: space-between; gap: 1rem; padding: 0.55rem 0.85rem; border-top: 1px solid var(--border); font-size: 0.8rem; }
 
-  .sandbox .pane {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--raised);
-    box-shadow: var(--shadow);
-    padding: 1rem 1.1rem;
-  }
-  .sandbox .pane h2 {
-    margin: 0 0 0.75rem;
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-  }
-  .sandbox .pane .primary { margin-top: 0.75rem; }
-  .sandbox .pane .ghost {
-    font: inherit;
-    font-size: 0.875rem;
-    margin-left: 0.4rem;
-    padding: 0.5rem 0.7rem;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-  }
-  .sandbox .pane .ghost:hover { color: var(--text); border-color: var(--accent); }
+  .sandbox .row { display: flex; gap: 0.5rem; align-items: stretch; }
+  .sandbox .scenario-wrap { position: relative; flex: 1; max-width: 26rem; min-width: 0; }
+  .sandbox .scenario-button { width: 100%; height: 100%; }
+  .sandbox .scenario-button .value { flex: 1; font-size: 0.95rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sandbox .scenario-button .placeholder { color: var(--muted); }
+  .sandbox .scenarios { width: 100%; min-width: 26rem; padding: 0.35rem 0; }
+  .sandbox .scenarios:focus { outline: none; }
+  .sandbox .scenarios .option { padding: 0.55rem 0.85rem; align-items: flex-start; }
+  .sandbox .scenarios .sub { font-size: 0.8rem; line-height: 1.4; }
 
-  .sandbox .step-list { list-style: none; padding: 0; margin: 0; }
-  .sandbox .step-list li {
-    display: flex;
-    gap: 0.6rem;
-    align-items: center;
-    padding: 0.4rem 0;
-    border-bottom: 1px solid var(--border);
+  .sandbox .play-button {
+    display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1.1rem 0.5rem 0.8rem; border: none; border-radius: 10px;
+    font: inherit; font-size: 0.92rem; font-weight: 700; background: var(--ok); color: var(--ok-soft); cursor: pointer;
   }
-  .sandbox .step-list li:last-child { border-bottom: none; }
-  .sandbox .step-list .n {
-    width: 1.5rem; height: 1.5rem; flex: none;
-    border-radius: 999px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    display: grid; place-items: center;
-    font-size: 0.75rem; font-weight: 700; color: var(--muted);
-  }
-  .sandbox .step-list li[data-done] .n { background: var(--accent); border-color: transparent; color: var(--accent-ink); }
-  .sandbox .step-list .what { flex: 1; font-size: 0.9rem; }
-  .sandbox .step-list button {
-    font: inherit;
-    font-size: 0.8rem;
-    padding: 0.25rem 0.6rem;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
-    background: var(--raised);
-    color: var(--text);
-    cursor: pointer;
-  }
-  .sandbox .step-list button:hover { border-color: var(--accent); color: var(--accent); }
+  .sandbox .play-button svg { fill: currentColor; }
+  .sandbox .play-button[aria-disabled='true'] { background: var(--raised); color: var(--muted); cursor: not-allowed; }
+  .sandbox .describe { margin: 0; font-size: 0.875rem; color: var(--text-dim); text-wrap: pretty; }
 
-  .sandbox .log { min-height: 16rem; max-height: 32rem; overflow-y: auto; font-size: 0.8125rem; }
-  .sandbox .log .empty { color: var(--muted); font-size: 0.875rem; }
-  .sandbox .entry { padding: 0.45rem 0; border-bottom: 1px solid var(--border); }
-  .sandbox .entry:last-child { border-bottom: none; }
+  /* ---- Workspace -------------------------------------------------------------------------- */
+  .sandbox .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 30rem; gap: 1rem; height: 680px; }
+  .sandbox .frame { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+  .sandbox .chrome { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.8rem; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .sandbox .dots { display: flex; gap: 6px; }
+  .sandbox .dots i { width: 10px; height: 10px; border-radius: 999px; background: var(--border-strong); }
+  .sandbox .reload { font: inherit; font-size: 1rem; line-height: 1; padding: 0.1rem 0.25rem; border: none; background: none; color: var(--muted); cursor: pointer; }
+  .sandbox .reload:hover { color: var(--text); }
+  .sandbox .address {
+    flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace); font-size: 0.76rem; color: var(--text-dim);
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.3rem 0.65rem;
+  }
+  .sandbox .newtab { font-size: 0.78rem; color: var(--accent); white-space: nowrap; text-decoration: none; }
+  .sandbox .frame .body { flex: 1; min-height: 0; background: #fff; }
+  .sandbox .frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+
+  .sandbox .feed { border: 1px solid var(--border); border-radius: 12px; background: var(--raised); display: flex; flex-direction: column; min-height: 0; }
+  .sandbox .feed-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+  .sandbox .feed-head h2, .sandbox .init h2 {
+    margin: 0 auto 0 0; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted);
+  }
+  .sandbox .pill { font-size: 0.78rem; font-weight: 650; padding: 0.1rem 0.5rem; border-radius: 999px; }
+  .sandbox .pill.sent { color: var(--ok); background: var(--ok-soft); }
+  .sandbox .pill.refused { color: var(--stop); background: var(--stop-soft); }
+  .sandbox .clear { font: inherit; font-size: 0.78rem; padding: 0.2rem 0.55rem; border: 1px solid var(--border-strong); border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
+  .sandbox .clear:hover { color: var(--text); border-color: var(--accent); }
+
+  .sandbox .log { flex: 1; overflow-y: auto; padding: 0.4rem 1rem 1rem; font-size: 0.8125rem; }
+  .sandbox .log .empty { color: var(--muted); margin: 0.6rem 0; }
+  .sandbox .heading {
+    margin: 0.7rem 0 0; padding: 0.4rem 0 0.2rem; border-top: 1px dashed var(--border);
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted);
+  }
+  .sandbox .heading:first-child { margin-top: 0; border-top: none; }
+  .sandbox .entry { padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+  .sandbox .entry .head { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: baseline; }
   .sandbox .entry .api { font-weight: 700; }
   .sandbox .entry.sent .api { color: var(--ok); }
-  .sandbox .entry.stopped { background: var(--stop-soft); border-radius: 6px; padding: 0.45rem 0.6rem; margin: 0.25rem 0; }
-  .sandbox .entry.stopped .api { color: var(--stop); }
   .sandbox .entry.meta .api { color: var(--muted); font-weight: 600; }
-  .sandbox .entry pre { margin: 0.3rem 0 0; padding: 0.45rem 0.6rem; font-size: 0.75rem; background: var(--code-bg); }
-  .sandbox .heading {
-    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;
-    color: var(--muted); font-weight: 700;
-    margin: 0.9rem 0 0.2rem; padding-top: 0.4rem; border-top: 1px dashed var(--border);
+  .sandbox .entry.stopped { padding: 0.45rem 0.6rem; margin: 0.25rem 0; background: var(--stop-soft); border-radius: 6px; border-bottom: none; }
+  .sandbox .entry.stopped .api { color: var(--stop); }
+  .sandbox .entry .head code { font-size: 0.76rem; padding: 0.05rem 0.35rem; border-radius: 6px; background: var(--code-bg); border: 1px solid var(--border); }
+  .sandbox .entry .reason { font-size: 0.78rem; color: var(--text-dim); }
+  .sandbox .entry .source { margin-top: 0.15rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.68rem; color: var(--muted); overflow-wrap: anywhere; }
+  .sandbox .entry pre {
+    margin: 0.35rem 0 0; padding: 0.5rem 0.65rem; font-size: 0.72rem; line-height: 1.55; background: var(--code-bg);
+    border: 1px solid var(--border); border-radius: 8px; max-height: 15rem; overflow: auto; white-space: pre;
   }
-  .sandbox .heading:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+  .sandbox .entry .stripped { margin-top: 0.3rem; font-size: 0.75rem; color: var(--stop); }
 
-  .sandbox .settings { margin-top: 1rem; }
-  .sandbox .settings summary {
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--muted);
-    padding: 0.4rem 0;
+  /* ---- Options and init() ----------------------------------------------------------------- */
+  .sandbox .lower { display: grid; grid-template-columns: minmax(0, 1fr) 30rem; gap: 1rem; margin-top: 1rem; }
+  .sandbox .options { border: 1px solid var(--border); border-radius: 12px; background: var(--raised); padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .sandbox .options-head { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+  .sandbox .groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .sandbox .group-title { margin: 0 0 0.5rem; font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; }
+  .sandbox .control { margin-bottom: 0.6rem; }
+  .sandbox .toggle { display: flex; gap: 0.6rem; align-items: flex-start; width: 100%; padding: 0; border: none; background: none; font: inherit; color: var(--text); text-align: left; cursor: pointer; }
+  .sandbox .toggle .track { position: relative; flex: none; width: 30px; height: 18px; margin-top: 0.1rem; border-radius: 999px; background: var(--border-strong); transition: background 0.15s; }
+  .sandbox .toggle .knob { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 999px; background: #fff; transition: left 0.15s; }
+  .sandbox .toggle[aria-checked='true'] .track { background: var(--brand-1); }
+  .sandbox .toggle[aria-checked='true'] .knob { left: 14px; }
+  .sandbox .toggle:focus-visible .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sandbox .label { display: flex; flex-direction: column; font-size: 0.875rem; }
+  .sandbox .code-name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.72rem; color: var(--muted); }
+  .sandbox .choices { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.4rem; }
+  .sandbox .choices button {
+    font: inherit; font-size: 0.78rem; font-weight: 600; padding: 0.25rem 0.6rem; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--border-strong); background: transparent; color: var(--text-dim);
   }
-  .sandbox .settings summary:hover { color: var(--text); }
-  .sandbox .opts {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-    gap: 0.5rem 1.25rem;
-    padding: 0.75rem 0 0;
+  .sandbox .choices button[aria-checked='true'] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .sandbox .text-option { display: flex; gap: 0.6rem; align-items: center; font-size: 0.875rem; }
+  .sandbox .text-option input {
+    width: 8rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8rem; color: var(--text);
+    padding: 0.3rem 0.5rem; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--code-bg);
   }
-  .sandbox .opts label { display: flex; gap: 0.45rem; align-items: center; font-size: 0.875rem; }
-  .sandbox .opts label.inline { gap: 0.5rem; }
-  .sandbox .opts input[type='text'],
-  .sandbox .opts select {
-    font: inherit; font-size: 0.85rem;
-    padding: 0.25rem 0.45rem;
-    border: 1px solid var(--border-strong);
-    border-radius: 6px;
-    background: var(--raised);
-    color: var(--text);
+
+  .sandbox .init { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; min-width: 0; }
+  .sandbox .init h2 { margin-bottom: 0.6rem; }
+  .sandbox .init .code-block { margin: 0; }
+  .sandbox .init .code-block .copy { top: -2.1rem; right: 0; opacity: 1; }
+  .sandbox .init pre { margin: 0; padding: 0; border: none; background: none; font-size: 0.78rem; line-height: 1.6; white-space: pre-wrap; }
+
+  .sandbox .footnote { margin: 1.25rem 0 0; font-size: 0.875rem; color: var(--muted); }
+
+  @media (max-width: 64rem) {
+    .sandbox .bar { grid-template-columns: 1fr; }
+    .sandbox .cell.pick { border-right: none; border-bottom: 1px solid var(--border); }
+    .sandbox .workspace { grid-template-columns: 1fr; height: auto; }
+    .sandbox .frame { height: 560px; }
+    .sandbox .feed { max-height: 28rem; min-height: 16rem; }
+    .sandbox .lower { grid-template-columns: 1fr; }
+    .sandbox .groups { grid-template-columns: 1fr; }
+    .sandbox .scenarios { min-width: 0; }
   }
 </style>
 
 <script>
-  import { clearDedupe, startSession, type SandboxAdapter, type SandboxCall, type SandboxFixture } from '../lib/sandbox'
-  import { labelFor } from '../lib/sandboxLabels'
-  import plugins from '../data/plugins.json'
+  import {
+    DEFAULT_STATE,
+    MESSAGE,
+    initSnippet,
+    platformState,
+    pluginOptions,
+    readMessage,
+    type SandboxCall,
+    type SandboxState,
+  } from '../lib/sandbox'
+  import presets from '../lib/sandbox-scenarios.json'
+
+  type Scenario = { id: string; label: string; note: string; state: Partial<SandboxState> }
+  type PluginInfo = { name: string; title: string; family: string; demo: string; options: { name: string; default: unknown }[] }
 
   const root = document.querySelector<HTMLElement>('[data-sandbox]')
   if (root) {
-    const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!
-    const adapterSelect = $<HTMLSelectElement>('#adapter')
-    const prefixInput = $<HTMLInputElement>('#prefix')
-    const privacySelect = $<HTMLSelectElement>('#privacy')
-    const categoryInput = $<HTMLInputElement>('#category')
-    const stepList = $<HTMLOListElement>('[data-steps]')
+    const $ = <T extends HTMLElement>(selector: string) => root.querySelector<T>(selector)!
+    const runnable = JSON.parse(document.querySelector('[data-sandbox-plugins]')!.textContent ?? '[]') as PluginInfo[]
+    const byName = new Map(runnable.map((plugin) => [plugin.name, plugin]))
+    const presetsFor = (name: string) => presets.plugins[name as keyof typeof presets.plugins]
+    const scenariosFor = (name: string) => (presetsFor(name)?.scenarios ?? []) as Scenario[]
+
+    const frame = $<HTMLIFrameElement>('[data-frame]')
     const log = $<HTMLElement>('[data-log]')
-    const explain = $<HTMLElement>('[data-explain]')
-    const presetBar = $<HTMLElement>('[data-presets]')
-    const optionInputs = [...root.querySelectorAll<HTMLInputElement>('[data-option]')]
-    const option = (name: string) => optionInputs.find((input) => input.dataset.option === name)!
+    const demosBase = root.dataset.demos ?? '/demos/'
 
-    type PluginData = { name: string; fixtures: SandboxFixture[] }
-    const byName = new Map((plugins as PluginData[]).map((plugin) => [plugin.name, plugin]))
+    // ---- State ------------------------------------------------------------------------------
+    let plugin = runnable[0]!.name
+    let state: SandboxState = { ...DEFAULT_STATE }
+    let selectedScenario: string | null = null
+    let lastPlayed: string | null = null
+    let counts = { sent: 0, refused: 0 }
+    let lastPage: string | null = null
+    /** Set when the demo must be configured on its next `ready`: a new iframe, or a Play. */
+    let needsConfigure = true
+    /** Calls from a page that predates the current session are ignored. */
+    let accepting = false
+    let pendingPlay: string | null = null
 
-    let session: ReturnType<typeof startSession> | null = null
-    let sentThisStep = 0
-
-    /**
-     * Each preset configures the plugin, runs the whole flow, and says in one line what to look
-     * for. Telling someone to go and set four checkboxes is how the previous version lost people.
-     */
-    const PRESETS: Record<string, { label: string; apply: () => void; note: string }[]> = {
-      engagement: [
-        {
-          label: 'A visit, end to end',
-          // The kit has no consent source of its own — it expects to be paired with a consent
-          // plugin — so these presets assume the banner was accepted.
-          apply: () => { option('consentIgnore').checked = true },
-          note: 'Every step is a real interaction on a page. Watch the contact clicks: an email and a phone link report only that a click happened, never the address.',
-        },
-        {
-          label: 'Links carrying secrets',
-          apply: () => { option('consentIgnore').checked = true },
-          note: 'Two of these links carry an access token and a signed URL in their query strings. Only the host and path arrive — the query is dropped, not truncated.',
-        },
-        {
-          label: 'A form with a password in it',
-          apply: () => { option('consentIgnore').checked = true },
-          note: 'The newsletter form has a filled email and password field. Its identity and destination host arrive; no field value does, on start or on submit.',
-        },
-        {
-          label: 'Cookie banner unanswered',
-          apply: () => {},
-          note: 'Pair it with a consent plugin and nothing is sent until the visitor accepts — every interaction is refused, with the reason.',
-        },
-      ],
-      shopify: [
-        {
-          label: 'Happy path',
-          apply: () => { privacySelect.value = 'absent'; option('includeItems').checked = true },
-          note: 'The normal case: every step maps to one Datadog action. The order arrives once, with its value, tax, shipping and coupon.',
-        },
-        {
-          label: 'Shopper declines cookies',
-          apply: () => { privacySelect.value = 'denied' },
-          note: 'Shopify’s consent API says no, so the plugin sends nothing at all — not even the order. Every step is refused, with the reason.',
-        },
-        {
-          label: 'Thank-you page reloaded',
-          apply: () => { privacySelect.value = 'absent' },
-          note: 'The last two steps are the same order: a reload. The second is refused, so revenue is not counted twice.',
-        },
-        {
-          label: 'Card data in the payload',
-          apply: () => { privacySelect.value = 'absent' },
-          note: 'The payment step’s recorded payload contains a card number and CVV. Look at what arrives: only the payment method name.',
-        },
-      ],
-      woocommerce: [
-        {
-          label: 'Happy path',
-          apply: () => { option('consentIgnore').checked = true; option('includeItems').checked = true },
-          note: 'Cart events come from WooCommerce’s own DOM events; the order comes from the thank-you page. Note the card number and billing address in the payload never arrive.',
-        },
-        {
-          label: 'Cookie banner unanswered',
-          apply: () => { option('consentIgnore').checked = false },
-          note: 'Nothing is sent, not even the customer ID, and RUM itself is held at not-granted. Pending events are dropped rather than queued, so accepting later does not backfill them.',
-        },
-        {
-          label: 'Send the email address',
-          apply: () => { option('consentIgnore').checked = true; option('includeEmail').checked = true },
-          note: 'Opted in, the email appears on setUser — and nowhere else. It is never attached to an action.',
-        },
-      ],
-      onetrust: [
-        {
-          label: 'Walk the banner',
-          apply: () => { categoryInput.value = 'C0002' },
-          note: 'RUM is held until the analytics category is accepted, then released. Turning it back off withdraws consent.',
-        },
-        {
-          label: 'Require a stricter category',
-          apply: () => { categoryInput.value = 'C0004' },
-          note: 'Now only "accepts all cookies" releases RUM. Accepting analytics alone is not enough.',
-        },
-      ],
+    // ---- Deep links ---------------------------------------------------------------------------
+    const params = new URLSearchParams(location.search)
+    if (params.get('plugin') && byName.has(params.get('plugin')!)) plugin = params.get('plugin')!
+    if (params.get('scenario') && scenariosFor(plugin).some((s) => s.id === params.get('scenario'))) {
+      selectedScenario = params.get('scenario')
+    }
+    function syncUrl() {
+      const next = new URLSearchParams({ plugin })
+      if (selectedScenario) next.set('scenario', selectedScenario)
+      history.replaceState(null, '', `${location.pathname}?${next}`)
     }
 
-    const currentOptions = () => ({
-      includeItems: option('includeItems').checked,
-      includeEmail: option('includeEmail').checked,
-      includeName: option('includeName').checked,
-      identifyUsers: option('identifyUsers').checked,
-      ...(option('consentIgnore').checked ? { consent: 'ignore' as const } : {}),
-      actionPrefix: prefixInput.value || 'commerce.',
-      shopifyPrivacy: privacySelect.value as 'absent' | 'allowed' | 'denied',
-      category: categoryInput.value || 'C0002',
-    })
+    // ---- Feed -------------------------------------------------------------------------------
+    // Green means data reached Datadog. Session setup is listed but muted: colouring it like an
+    // order is what makes "nothing was sent" look like "seven things were sent".
+    const SENT = new Set(['addAction', 'setUser', 'setAccount'])
 
-    function heading(text: string) {
-      const el = document.createElement('p')
-      el.className = 'heading'
-      el.textContent = text
-      log.append(el)
+    function paintCounts() {
+      $('[data-sent-count]').textContent = `${counts.sent} sent`
+      $('[data-refused-count]').textContent = `${counts.refused} refused`
+    }
+
+    function clearFeed() {
+      counts = { sent: 0, refused: 0 }
+      lastPage = null
+      log.replaceChildren()
+      const empty = document.createElement('p')
+      empty.className = 'empty'
+      empty.textContent = 'Use the demo site to see what the plugin sends.'
+      log.append(empty)
+      paintCounts()
+    }
+
+    function append(element: HTMLElement) {
+      log.querySelector('.empty')?.remove()
+      log.append(element)
       log.scrollTop = log.scrollHeight
     }
 
-    // Green means business data actually reached Datadog. Session setup — context properties, the
-    // consent state — is listed but muted: it is not an order, and colouring it the same as one is
-    // what makes "nothing was sent" look like "seven things were sent".
-    const DATA_CALLS = new Set(['addAction', 'setUser', 'setAccount'])
+    function heading(page: string) {
+      if (page === lastPage) return
+      lastPage = page
+      const element = document.createElement('p')
+      element.className = 'heading'
+      element.textContent = page
+      append(element)
+    }
+
+    function json(value: unknown) {
+      const pre = document.createElement('pre')
+      pre.textContent = JSON.stringify(value, null, 2)
+      return pre
+    }
+
+    /** Consecutive context properties are one moment, so they are one entry with one JSON. */
+    let contextGroup: { entry: HTMLElement; values: Record<string, unknown>; count: number } | null = null
+
+    // The debug channel is how refusals arrive, but most of it repeats on every page load. Keep
+    // what says something about this page (consent, opting out) and drop the boilerplate.
+    const QUIET_DEBUG = /^(footprint|listening for|subscribed to|engagement tracking active)/
 
     function render(call: SandboxCall) {
-      const entry = document.createElement('div')
-      const kind = call.blocked ? 'stopped' : DATA_CALLS.has(call.api) ? 'sent' : 'meta'
-      entry.className = `entry ${kind}`
+      if (call.api === 'debug' && QUIET_DEBUG.test(call.label ?? '')) return
+      if (call.api === 'setGlobalContextProperty' && call.label) {
+        if (contextGroup && log.lastElementChild === contextGroup.entry) {
+          contextGroup.values[call.label] = call.detail
+          contextGroup.count += 1
+          contextGroup.entry.querySelector('code')!.textContent = `×${contextGroup.count}`
+          contextGroup.entry.querySelector('pre')!.textContent = JSON.stringify(contextGroup.values, null, 2)
+          return
+        }
+      }
 
+      const consentHeld = call.api === 'setTrackingConsent' && call.label !== 'granted'
+      const kind = call.blocked || consentHeld ? 'stopped' : SENT.has(call.api) || call.api === 'setTrackingConsent' ? 'sent' : 'meta'
+      if (kind === 'sent') counts.sent += 1
+      if (kind === 'stopped') counts.refused += 1
+
+      const entry = document.createElement('div')
+      entry.className = `entry ${kind}`
       const head = document.createElement('div')
+      head.className = 'head'
       const api = document.createElement('span')
       api.className = 'api'
-      api.textContent = call.blocked ? `✕ not sent` : call.api
+      api.textContent = call.blocked ? '✕ not sent' : consentHeld ? '✕ RUM held' : call.api
       head.append(api)
 
-      if (call.label) {
-        const label = document.createElement('code')
-        label.textContent = ` ${call.label}`
-        head.append(label)
+      const label = call.api === 'setGlobalContextProperty'
+        ? '×1'
+        : call.api === 'setTrackingConsent'
+          ? `setTrackingConsent('${call.label}')`
+          : call.label
+      if (label) {
+        const code = document.createElement('code')
+        code.textContent = label
+        head.append(code)
       }
-      if (call.blocked) {
-        const reason = document.createElement('span')
-        reason.className = 'muted small'
-        reason.textContent = ` — ${call.blocked}`
-        head.append(reason)
+      const reason = call.blocked
+      if (reason) {
+        const text = document.createElement('span')
+        text.className = 'reason'
+        text.textContent = `— ${reason}`
+        head.append(text)
       }
       entry.append(head)
 
-      const detail = call.detail as Record<string, unknown> | undefined
-      if (detail !== undefined && Object.keys(detail ?? {}).length > 0) {
-        const pre = document.createElement('pre')
-        pre.textContent = JSON.stringify(detail, null, 2)
-        entry.append(pre)
+      if (call.source) {
+        const source = document.createElement('div')
+        source.className = 'source'
+        source.textContent = `from ${call.source}`
+        entry.append(source)
       }
 
-      log.append(entry)
-      log.scrollTop = log.scrollHeight
-    }
-
-    function emptyLog() {
-      log.replaceChildren()
-      const p = document.createElement('p')
-      p.className = 'empty'
-      p.textContent = 'Run a step to see what the plugin sends.'
-      log.append(p)
-    }
-
-    function reset() {
-      emptyLog()
-      clearDedupe()
-      for (const li of stepList.querySelectorAll('li')) li.removeAttribute('data-done')
-      session?.dispose()
-      session = startSession(adapterSelect.value as SandboxAdapter, currentOptions(), (call) => {
-        if (log.querySelector('.empty')) log.replaceChildren()
-        sentThisStep += 1
-        render(call)
-      })
-    }
-
-    function fire(fixture: SandboxFixture, label: string, li?: HTMLElement) {
-      if (log.querySelector('.empty')) log.replaceChildren()
-      sentThisStep = 0
-      heading(label)
-      session?.emit(fixture)
-      if (sentThisStep === 0) render({ api: '', blocked: 'the plugin sent nothing for this step' })
-      li?.setAttribute('data-done', '')
-    }
-
-    function fixturesFor(adapter: string) {
-      const list = byName.get(adapter)?.fixtures ?? []
-      const seen = new Set<string>()
-      return list.map((fixture) => {
-        const before = seen.has(fixture.event)
-        seen.add(fixture.event)
-        return { fixture, label: labelFor(fixture.name, fixture.event, before) }
-      })
-    }
-
-    function renderSteps() {
-      stepList.replaceChildren()
-      fixturesFor(adapterSelect.value).forEach((step, index) => {
-        const li = document.createElement('li')
-
-        const n = document.createElement('span')
-        n.className = 'n'
-        n.textContent = String(index + 1)
-
-        const what = document.createElement('span')
-        what.className = 'what'
-        what.textContent = step.label
-        what.title = `${step.fixture.name} · ${step.fixture.event}`
-
-        const run = document.createElement('button')
-        run.type = 'button'
-        run.textContent = 'Run'
-        run.addEventListener('click', () => fire(step.fixture, step.label, li))
-
-        li.append(n, what, run)
-        stepList.append(li)
-      })
-    }
-
-    function runAll() {
-      reset()
-      for (const step of fixturesFor(adapterSelect.value)) {
-        const li = [...stepList.querySelectorAll('li')].find((el) => el.querySelector('.what')?.textContent === step.label)
-        fire(step.fixture, step.label, li)
+      if (call.api === 'setGlobalContextProperty' && call.label) {
+        const values = { [call.label]: call.detail }
+        entry.append(json(values))
+        contextGroup = { entry, values, count: 1 }
+      } else if (call.api !== 'debug' && call.detail !== undefined && !call.blocked) {
+        entry.append(json(call.detail))
       }
-    }
 
-    function renderPresets() {
-      presetBar.replaceChildren()
-      for (const preset of PRESETS[adapterSelect.value] ?? []) {
-        const button = document.createElement('button')
-        button.type = 'button'
-        button.textContent = preset.label
-        button.addEventListener('click', () => {
-          // Start from the defaults so presets don't inherit each other's state.
-          for (const input of optionInputs) input.checked = input.dataset.option === 'identifyUsers'
-          privacySelect.value = 'absent'
-          prefixInput.value = 'commerce.'
-          preset.apply()
-          explain.textContent = preset.note
-          runAll()
-        })
-        presetBar.append(button)
+      if (call.stripped) {
+        const stripped = document.createElement('div')
+        stripped.className = 'stripped'
+        stripped.textContent = `✕ ${call.stripped}`
+        entry.append(stripped)
       }
+
+      append(entry)
+      paintCounts()
     }
 
-    function syncControls() {
-      const adapter = adapterSelect.value
-      $<HTMLElement>('[data-shopify-only]').hidden = adapter !== 'shopify'
-      $<HTMLElement>('[data-onetrust-only]').hidden = adapter !== 'onetrust'
-      // A consent plugin emits no actions of its own, so the commerce options mean nothing for it.
-      const commerce = adapter !== 'onetrust'
-      for (const input of optionInputs) input.closest('label')!.hidden = !commerce
-      $<HTMLElement>('[data-commerce-prefix]').hidden = !commerce
+    // ---- Bridge -----------------------------------------------------------------------------
+    function demoUrl(name: string) {
+      return `${demosBase}${name}/`
     }
 
-    $('[data-run-all]').addEventListener('click', () => { explain.textContent = ''; runAll() })
-    $('[data-reset]').addEventListener('click', () => { explain.textContent = ''; reset() })
+    function configure() {
+      clearFeed()
+      accepting = true
+      needsConfigure = false
+      frame.contentWindow?.postMessage(
+        {
+          type: MESSAGE.configure,
+          options: pluginOptions(plugin, state, byName.get(plugin)!.options),
+          platform: platformState(plugin, state),
+        },
+        location.origin,
+      )
+    }
 
-    adapterSelect.addEventListener('change', () => {
-      explain.textContent = ''
-      syncControls()
-      renderPresets()
-      renderSteps()
-      reset()
+    window.addEventListener('message', (event) => {
+      if (event.source !== frame.contentWindow) return
+      const message = readMessage(event)
+      if (!message) return
+
+      if (message.type === MESSAGE.ready) {
+        const address = `${location.host}${message.url}`
+        $('[data-address]').textContent = address
+        $<HTMLAnchorElement>('[data-newtab]').href = message.url
+        if (needsConfigure) {
+          configure()
+          return
+        }
+        heading(message.page)
+        if (pendingPlay) {
+          frame.contentWindow?.postMessage({ type: MESSAGE.play, scenario: pendingPlay }, location.origin)
+          lastPlayed = pendingPlay
+          pendingPlay = null
+          paintScenario()
+        }
+      } else if (message.type === MESSAGE.call && accepting) {
+        heading(message.page)
+        render(message.call)
+      }
     })
 
-    for (const input of [...optionInputs, prefixInput, privacySelect, categoryInput]) {
-      input.addEventListener('change', () => reset())
+    function loadDemo() {
+      needsConfigure = true
+      accepting = false
+      clearFeed()
+      frame.src = demoUrl(plugin)
+      $('[data-address]').textContent = `${location.host}${demoUrl(plugin)}`
+      $<HTMLAnchorElement>('[data-newtab]').href = demoUrl(plugin)
     }
 
-    window.addEventListener('pagehide', () => session?.dispose(), { once: true })
+    /** A fresh session on the current demo: options kept, feed and demo state cleared. */
+    function restart() {
+      if (frame.contentWindow && !needsConfigure) configure()
+      else loadDemo()
+    }
 
-    syncControls()
-    renderPresets()
-    renderSteps()
-    reset()
+    // ---- Dropdowns ---------------------------------------------------------------------------
+    const pickerButton = $<HTMLButtonElement>('[data-picker-button]')
+    const picker = $<HTMLElement>('[data-picker]')
+    const search = $<HTMLInputElement>('[data-picker-search]')
+    const scenarioButton = $<HTMLButtonElement>('[data-scenario-button]')
+    const scenarioList = $<HTMLElement>('[data-scenario-list]')
+
+    function visibleOptions(container: HTMLElement) {
+      return [...container.querySelectorAll<HTMLElement>('[role="option"]')].filter((option) => !option.hidden && !option.closest('[hidden]'))
+    }
+
+    function setActive(container: HTMLElement, owner: HTMLElement, option: HTMLElement | undefined) {
+      for (const element of container.querySelectorAll('[data-active]')) element.removeAttribute('data-active')
+      if (!option) {
+        owner.removeAttribute('aria-activedescendant')
+        return
+      }
+      option.setAttribute('data-active', '')
+      owner.setAttribute('aria-activedescendant', option.id)
+      option.scrollIntoView({ block: 'nearest' })
+    }
+
+    function moveActive(container: HTMLElement, owner: HTMLElement, delta: number) {
+      const options = visibleOptions(container)
+      if (options.length === 0) return
+      const current = options.findIndex((option) => option.hasAttribute('data-active'))
+      const next = current === -1 ? (delta > 0 ? 0 : options.length - 1) : (current + delta + options.length) % options.length
+      setActive(container, owner, options[next])
+    }
+
+    function closePicker(returnFocus = false) {
+      picker.hidden = true
+      pickerButton.setAttribute('aria-expanded', 'false')
+      if (returnFocus) pickerButton.focus()
+    }
+    function closeScenarios(returnFocus = false) {
+      scenarioList.hidden = true
+      scenarioButton.setAttribute('aria-expanded', 'false')
+      if (returnFocus) scenarioButton.focus()
+    }
+
+    function filterPicker() {
+      const query = search.value.trim().toLowerCase()
+      let shown = 0
+      for (const group of picker.querySelectorAll<HTMLElement>('[data-family-group]')) {
+        let inGroup = 0
+        for (const option of group.querySelectorAll<HTMLElement>('[role="option"]')) {
+          const match = !query || (option.dataset.searchText ?? '').includes(query)
+          option.hidden = !match
+          if (match) inGroup += 1
+        }
+        group.hidden = inGroup === 0
+        shown += inGroup
+      }
+      $('[data-picker-empty]').hidden = shown > 0
+      const options = visibleOptions(picker)
+      setActive(picker, search, options.find((option) => option.dataset.pluginOption === plugin) ?? options[0])
+    }
+
+    function openPicker() {
+      closeScenarios()
+      picker.hidden = false
+      pickerButton.setAttribute('aria-expanded', 'true')
+      search.value = ''
+      filterPicker()
+      search.focus()
+    }
+
+    pickerButton.addEventListener('click', () => (picker.hidden ? openPicker() : closePicker()))
+    search.addEventListener('input', filterPicker)
+    search.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault()
+        moveActive(picker, search, event.key === 'ArrowDown' ? 1 : -1)
+      } else if (event.key === 'Enter') {
+        event.preventDefault()
+        const active = picker.querySelector<HTMLElement>('[data-active]')
+        if (active) choosePlugin(active.dataset.pluginOption!)
+      } else if (event.key === 'Escape') {
+        event.preventDefault()
+        closePicker(true)
+      }
+    })
+    for (const option of picker.querySelectorAll<HTMLElement>('[data-plugin-option]')) {
+      option.addEventListener('click', () => choosePlugin(option.dataset.pluginOption!))
+    }
+
+    function choosePlugin(name: string) {
+      closePicker(true)
+      if (name === plugin) return
+      plugin = name
+      state = { ...DEFAULT_STATE }
+      selectedScenario = null
+      lastPlayed = null
+      pendingPlay = null
+      paintPlugin()
+      loadDemo()
+    }
+
+    function openScenarios() {
+      closePicker()
+      scenarioList.hidden = false
+      scenarioButton.setAttribute('aria-expanded', 'true')
+      const options = visibleOptions(scenarioList)
+      setActive(scenarioList, scenarioList, options.find((option) => option.dataset.scenario === selectedScenario) ?? options[0])
+      scenarioList.focus()
+    }
+    scenarioButton.addEventListener('click', () => (scenarioList.hidden ? openScenarios() : closeScenarios()))
+    scenarioButton.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown' && scenarioList.hidden) {
+        event.preventDefault()
+        openScenarios()
+      }
+    })
+    scenarioList.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault()
+        moveActive(scenarioList, scenarioList, event.key === 'ArrowDown' ? 1 : -1)
+      } else if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault()
+        const active = scenarioList.querySelector<HTMLElement>('[data-active]')
+        if (active) chooseScenario(active.dataset.scenario!)
+      } else if (event.key === 'Escape' || event.key === 'Tab') {
+        if (event.key === 'Escape') event.preventDefault()
+        closeScenarios(event.key === 'Escape')
+      }
+    })
+
+    /** Choosing a scenario only selects it; Play runs it. */
+    function chooseScenario(id: string) {
+      selectedScenario = id
+      closeScenarios(true)
+      paintScenario()
+      syncUrl()
+    }
+
+    document.addEventListener('click', (event) => {
+      const target = event.target as Node
+      if (!picker.hidden && !picker.contains(target) && !pickerButton.contains(target)) closePicker()
+      if (!scenarioList.hidden && !scenarioList.contains(target) && !scenarioButton.contains(target)) closeScenarios()
+    })
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return
+      if (!picker.hidden) closePicker(true)
+      if (!scenarioList.hidden) closeScenarios(true)
+    })
+
+    // ---- Play -------------------------------------------------------------------------------
+    $('[data-play]').addEventListener('click', () => {
+      const scenario = scenariosFor(plugin).find((entry) => entry.id === selectedScenario)
+      if (!scenario) return
+      // 1. the scenario's options over the defaults; 2. configure; 3. wait for ready; 4. play.
+      state = { ...DEFAULT_STATE, ...scenario.state }
+      paintOptions()
+      pendingPlay = scenario.id
+      configure()
+    })
+
+    $('[data-reload]').addEventListener('click', restart)
+    $('[data-clear]').addEventListener('click', restart)
+
+    // ---- Painting ---------------------------------------------------------------------------
+    function paintPlugin() {
+      const info = byName.get(plugin)!
+      $('[data-picker-current]').textContent = info.title
+      $('[data-demo-name]').textContent = info.demo
+      $('[data-family]').textContent = info.family
+      for (const option of picker.querySelectorAll<HTMLElement>('[data-plugin-option]')) {
+        option.setAttribute('aria-selected', String(option.dataset.pluginOption === plugin))
+      }
+
+      scenarioList.replaceChildren()
+      for (const scenario of scenariosFor(plugin)) {
+        const option = document.createElement('div')
+        option.className = 'option'
+        option.setAttribute('role', 'option')
+        option.id = `scenario-option-${scenario.id}`
+        option.dataset.scenario = scenario.id
+        option.innerHTML = '<span class="text"><span class="title"></span><span class="sub"></span></span><span class="check" aria-hidden="true">✓</span>'
+        option.querySelector('.title')!.textContent = scenario.label
+        option.querySelector('.sub')!.textContent = scenario.note
+        option.addEventListener('click', () => chooseScenario(scenario.id))
+        scenarioList.append(option)
+      }
+      paintScenario()
+      paintOptions()
+      syncUrl()
+    }
+
+    function paintScenario() {
+      const scenario = scenariosFor(plugin).find((entry) => entry.id === selectedScenario)
+      const current = $('[data-scenario-current]')
+      current.textContent = scenario?.label ?? 'Choose a scenario'
+      current.classList.toggle('placeholder', !scenario)
+      for (const option of scenarioList.querySelectorAll<HTMLElement>('[role="option"]')) {
+        option.setAttribute('aria-selected', String(option.dataset.scenario === selectedScenario))
+      }
+      const play = $<HTMLButtonElement>('[data-play]')
+      play.setAttribute('aria-disabled', String(!scenario))
+      $('[data-play-label]').textContent = scenario && lastPlayed === scenario.id ? 'Replay' : 'Play'
+      $('[data-describe]').textContent = scenario
+        ? scenario.note
+        : `${presetsFor(plugin).note} Or choose a scenario to have it play itself.`
+    }
+
+    type Control =
+      | { kind: 'toggle'; key: keyof SandboxState; label: string; code: string }
+      | { kind: 'choice'; key: keyof SandboxState; label: string; code: string; choices: [string, string][] }
+      | { kind: 'text'; key: keyof SandboxState; label: string }
+
+    function controlsFor(name: string): { title: string; items: Control[] }[] {
+      const accepted: Control = { kind: 'toggle', key: 'consent', label: 'Visitor has accepted the cookie banner', code: "consent: 'ignore'" }
+      if (name === 'onetrust') {
+        return [{
+          title: 'Consent',
+          items: [{ kind: 'choice', key: 'category', label: 'Category that releases RUM', code: 'category', choices: [['C0002', 'C0002 Performance'], ['C0003', 'C0003 Functional'], ['C0004', 'C0004 Targeting']] }],
+        }]
+      }
+      if (name === 'engagement') return [{ title: 'Consent', items: [accepted] }]
+      const consent: Control = name === 'shopify'
+        ? { kind: 'choice', key: 'customerPrivacy', label: 'Shopify consent API', code: 'customerPrivacy', choices: [['absent', 'Not present'], ['allowed', 'Allows'], ['denied', 'Blocks']] }
+        : accepted
+      return [
+        { title: 'Consent', items: [consent] },
+        {
+          title: 'Identity',
+          items: [
+            { kind: 'toggle', key: 'identifyUsers', label: 'Identify the customer', code: 'identifyUsers' },
+            { kind: 'toggle', key: 'includeEmail', label: 'Send email address', code: 'includeEmail' },
+            { kind: 'toggle', key: 'includeName', label: 'Send customer name', code: 'includeName' },
+          ],
+        },
+        {
+          title: 'Payload',
+          items: [
+            { kind: 'toggle', key: 'includeItems', label: 'Send line items', code: 'includeItems' },
+            { kind: 'text', key: 'actionPrefix', label: 'Action prefix' },
+          ],
+        },
+      ]
+    }
+
+    function setOption(key: keyof SandboxState, value: unknown) {
+      state = { ...state, [key]: value }
+      paintOptions()
+      // Exactly as before: any change is a fresh session.
+      restart()
+    }
+
+    function labelBlock(label: string, code: string) {
+      const span = document.createElement('span')
+      span.className = 'label'
+      span.innerHTML = '<span></span><span class="code-name"></span>'
+      span.children[0]!.textContent = label
+      span.children[1]!.textContent = code
+      return span
+    }
+
+    function paintOptions() {
+      const container = $('[data-options]')
+      container.replaceChildren()
+      for (const group of controlsFor(plugin)) {
+        const section = document.createElement('div')
+        const title = document.createElement('p')
+        title.className = 'group-title'
+        title.textContent = group.title
+        section.append(title)
+        for (const control of group.items) {
+          const wrap = document.createElement('div')
+          wrap.className = 'control'
+          if (control.kind === 'toggle') {
+            const button = document.createElement('button')
+            button.type = 'button'
+            button.className = 'toggle'
+            button.setAttribute('role', 'switch')
+            button.setAttribute('aria-checked', String(Boolean(state[control.key])))
+            button.innerHTML = '<span class="track" aria-hidden="true"><span class="knob"></span></span>'
+            button.append(labelBlock(control.label, control.code))
+            button.addEventListener('click', () => setOption(control.key, !state[control.key]))
+            wrap.append(button)
+          } else if (control.kind === 'choice') {
+            const id = `choice-${control.key}`
+            const label = labelBlock(control.label, control.code)
+            label.id = id
+            const row = document.createElement('div')
+            row.className = 'choices'
+            row.setAttribute('role', 'radiogroup')
+            row.setAttribute('aria-labelledby', id)
+            for (const [value, text] of control.choices) {
+              const pill = document.createElement('button')
+              pill.type = 'button'
+              pill.setAttribute('role', 'radio')
+              pill.setAttribute('aria-checked', String(state[control.key] === value))
+              pill.textContent = text
+              pill.addEventListener('click', () => { if (state[control.key] !== value) setOption(control.key, value) })
+              row.append(pill)
+            }
+            wrap.append(label, row)
+          } else {
+            const label = document.createElement('label')
+            label.className = 'text-option'
+            label.textContent = control.label
+            const input = document.createElement('input')
+            input.type = 'text'
+            input.spellcheck = false
+            input.value = String(state[control.key])
+            input.addEventListener('change', () => setOption(control.key, input.value || DEFAULT_STATE.actionPrefix))
+            label.append(input)
+            wrap.append(label)
+          }
+          section.append(wrap)
+        }
+        container.append(section)
+      }
+      $('[data-init]').textContent = initSnippet(plugin, pluginOptions(plugin, state, byName.get(plugin)!.options))
+    }
+
+    paintPlugin()
+    loadDemo()
   }
 </script>

@@ -1,0 +1,24 @@
+/* Shared by every demo site. Each demo's own style.css sets the brand; this is only behaviour. */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
+/* What a scenario is about to touch, so someone watching can follow it. */
+.demo-flash { outline: 3px solid #8b5cf6 !important; outline-offset: 3px; transition: outline-color 0.2s; }
+
+/* Product and video imagery: a striped placeholder with a monospace label, never a real image. */
+.ph {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  background: repeating-linear-gradient(135deg, var(--ph-a, #ececec) 0 8px, var(--ph-b, #f6f6f6) 8px 16px);
+  color: var(--ph-ink, #777);
+  font: 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.04em;
+}
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}

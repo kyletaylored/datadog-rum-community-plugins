@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "family": "engagement",
   "title": "Engagement",
-  "description": "The events analytics tools capture automatically \u2014 scroll depth, outbound and contact clicks, file downloads, video plays and form submissions \u2014 with no instrumentation. Works on any site.",
+  "description": "The events analytics tools capture automatically — scroll depth, outbound and contact clicks, file downloads, video plays and form submissions — with no instrumentation. Works on any site.",
   "maintainer": {
     "name": "Kyle Taylor",
     "github": "kyletaylored"
@@ -34,6 +34,64 @@
     "engagement.form_start",
     "engagement.form_submit",
     "lead.generate_lead"
+  ],
+  "journey": [
+    {
+      "label": "Reads half the page",
+      "fixture": "reads half the page"
+    },
+    {
+      "label": "Reads to the bottom",
+      "fixture": "reads to the bottom"
+    },
+    {
+      "label": "Clicks an outbound link",
+      "fixture": "clicks an outbound link"
+    },
+    {
+      "label": "Clicks a link carrying an access token",
+      "fixture": "clicks a link carrying an access token"
+    },
+    {
+      "label": "Clicks an email address",
+      "fixture": "clicks an email address"
+    },
+    {
+      "label": "Clicks a phone number",
+      "fixture": "clicks a phone number"
+    },
+    {
+      "label": "Clicks an internal link",
+      "fixture": "clicks an internal link"
+    },
+    {
+      "label": "Downloads a report",
+      "fixture": "downloads a report"
+    },
+    {
+      "label": "Starts a video",
+      "fixture": "starts a video"
+    },
+    {
+      "label": "Watches half the video",
+      "fixture": "watches half the video"
+    },
+    {
+      "label": "Finishes the video",
+      "fixture": "finishes the video"
+    },
+    {
+      "label": "Starts filling the newsletter form",
+      "fixture": "starts filling the newsletter form"
+    },
+    {
+      "label": "Submits the newsletter form",
+      "fixture": "submits the newsletter form"
+    },
+    {
+      "label": "Submits the site search",
+      "fixture": "submits an ordinary form"
+    }
   ],
   "options": [
     {

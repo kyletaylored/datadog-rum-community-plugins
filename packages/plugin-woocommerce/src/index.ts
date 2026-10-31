@@ -79,7 +79,7 @@ function isCustomerType(value: unknown): value is CustomerType {
  * the only place email and name can come from, and both stay off unless opted in.
  */
 export function wooCommercePlugin(options: WooCommercePluginOptions = {}): RumPlugin {
-  return {
+  const plugin: RumPlugin = {
     name: 'woocommerce',
     onInit({ initConfiguration, publicApi }) {
       const tracker = createTracker({
@@ -91,6 +91,8 @@ export function wooCommercePlugin(options: WooCommercePluginOptions = {}): RumPl
         options,
         footprint: FOOTPRINT,
       })
+
+      trackers.set(plugin, tracker)
 
       const data = options.data ?? readGlobal(options.dataGlobal ?? DATA_GLOBAL)
 
@@ -121,7 +123,11 @@ export function wooCommercePlugin(options: WooCommercePluginOptions = {}): RumPl
       tracker.logger.info(`listening for ${WOO_EVENTS.length} WooCommerce events`)
     },
   }
+  return plugin
 }
+
+/** Each plugin instance's tracker, once `onInit` has run, so a reporter can be built from the instance. */
+const trackers = new WeakMap<RumPlugin, Tracker>()
 
 /** Fire `commerce.purchase` from a server-rendered order payload. */
 export function trackOrder(tracker: Tracker, order: WooOrderPayload): void {
@@ -180,44 +186,57 @@ function handleWooEvent(tracker: Tracker, event: string, raw: CustomEvent<WooEve
 /**
  * Call from the Cart and Checkout blocks' own hooks where the DOM events don't cover a step.
  * Exported so the WordPress plugin, or a theme, can drive the checkout funnel explicitly.
+ *
+ * Pass the plugin instance given to `init` (the CDN route, where there is no tracker to hand) or a
+ * tracker. An instance is resolved when a step is reported, so the reporter can be made before
+ * `init` runs; a step reported before then is dropped with a console warning, never queued.
  */
-export function createCheckoutReporter(tracker: Tracker) {
+function isTracker(source: Tracker | RumPlugin): source is Tracker {
+  return typeof (source as Partial<Tracker>).track === 'function'
+}
+
+export function createCheckoutReporter(source: Tracker | RumPlugin) {
+  const report = (step: string, send: (tracker: Tracker) => void) => {
+    const tracker = isTracker(source) ? source : trackers.get(source)
+    if (tracker) send(tracker)
+    else globalThis.console?.warn(`[dd-rum:woocommerce] ${step} dropped: the plugin passed to createCheckoutReporter has not been initialized`)
+  }
   return {
     viewCart(cart: WooCart): void {
-      tracker.track('view_cart', {
+      report('view_cart', (tracker) => tracker.track('view_cart', {
         value: cartValue(cart.totals),
         currency: cartCurrency(cart),
         cart_id: cart.cart_key,
         items: toItems(cart.items),
         ...itemCounts(cart.items),
-      })
+      }))
     },
     beginCheckout(cart: WooCart): void {
-      tracker.track('begin_checkout', {
+      report('begin_checkout', (tracker) => tracker.track('begin_checkout', {
         value: cartValue(cart.totals),
         currency: cartCurrency(cart),
         cart_id: cart.cart_key,
         coupon: cart.coupons?.[0]?.code,
         items: toItems(cart.items),
         ...itemCounts(cart.items),
-      })
+      }))
     },
     addShippingInfo(cart: WooCart, shippingTier?: string): void {
-      tracker.track('add_shipping_info', {
+      report('add_shipping_info', (tracker) => tracker.track('add_shipping_info', {
         value: cartValue(cart.totals),
         currency: cartCurrency(cart),
         shipping_tier: shippingTier,
-      })
+      }))
     },
     addPaymentInfo(cart: WooCart, paymentType?: string): void {
-      tracker.track('add_payment_info', {
+      report('add_payment_info', (tracker) => tracker.track('add_payment_info', {
         value: cartValue(cart.totals),
         currency: cartCurrency(cart),
         payment_type: paymentType,
-      })
+      }))
     },
     search(term: string): void {
-      tracker.track('search', { search_term_length: term.length })
+      report('search', (tracker) => tracker.track('search', { search_term_length: term.length }))
     },
   }
 }

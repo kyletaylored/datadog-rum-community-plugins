@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
 import {
@@ -7,13 +7,14 @@ import {
   formatFindings,
   installMemoryLocalStorage,
   loadFixtures,
+  recordJourney,
   writeEventReport,
   type Fixture,
 } from '../../test-harness/src/index.js'
-import type { PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
-import { WOO_EVENTS, wooCommercePlugin } from '../src/index.js'
+import { blockedKeys, type PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
+import { WOO_EVENTS, createCheckoutReporter, wooCommercePlugin } from '../src/index.js'
 import { wooMoney } from '../src/mapping.js'
-import type { WooGlobalPayload } from '../src/types.js'
+import type { WooCart, WooGlobalPayload } from '../src/types.js'
 
 const packageDir = fileURLToPath(new URL('..', import.meta.url))
 const fixturesDir = fileURLToPath(new URL('../fixtures', import.meta.url))
@@ -38,6 +39,27 @@ function emitTo(target: EventTarget, fixture: Fixture) {
   target.dispatchEvent(new CustomEvent(fixture.event, { detail: fixture.payload }))
 }
 
+/** checkout.json's steps have no DOM event; their `event` names the reporter method to call. */
+const REPORTER = 'createCheckoutReporter.'
+type ReporterCall = { cart?: WooCart; shippingTier?: string; paymentType?: string; term?: string }
+
+/**
+ * Hand one fixture to the plugin the way the platform would: a DOM event on the target, or, for a
+ * funnel step, a call on the plugin's checkout reporter, built from the instance as the CDN exposes it.
+ */
+function replay(target: EventTarget, reporter: ReturnType<typeof createCheckoutReporter>, fixture: Fixture) {
+  if (!fixture.event.startsWith(REPORTER)) return emitTo(target, fixture)
+  const call = fixture.payload as ReporterCall
+  switch (fixture.event.slice(REPORTER.length)) {
+    case 'viewCart': return reporter.viewCart(call.cart!)
+    case 'beginCheckout': return reporter.beginCheckout(call.cart!)
+    case 'addShippingInfo': return reporter.addShippingInfo(call.cart!, call.shippingTier)
+    case 'addPaymentInfo': return reporter.addPaymentInfo(call.cart!, call.paymentType)
+    case 'search': return reporter.search(call.term ?? '')
+    default: throw new Error(`no reporter method for fixture "${fixture.name}" (${fixture.event})`)
+  }
+}
+
 async function run(options: Parameters<typeof wooCommercePlugin>[0] = {}) {
   const rum = createFakeRum({})
   const target = new EventTarget()
@@ -48,8 +70,42 @@ async function run(options: Parameters<typeof wooCommercePlugin>[0] = {}) {
     ...options,
   })
   await plugin.onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
-  for (const fixture of cartFixtures) emitTo(target, fixture)
+  const reporter = createCheckoutReporter(plugin)
+  for (const fixture of cartFixtures) replay(target, reporter, fixture)
   return { rum, target }
+}
+
+/**
+ * The manifest's journey, replayed for the plugin page. Store and customer are printed on every
+ * page by the WordPress plugin, so they are there at init; the order only on the thank-you page,
+ * which is why "order received" is a fresh adapter reading the full payload, as a reload is.
+ */
+function journey() {
+  const page = orderFixture.payload as WooGlobalPayload
+  const options = { consent: 'ignore' as const }
+  return recordJourney({
+    platform: 'woocommerce',
+    journey: manifest.journey,
+    fixtures: allFixtures,
+    options,
+    start: async ({ publicApi, initConfiguration }) => {
+      const target = new EventTarget()
+      const everyPage = { store: page.store, customer: page.customer }
+      const plugin = wooCommercePlugin({ ...options, debug: true, target, data: everyPage })
+      await plugin.onInit?.({ initConfiguration, publicApi })
+      const reporter = createCheckoutReporter(plugin)
+      return async (fixture) => {
+        if (fixture.event === 'order_received') {
+          const reloaded = wooCommercePlugin({ ...options, debug: true, target, data: fixture.payload as WooGlobalPayload })
+          await reloaded.onInit?.({ initConfiguration, publicApi })
+          return
+        }
+        replay(target, reporter, fixture)
+      }
+    },
+    // Only the order's own keys: the customer's email is identity, held back by includeEmail.
+    strippedFor: (fixture) => blockedKeys((fixture.payload as WooGlobalPayload).order),
+  })
 }
 
 describe('money', () => {
@@ -128,13 +184,19 @@ describe('order-received page', () => {
 })
 
 describe('storefront cart events', () => {
-  it('maps the recorded block events to the schema', async () => {
+  it('maps the recorded block events and checkout steps to the schema', async () => {
     const { rum } = await run()
     expect(rum.actions().map((action) => action.name)).toEqual([
       'commerce.purchase',
       'commerce.add_to_cart',
       'commerce.remove_from_cart',
       'commerce.add_to_cart',
+      // checkout.json, through the checkout reporter
+      'commerce.view_cart',
+      'commerce.begin_checkout',
+      'commerce.add_shipping_info',
+      'commerce.add_payment_info',
+      'commerce.search',
     ])
   })
 
@@ -150,7 +212,7 @@ describe('storefront cart events', () => {
     const { rum } = await run({ includeItems: true })
     expect(rum.actions()).toMatchSnapshot()
     // The site's "Events this plugin sends" is generated here, from this same run.
-    writeEventReport(packageDir, 'woocommerce', rum)
+    writeEventReport(packageDir, 'woocommerce', rum, await journey())
   })
 
   it('covers classic themes through the jQuery added_to_cart event', async () => {
@@ -195,6 +257,43 @@ describe('checkout reporter', () => {
       'commerce.search',
     ])
     expect(rum.actions()[4]?.context).toEqual({ search_term_length: 14 })
+  })
+})
+
+describe('checkout reporter from a plugin instance, as the CDN build exposes it', () => {
+  it('reports through the instance once init has run, with the gate and filter applied', async () => {
+    const { createCheckoutReporter } = await import('../src/index.js')
+    const rum = createFakeRum({})
+    const plugin = wooCommercePlugin({ consent: 'ignore', target: new EventTarget() })
+    // Made before init, as a page script would be.
+    const reporter = createCheckoutReporter(plugin)
+    await plugin.onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
+
+    reporter.addPaymentInfo((cartFixtures[0]!.payload as { cart: never }).cart, 'card')
+    reporter.search('red tee medium')
+    expect(rum.actions().map((action) => action.name)).toEqual(['commerce.add_payment_info', 'commerce.search'])
+    expect(rum.actions()[1]?.context).toEqual({ search_term_length: 14 })
+  })
+
+  it('holds a step behind the consent gate like any other event', async () => {
+    const { createCheckoutReporter } = await import('../src/index.js')
+    const rum = createFakeRum({})
+    const plugin = wooCommercePlugin({ target: new EventTarget() })
+    await plugin.onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
+    createCheckoutReporter(plugin).search('anything')
+    expect(rum.actions()).toHaveLength(0)
+  })
+
+  it('drops a step reported before init, with a warning, rather than queueing it', async () => {
+    const { createCheckoutReporter } = await import('../src/index.js')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const rum = createFakeRum({})
+    const plugin = wooCommercePlugin({ consent: 'ignore', target: new EventTarget() })
+    createCheckoutReporter(plugin).search('too early')
+    await plugin.onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
+    expect(rum.actions().filter((action) => action.name === 'commerce.search')).toHaveLength(0)
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('has not been initialized'))
+    warn.mockRestore()
   })
 })
 

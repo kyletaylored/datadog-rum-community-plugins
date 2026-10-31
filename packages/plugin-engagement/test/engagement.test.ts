@@ -6,8 +6,8 @@
 // jsdom's location sits behind a proxy that refuses defineProperty — so it is set here.
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { checkConformance, createFakeRum, formatFindings, writeEventReport } from '../../test-harness/src/index.js'
-import type { FakeRum } from '../../test-harness/src/index.js'
+import { checkConformance, createFakeRum, formatFindings, recordJourney, writeEventReport } from '../../test-harness/src/index.js'
+import type { FakeRum, Fixture } from '../../test-harness/src/index.js'
 import type { PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
 import { engagementPlugin } from '../src/index.js'
 import { readLink, scrollDepth } from '../src/dom.js'
@@ -44,6 +44,12 @@ function play(fixture: (typeof fixtures)[number], rum: FakeRum) {
   const element = host.firstElementChild as HTMLElement | null
   if (!element) return
 
+  // A browser knows a video's duration once its metadata loads; jsdom never does. The fixture
+  // records it as data-duration, so give the element that, or the run under-reports video_start.
+  if (element instanceof HTMLVideoElement && element.dataset.duration) {
+    Object.defineProperty(element, 'duration', { value: Number(element.dataset.duration), configurable: true })
+  }
+
   switch (fixture.event) {
     case 'click':
       element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
@@ -55,8 +61,7 @@ function play(fixture: (typeof fixtures)[number], rum: FakeRum) {
     case 'timeupdate': {
       const video = element as HTMLVideoElement
       const percent = Number(fixture.payload.percent ?? 0)
-      Object.defineProperty(video, 'duration', { value: 200, configurable: true })
-      Object.defineProperty(video, 'currentTime', { value: (percent / 100) * 200, configurable: true })
+      Object.defineProperty(video, 'currentTime', { value: (percent / 100) * video.duration, configurable: true })
       video.dispatchEvent(new Event('timeupdate'))
       break
     }
@@ -77,6 +82,20 @@ describe('link reading', () => {
     const link = readLink(anchor, HOST)
     expect(link).toEqual({ type: 'email', text: 'Email sales' })
     expect(JSON.stringify(link)).not.toContain('sales@example.com')
+  })
+
+  it('drops the link text when the text is the address', () => {
+    const anchor = document.createElement('a')
+    anchor.href = 'mailto:sales@relay.example'
+    anchor.textContent = 'sales@relay.example'
+    expect(readLink(anchor, HOST)).toEqual({ type: 'email', text: undefined })
+  })
+
+  it('drops the link text when the text is the number, however it is formatted', () => {
+    const anchor = document.createElement('a')
+    anchor.href = 'tel:+15550100199'
+    anchor.textContent = '+1 (555) 010-0199'
+    expect(readLink(anchor, HOST)).toEqual({ type: 'phone', text: undefined })
   })
 
   it('never returns the number behind a tel link', () => {
@@ -302,6 +321,63 @@ describe('switches', () => {
   })
 })
 
+/** Scroll geometry jsdom does not compute: a page three viewports tall, scrolled to `depth`%. */
+function scrollTo(depth: number) {
+  const viewport = 800
+  const scrollable = viewport * 2
+  Object.defineProperty(window, 'innerHeight', { value: viewport, configurable: true })
+  Object.defineProperty(document.documentElement, 'scrollHeight', { value: viewport + scrollable, configurable: true })
+  Object.defineProperty(window, 'scrollY', { value: (depth / 100) * scrollable, configurable: true })
+}
+
+/** What a fixture's markup carried that the plugin must not send: read from the markup itself. */
+function carried(fixture: Fixture): string[] {
+  const host = document.createElement('div')
+  host.innerHTML = String((fixture.payload as { html?: string }).html ?? '')
+  const element = host.firstElementChild
+  if (element instanceof HTMLAnchorElement) {
+    const href = element.getAttribute('href') ?? ''
+    if (/^(mailto|tel|sms):/i.test(href)) return ['the address']
+    return href.includes('?') ? ['the query string'] : []
+  }
+  if (element instanceof HTMLFormElement) {
+    return [...element.querySelectorAll('input')]
+      .filter((input) => input.getAttribute('value'))
+      .map((input) => `the ${input.name} value`)
+  }
+  return []
+}
+
+/** The manifest's journey, replayed for the plugin page, with scroll on and measured for real. */
+async function journey() {
+  const options = { consent: 'ignore' as const }
+  try {
+    return await recordJourney({
+      platform: 'engagement',
+      journey: manifest.journey,
+      fixtures: fixtures as Fixture[],
+      options,
+      start: ({ publicApi, initConfiguration }) => {
+        document.body.innerHTML = ''
+        scrollTo(0)
+        engagementPlugin({ ...options, debug: true }).onInit?.({ initConfiguration, publicApi })
+        return async (fixture) => {
+          if (fixture.event !== 'scroll') return play(fixture as (typeof fixtures)[number], undefined as never)
+          scrollTo(Number((fixture.payload as { depth?: number }).depth ?? 0))
+          document.dispatchEvent(new Event('scroll'))
+          // The plugin measures in the next frame; jsdom has no frames, so it falls back to a timer.
+          await new Promise((resolve) => setTimeout(resolve, 40))
+        }
+      },
+      strippedFor: carried,
+    })
+  } finally {
+    for (const [target, key] of [[window, 'innerHeight'], [window, 'scrollY'], [document.documentElement, 'scrollHeight']] as const) {
+      delete (target as unknown as Record<string, unknown>)[key]
+    }
+  }
+}
+
 describe('consent', () => {
   it('sends nothing before consent is granted', () => {
     const rum = createFakeRum({})
@@ -333,10 +409,10 @@ describe('conformance', () => {
     }
   })
 
-  it('matches the committed snapshot, and generates the published event list', () => {
+  it('matches the committed snapshot, and generates the published event list', async () => {
     const rum = setup()
     for (const fixture of fixtures) play(fixture, rum)
     expect(rum.actions()).toMatchSnapshot()
-    writeEventReport(packageDir, 'engagement', rum)
+    writeEventReport(packageDir, 'engagement', rum, await journey())
   })
 })

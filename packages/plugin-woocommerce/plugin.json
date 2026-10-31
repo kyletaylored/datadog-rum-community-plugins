@@ -40,6 +40,48 @@
     "commerce.purchase",
     "commerce.search"
   ],
+  "journey": [
+    {
+      "label": "Searches for \"red tee medium\"",
+      "fixture": "product search"
+    },
+    {
+      "label": "Adds 2 t-shirts to the cart",
+      "fixture": "added to cart"
+    },
+    {
+      "label": "Removes the cap",
+      "fixture": "removed from cart"
+    },
+    {
+      "label": "Adds socks on a classic theme",
+      "fixture": "added to cart on a classic theme"
+    },
+    {
+      "label": "Opens the cart",
+      "fixture": "cart viewed"
+    },
+    {
+      "label": "Starts checkout",
+      "fixture": "checkout started"
+    },
+    {
+      "label": "Chooses Ground shipping",
+      "fixture": "shipping chosen"
+    },
+    {
+      "label": "Pays with PayPal",
+      "fixture": "payment chosen"
+    },
+    {
+      "label": "Lands on the thank-you page",
+      "fixture": "order received"
+    },
+    {
+      "label": "Reloads the thank-you page",
+      "fixture": "order received"
+    }
+  ],
   "options": [
     {
       "name": "events",

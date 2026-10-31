@@ -9,7 +9,8 @@ const resolvePath = (relative: string) => fileURLToPath(new URL(relative, import
  *
  * - `unit` runs the core, the mapping functions and every adapter's fixture and conformance
  *   suite in Node, against a fake `publicApi`. Fast, and what most changes touch.
- * - `browser` runs the real-SDK integration test in headless Chromium. The Datadog Browser SDK
+ * - `browser` runs the real-SDK integration test in headless Chromium, and plays every sandbox
+ *   scenario against its demo site. The Datadog Browser SDK
  *   does not start a session under jsdom (no view, nothing sent), so a real browser is the only
  *   way to assert on what actually reaches the intake.
  */
@@ -37,7 +38,9 @@ export default defineConfig({
         extends: true,
         test: {
           name: 'browser',
-          include: ['packages/*/test/**/*.integration.test.ts'],
+          // The demo test plays every sandbox scenario against the built plugin bundles, so it
+          // needs `npm run build` (which runs scripts/build-demos.mjs) before it.
+          include: ['packages/*/test/**/*.integration.test.ts', 'site/test/**/*.integration.test.ts'],
           browser: {
             enabled: true,
             provider: playwright(),

@@ -36,6 +36,7 @@ Don't reopen these without the maintainer asking.
 | Accuracy | Client-side and directional. Never claim to replace the platform's order reporting. No server-side or webhook capture. |
 | Product Analytics | No extra work; RUM actions feed it automatically. |
 | Shopify | Compose with the official `shopifyPlugin` from `@datadog/browser-rum-shopify`. Don't replace or fork it. |
+| Demo sites | Every plugin ships a static demo site under `site/public/demos/<name>/`, served from GitHub Pages and framed by the sandbox. The sandbox never fakes a page; it shows the demo running the real plugin. |
 | Deferred | Square Online, plugin API stability, upstreaming adapters into `browser-sdk`. See the PRD's "Decisions and open questions". |
 
 ## The plugin contract
@@ -57,6 +58,65 @@ export function examplePlugin(options: ExampleOptions): RumPlugin {
 - **Public API only.** Call only `publicApi` methods (`setUser`, `setAccount`, `clearUser`, `setGlobalContextProperty`, `addAction`, `startView`, `addError`, `setTrackingConsent`). The official package imports `RumPlugin` from `@datadog/browser-rum-core`, which is internal and may change. Keep that import in one place in the core.
 - **Never initialize RUM.** The customer's `init` owns `applicationId`, sampling and privacy settings. `@datadog/browser-rum` is a peer dependency, not bundled.
 - **Platform code stays in the plugin.** Dedupe, the consent gate, PII filtering and size caps belong in the core so every plugin gets them.
+
+## Demo sites
+
+Every plugin ships a small static site that a visitor can click through while the sandbox shows what the plugin sends. A plugin PR without one fails review.
+
+### Where it lives
+
+```
+site/public/demos/<name>/
+  index.html          entry page (the sandbox frames this URL)
+  *.html              one file per page in the flow
+  demo.js             wires the page to the platform double and the bridge
+site/public/demos/_shared/
+  bridge.js           the demo side of the sandbox bridge (hand-written)
+  demo.css, relay.*   shared styles, and the Relay page both SaaS demos use
+  runtime.js          generated: the recorder from site/src/lib/sandbox.ts
+  plugins/<name>.js   generated: the plugin's built CDN bundle, copied from dist/
+  fixtures/<name>.js  generated: the plugin's fixtures, as DDRumDemoFixtures['<name>']
+```
+
+Served at `/datadog-rum-community-plugins/demos/<name>/`. Relative paths only (the site is served from a subpath). The generated files are built by `scripts/build-demos.mjs` (part of `npm run build` and `site:build`) and are gitignored, so a demo can never run a stale plugin.
+
+### What each kind of plugin must include
+
+| Plugin kind | Pages | Interactions that must fire an event |
+| --- | --- | --- |
+| Commerce (`shopify`, `woocommerce`, future `bigcommerce`, …) | Product list, single product, cart, checkout, thank-you | Add from the grid, add from the product page with a quantity, remove from cart, choose shipping, choose a payment method (one must be a card form, to show stripping), place order, **reload the thank-you page** (shows dedupe), product search |
+| Engagement / generic kit | One long SaaS marketing page | Scroll past 50% and 90%, internal CTA, outbound link, a link with `?token=` in it, `mailto:` and `tel:` links, a PDF download, an HTML5 video (start, 50%, complete), a newsletter form with an email field |
+| Consent (`onetrust`, future `cookiebot`, …) | The engagement page with a generic, vendor-style banner over it | Accept all, reject all, a preferences dialog with per-category toggles, and a persistent "Cookie settings" button to withdraw |
+| Login / identity (`auth0`, …) | Sign-in, sign-up, signed-in account page | Log in, sign up, log out; identity appears on `setUser` only |
+
+Use a fictional brand per demo (*Thread & Co.*, *Northline*, *Relay*), not the platform's own theme or logo. Product and video imagery is a striped placeholder with a monospace label, never a real photo.
+
+When the platform emits nothing in the browser for a step, drive it through the plugin's own API for that step, the way a real install does (WooCommerce's cart and checkout go through `window.DD_RUM_PLUGINS.woocommerce.createCheckoutReporter`). Never fake the event, and never call a RUM API from the demo.
+
+### How a demo page talks to the sandbox
+
+1. The page loads `_shared/runtime.js`, the plugin's **built** bundle and its fixtures, then calls `startDemo()` from `bridge.js` and `demo.init(window.DD_RUM_PLUGINS.<name>(demo.options))`. The plugin runs against the sandbox's recording `publicApi`. RUM is never initialized and no application ID or client token is ever present.
+2. User actions dispatch the **real platform event shape**, built from the plugin's `fixtures/*.json` (e.g. `document.body.dispatchEvent(new CustomEvent('wc-blocks_added_to_cart', { detail }))`, or a publish on the Shopify `analytics` double). Don't call `addAction` from the demo; the plugin must do the mapping or the demo proves nothing. Wrap a dispatch in `demo.as(source, fn, { payload })` so the feed can say where a call came from and what the payload carried that was stripped.
+3. Every recorded call, refusals included, is posted to the parent:
+   ```js
+   parent.postMessage({ type: 'ddrum-sandbox:call', plugin: '<name>', page: 'Checkout', call }, location.origin)
+   ```
+   Each page load posts `ddrum-sandbox:ready`, and a finished scenario posts `ddrum-sandbox:done`. The sandbox ignores messages from any other origin or frame.
+4. The sandbox posts options and commands down:
+   ```js
+   iframe.contentWindow.postMessage({ type: 'ddrum-sandbox:configure', options, platform }, location.origin) // restarts the session
+   iframe.contentWindow.postMessage({ type: 'ddrum-sandbox:play', scenario: 'happy-path' }, location.origin)
+   ```
+   `options` is exactly what the plugin is called with, which is also what the generated `init()` prints. `platform` holds the doubles' state (Shopify's Customer Privacy API).
+5. Every scenario in `site/src/lib/sandbox-scenarios.json` must be playable: `demo.js` exports `scenarios: Record<id, step[]>`, where each step drives the real UI (`d.click`, `d.follow`, `d.type`, `d.scrollTo`, `d.reload`). Steps are an array rather than one async function because a scenario crosses page loads; the bridge saves its place in `sessionStorage` and resumes on the next page.
+6. `demo.js` also exports `coverage: { reachable }`, naming the interaction that reaches each action the plugin declares.
+
+Opened directly (not framed), the demo shows its own small call log in a corner, so "Open in new tab" still teaches something.
+
+### Checks
+
+- `npm run lint:demos` (part of `npm run verify`): every `packages/plugin-*` has `site/public/demos/<name>/index.html` and `demo.js`; every scenario in `sandbox-scenarios.json` exists in `demo.js` `scenarios`; every action in the plugin's `actions` is listed in `coverage`; no demo calls a RUM API, holds a credential-shaped key or uses an absolute path.
+- The browser test project (`site/test/demos.integration.test.ts`) loads each demo, plays every scenario, and asserts the posted calls match `fixtures/.generated/events.json` for the actions they share, and that every `coverage.reachable` action is actually sent by some scenario.
 
 ## Privacy rules (enforced by the conformance suite)
 
@@ -107,6 +167,7 @@ test can stand in for.
 ### Watch items
 
 - **Shopify sits at 4.99 KB against its 5 KB budget.** The per-family split bought the headroom back once; there is no second trick of that size. The next mapping added to it needs either a trim or a declared budget.
+- **WooCommerce sits at 4.97 KB against its 5 KB budget**, up from 4.66 KB once the CDN bundle carried `createCheckoutReporter`. Same rule as Shopify: the next addition needs a trim or a declared budget.
 - **Engagement video is HTML5 only.** YouTube and Vimeo are iframes needing their player APIs; `video_provider` exists so they can be added without a schema change.
 - **Engagement scroll thresholds reset on `popstate`, not on a `pushState` route change.** Observing that means patching `history`, which the plugin will not do to a merchant's page.
 - **OneTrust's callback names are still unconfirmed against vendor docs**, as the PRD flagged. The adapter listens on all four known signals and reads the state directly as a fallback, so one firing is enough — but this should still be checked against OneTrust's own documentation.

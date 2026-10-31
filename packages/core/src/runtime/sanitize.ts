@@ -40,6 +40,22 @@ export function isBlockedKey(key: string): boolean {
   return BLOCKED_KEY_PATTERNS.some((pattern) => pattern.test(normalized))
 }
 
+/**
+ * Every key anywhere in a payload that `isBlockedKey` refuses, in first-seen order. Used to say
+ * what was stripped (the sandbox feed, the plugin pages), never to decide what is sent.
+ */
+export function blockedKeys(payload: unknown, found: string[] = [], depth = 0): string[] {
+  if (!payload || typeof payload !== 'object' || depth > MAX_DEPTH + 2) return found
+  for (const [key, value] of Object.entries(payload as Record<string, unknown>)) {
+    if (isBlockedKey(key)) {
+      if (!found.includes(key)) found.push(key)
+    } else if (value && typeof value === 'object') {
+      blockedKeys(value, found, depth + 1)
+    }
+  }
+  return found
+}
+
 function truncate(value: string): string {
   return value.length > MAX_STRING_LENGTH ? value.slice(0, MAX_STRING_LENGTH) : value
 }

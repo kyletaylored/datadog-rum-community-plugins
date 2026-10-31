@@ -26,6 +26,7 @@ export {
   MAX_DEPTH,
   MAX_ITEMS,
   MAX_STRING_LENGTH,
+  blockedKeys,
   count,
   isBlockedKey,
   money,

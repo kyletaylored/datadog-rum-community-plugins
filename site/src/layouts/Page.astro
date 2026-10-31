@@ -18,13 +18,15 @@ interface Props {
   lede?: string
   back?: { href: string; label: string }
   docs?: boolean
+  /** A wider bounding box (86rem) for a workspace page such as the sandbox. */
+  wide?: boolean
 }
 
-const { title, description, heading = title, lede, back, docs = false } = Astro.props
+const { title, description, heading = title, lede, back, docs = false, wide = false } = Astro.props
 const hasLede = lede !== undefined || Astro.slots.has('lede')
 ---
 
-<Base title={title} description={description} docs={docs}>
+<Base title={title} description={description} docs={docs} wide={wide}>
   <header class="page-head">
     {back && <p class="small"><a href={url(back.href)}>← {back.label}</a></p>}
     <h1><slot name="heading">{heading}</slot></h1>

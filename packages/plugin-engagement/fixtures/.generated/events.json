@@ -26,7 +26,7 @@
           "type": "boolean"
         }
       ],
-      "occurrences": 4,
+      "occurrences": 8,
       "example": {
         "link_type": "outbound",
         "outbound": true,
@@ -59,7 +59,7 @@
           "type": "string"
         }
       ],
-      "occurrences": 1,
+      "occurrences": 2,
       "example": {
         "file_name": "q3-report.pdf",
         "file_extension": "pdf",
@@ -80,7 +80,7 @@
           "type": "string"
         }
       ],
-      "occurrences": 1,
+      "occurrences": 2,
       "example": {
         "form_id": "newsletter",
         "form_name": "Newsletter signup"
@@ -102,7 +102,7 @@
           "type": "string"
         }
       ],
-      "occurrences": 2,
+      "occurrences": 4,
       "example": {
         "form_id": "newsletter",
         "form_name": "Newsletter signup",
@@ -117,7 +117,7 @@
           "type": "string"
         }
       ],
-      "occurrences": 1,
+      "occurrences": 2,
       "example": {
         "video_title": "Product tour"
       }
@@ -134,7 +134,7 @@
           "type": "string"
         }
       ],
-      "occurrences": 3,
+      "occurrences": 6,
       "example": {
         "video_percent": 10,
         "video_title": "Product tour"
@@ -144,6 +144,10 @@
       "name": "engagement.video_start",
       "attributes": [
         {
+          "name": "video_duration",
+          "type": "integer"
+        },
+        {
           "name": "video_provider",
           "type": "string"
         },
@@ -152,10 +156,11 @@
           "type": "string"
         }
       ],
-      "occurrences": 1,
+      "occurrences": 2,
       "example": {
         "video_title": "Product tour",
-        "video_provider": "html5"
+        "video_provider": "html5",
+        "video_duration": 212
       }
     },
     {
@@ -170,7 +175,7 @@
           "type": "string"
         }
       ],
-      "occurrences": 1,
+      "occurrences": 2,
       "example": {
         "form_id": "newsletter",
         "form_name": "Newsletter signup"
@@ -185,5 +190,305 @@
   "rumApis": [
     "addAction",
     "setGlobalContextProperty"
-  ]
+  ],
+  "journey": {
+    "options": {
+      "consent": "ignore"
+    },
+    "init": [
+      {
+        "api": "setGlobalContextProperty",
+        "label": "commerce.platform",
+        "detail": "engagement"
+      },
+      {
+        "api": "setGlobalContextProperty",
+        "label": "commerce.plugin_version",
+        "detail": "0.2.0"
+      },
+      {
+        "api": "setGlobalContextProperty",
+        "label": "commerce.schema_version",
+        "detail": "1.1.0"
+      }
+    ],
+    "steps": [
+      {
+        "label": "Reads half the page",
+        "fixture": "reads half the page",
+        "event": "scroll",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "engagement.scroll",
+            "detail": {
+              "percent_scrolled": 25
+            }
+          },
+          {
+            "api": "addAction",
+            "label": "engagement.scroll",
+            "detail": {
+              "percent_scrolled": 50
+            }
+          }
+        ]
+      },
+      {
+        "label": "Reads to the bottom",
+        "fixture": "reads to the bottom",
+        "event": "scroll",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "engagement.scroll",
+            "detail": {
+              "percent_scrolled": 75
+            }
+          },
+          {
+            "api": "addAction",
+            "label": "engagement.scroll",
+            "detail": {
+              "percent_scrolled": 90
+            }
+          }
+        ]
+      },
+      {
+        "label": "Clicks an outbound link",
+        "fixture": "clicks an outbound link",
+        "event": "click",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "engagement.click",
+            "detail": {
+              "link_type": "outbound",
+              "outbound": true,
+              "link_text": "See pricing",
+              "link_domain": "partner.example.org",
+              "link_path": "/pricing"
+            },
+            "stripped": [
+              "the query string"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Clicks a link carrying an access token",
+        "fixture": "clicks a link carrying an access token",
+        "event": "click",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "engagement.click",
+            "detail": {
+              "link_type": "outbound",
+              "outbound": true,
+              "link_text": "Open portal",
+              "link_domain": "portal.example.org",
+              "link_path": "/account"
+            },
+            "stripped": [
+              "the query string"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Clicks an email address",
+        "fixture": "clicks an email address",
+        "event": "click",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "engagement.click",
+            "detail": {
+              "link_type": "email",
+              "outbound": false,
+              "link_text": "Email sales"
+            },
+            "stripped": [
+              "the address"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Clicks a phone number",
+        "fixture": "clicks a phone number",
+        "event": "click",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "engagement.click",
+            "detail": {
+              "link_type": "phone",
+              "outbound": false,
+              "link_text": "Call us"
+            },
+            "stripped": [
+              "the address"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Clicks an internal link",
+        "fixture": "clicks an internal link",
+        "event": "click",
+        "calls": []
+      },
+      {
+        "label": "Downloads a report",
+        "fixture": "downloads a report",
+        "event": "click",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "engagement.file_download",
+            "detail": {
+              "file_name": "q3-report.pdf",
+              "file_extension": "pdf",
+              "link_domain": "shop.example.com",
+              "link_path": "/files/q3-report.pdf",
+              "link_text": "Download the Q3 report"
+            },
+            "stripped": [
+              "the query string"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Starts a video",
+        "fixture": "starts a video",
+        "event": "play",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "engagement.video_start",
+            "detail": {
+              "video_title": "Product tour",
+              "video_provider": "html5",
+              "video_duration": 212
+            }
+          }
+        ]
+      },
+      {
+        "label": "Watches half the video",
+        "fixture": "watches half the video",
+        "event": "timeupdate",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "engagement.video_progress",
+            "detail": {
+              "video_percent": 10,
+              "video_title": "Product tour"
+            }
+          },
+          {
+            "api": "addAction",
+            "label": "engagement.video_progress",
+            "detail": {
+              "video_percent": 25,
+              "video_title": "Product tour"
+            }
+          },
+          {
+            "api": "addAction",
+            "label": "engagement.video_progress",
+            "detail": {
+              "video_percent": 50,
+              "video_title": "Product tour"
+            }
+          }
+        ]
+      },
+      {
+        "label": "Finishes the video",
+        "fixture": "finishes the video",
+        "event": "ended",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "engagement.video_complete",
+            "detail": {
+              "video_title": "Product tour"
+            }
+          }
+        ]
+      },
+      {
+        "label": "Starts filling the newsletter form",
+        "fixture": "starts filling the newsletter form",
+        "event": "focusin",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "engagement.form_start",
+            "detail": {
+              "form_id": "newsletter",
+              "form_name": "Newsletter signup"
+            }
+          }
+        ]
+      },
+      {
+        "label": "Submits the newsletter form",
+        "fixture": "submits the newsletter form",
+        "event": "submit",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "engagement.form_submit",
+            "detail": {
+              "form_id": "newsletter",
+              "form_name": "Newsletter signup",
+              "form_destination": "hooks.example.com"
+            },
+            "stripped": [
+              "the email value",
+              "the password value"
+            ]
+          },
+          {
+            "api": "addAction",
+            "label": "lead.generate_lead",
+            "detail": {
+              "form_id": "newsletter",
+              "form_name": "Newsletter signup"
+            },
+            "stripped": [
+              "the email value",
+              "the password value"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Submits the site search",
+        "fixture": "submits an ordinary form",
+        "event": "submit",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "engagement.form_submit",
+            "detail": {
+              "form_id": "search",
+              "form_name": "Site search",
+              "form_destination": "shop.example.com"
+            },
+            "stripped": [
+              "the q value"
+            ]
+          }
+        ]
+      }
+    ]
+  }
 }

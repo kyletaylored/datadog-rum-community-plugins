@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
-    "build:site": "node ../scripts/gen-schema-docs.mjs && astro build",
+    "dev": "node ../scripts/build-demos.mjs && astro dev",
+    "build:site": "node ../scripts/gen-schema-docs.mjs && node ../scripts/build-demos.mjs && astro build",
     "preview": "astro preview",
     "check": "astro check"
   },

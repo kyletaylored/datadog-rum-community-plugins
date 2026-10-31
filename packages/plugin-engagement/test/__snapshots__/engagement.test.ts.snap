@@ -56,6 +56,7 @@ exports[`conformance > matches the committed snapshot, and generates the publish
   {
     "api": "addAction",
     "context": {
+      "video_duration": 212,
       "video_provider": "html5",
       "video_title": "Product tour",
     },

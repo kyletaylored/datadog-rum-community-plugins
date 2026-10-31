@@ -6,6 +6,7 @@ import {
   createFakeRum,
   formatFindings,
   loadFixtures,
+  recordJourney,
   writeEventReport,
 } from '../../test-harness/src/index.js'
 import type { PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
@@ -209,7 +210,7 @@ describe('OptanonWrapper', () => {
 })
 
 describe('conformance', () => {
-  it('passes the shared suite, and emits no actions of its own', () => {
+  it('passes the shared suite, and emits no actions of its own', async () => {
     const rum = createFakeRum({})
     oneTrustPlugin().onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
     banner().set(',C0001,C0002,')
@@ -217,6 +218,21 @@ describe('conformance', () => {
     expect(rum.actions()).toHaveLength(0)
     // Generated even though the list is empty: the gallery states plainly that a consent adapter
     // sends no actions of its own, rather than leaving the section blank.
-    writeEventReport(packageDir, 'onetrust', rum)
+    writeEventReport(
+      packageDir,
+      'onetrust',
+      rum,
+      await recordJourney({
+        platform: 'onetrust',
+        journey: manifest.journey,
+        fixtures,
+        options: {},
+        start: async ({ publicApi, initConfiguration }) => {
+          delete (globalThis as Record<string, unknown>).OnetrustActiveGroups
+          await oneTrustPlugin({ debug: true }).onInit?.({ initConfiguration, publicApi })
+          return (fixture) => banner().set((fixture.payload as { activeGroups: string }).activeGroups)
+        },
+      }),
+    )
   })
 })

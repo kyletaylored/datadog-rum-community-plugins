@@ -10,6 +10,7 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { familyOf } from '@kyletaylored/datadog-rum-community-plugins'
 import type { FakeRum } from './fakePublicApi.js'
+import type { JourneyReport } from './journey.js'
 
 export interface EventReportEntry {
   /** Action name as sent, prefix included. */
@@ -32,6 +33,11 @@ export interface EventReport {
   actions: EventReportEntry[]
   globalContext: Record<string, unknown>
   rumApis: string[]
+  /**
+   * The manifest's `journey`, replayed step by step: what each fixture made the adapter send or
+   * refuse. The plugin page's "What a visit sends" is rendered from this.
+   */
+  journey?: JourneyReport
 }
 
 /** The declared type for an attribute, falling back to the observed one when it is not in the schema. */
@@ -44,7 +50,7 @@ function typeOf(actionName: string, key: string, value: unknown): string {
 }
 
 /** Build the report from a completed fixture run. */
-export function buildEventReport(plugin: string, rum: FakeRum): EventReport {
+export function buildEventReport(plugin: string, rum: FakeRum, journey?: JourneyReport): EventReport {
   const byName = new Map<string, EventReportEntry>()
 
   for (const action of rum.actions()) {
@@ -80,6 +86,7 @@ export function buildEventReport(plugin: string, rum: FakeRum): EventReport {
     actions: [...byName.values()].sort((a, b) => a.name.localeCompare(b.name)),
     globalContext: rum.globalContext(),
     rumApis: rum.apisUsed(),
+    ...(journey ? { journey } : {}),
   }
 }
 
@@ -90,8 +97,8 @@ export function buildEventReport(plugin: string, rum: FakeRum): EventReport {
  * file is stale, so a mapping change without a regenerated report fails the build rather than
  * shipping docs that describe the old behaviour.
  */
-export function writeEventReport(packageDir: string, plugin: string, rum: FakeRum): string {
-  const report = buildEventReport(plugin, rum)
+export function writeEventReport(packageDir: string, plugin: string, rum: FakeRum, journey?: JourneyReport): string {
+  const report = buildEventReport(plugin, rum, journey)
   const path = join(packageDir, 'fixtures/.generated/events.json')
   const serialized = `${JSON.stringify(report, null, 2)}\n`
 
