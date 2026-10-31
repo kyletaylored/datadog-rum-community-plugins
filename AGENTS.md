@@ -91,7 +91,46 @@ Served at `/datadog-rum-community-plugins/demos/<name>/`. Relative paths only (t
 | Consent (`onetrust`, future `cookiebot`, …) | The engagement page with a generic, vendor-style banner over it | Accept all, reject all, a preferences dialog with per-category toggles, and a persistent "Cookie settings" button to withdraw |
 | Login / identity (`auth0`, …) | Sign-in, sign-up, signed-in account page | Log in, sign up, log out; identity appears on `setUser` only |
 
-Use a fictional brand per demo (*Thread & Co.*, *Northline*, *Relay*), not the platform's own theme or logo. Product and video imagery is a striped placeholder with a monospace label, never a real photo.
+### Demo assets: one standard for every demo
+
+The demos should look like a set: recognisably different stores and sites, built the same way, so a new one takes an afternoon and nobody has to decide anything twice. `npm run lint:demos` enforces the rules marked *(checked)*.
+
+**Brand.** One fictional brand per demo, recorded here when it is added. Never the platform's own name, theme, logo or colours: a demo is not the platform's storefront and must not look like one.
+
+| Demo | Brand | Kind | Look |
+| --- | --- | --- | --- |
+| `woocommerce` | Thread & Co. | Clothing store | Warm paper `#fbf9f6`, ink `#1f1b16`, serif headings, 4px radius |
+| `shopify` | Northline | Clothing store | White, deep green `#1e3a2f`, uppercase tracked wordmark, 10px radius |
+| `engagement` | Relay | SaaS (status pages) | `#fbfbfd`, ink `#14161f`, accent `#2f6bff` |
+| `onetrust` | Relay, with a generic consent banner | SaaS | As Relay, banner in neutral white |
+
+A new commerce plugin gets a new clothing brand; a new SaaS-side plugin (login, support, forms) reuses Relay, the way OneTrust does, so its events show up on a page people already know.
+
+**Wordmark, not logo.** The brand is its name set in text, with at most a plain coloured square beside it, as Relay has. No drawn logos, icons or mascots.
+
+**Imagery** *(checked)*. No `<img>` and no image files. Product shots and video frames use the shared `.ph` placeholder from `_shared/demo.css`: a striped block with a short monospace label (`product shot`, `item`, `video · Relay in two minutes`). The stripes take the demo's `--ph-a` and `--ph-b` colours.
+
+**Nothing from outside the site** *(checked)*. No remote scripts, stylesheets, fonts or images, and no `@import` or `@font-face`. Use the system font stacks. The demos load only their own files, `_shared/`, and the generated runtime, plugin bundle and fixtures. Outbound *links* in a page's content are fine (the engagement demo needs them); outbound *loads* are not.
+
+**Tokens** *(checked)*. Each demo's colours are custom properties on `:root`, under these names, in its `style.css` or a shared stylesheet it links (`_shared/relay.css`):
+
+| Token | For |
+| --- | --- |
+| `--bg` | Page background |
+| `--ink` | Text and primary buttons |
+| `--dim` | Secondary text |
+| `--line` | Borders and rules |
+| `--ph-a`, `--ph-b`, `--ph-ink` | Placeholder stripes and their label |
+
+Add others as the brand needs (`--panel`, `--btn`, `--accent`), but these always exist, so shared styles can rely on them.
+
+**Shared files** *(checked)*. Every page links `../_shared/demo.css`, which holds the placeholder, the scenario highlight and the resets, and its `demo.js` imports `../_shared/bridge.js`. Behaviour two demos share goes in `_shared/` (as `relay.js` does), not into a copy.
+
+**Data comes from the fixtures.** Product names, SKUs, prices, cart totals, order IDs and payloads are read from `DDRumDemoFixtures`, never typed into the page. The commerce demos share one catalogue (Classic Tee, Logo Cap, Crew Socks), because both platforms' fixtures record it. When a demo needs a value no fixture has (a second shipping tier, say), keep it in the recorded shape and next to the fixture data in `demo.js`, so it is easy to replace with a recording later.
+
+**Marked as a demo** *(checked)*. Every page's `<title>` says it is a demo, e.g. `Cart · Thread & Co. (a demo store)`, so a tab or a shared link can't pass for a real shop.
+
+**Pages and copy.** The pages each kind must have are in the table above. Keep copy short and plausible, in the brand's voice, with no lorem ipsum. Prices are in USD, as the fixtures record them.
 
 When the platform emits nothing in the browser for a step, drive it through the plugin's own API for that step, the way a real install does (WooCommerce's cart and checkout go through `window.DD_RUM_PLUGINS.woocommerce.createCheckoutReporter`). Never fake the event, and never call a RUM API from the demo.
 
@@ -117,7 +156,7 @@ Opened directly (not framed), the demo shows its own small call log in a corner,
 
 ### Checks
 
-- `npm run lint:demos` (part of `npm run verify`): every `packages/plugin-*` has `site/public/demos/<name>/index.html` and `demo.js`; every scenario in `sandbox-scenarios.json` exists in `demo.js` `scenarios`; every action in the plugin's `actions` is listed in `coverage`; no demo calls a RUM API, holds a credential-shaped key or uses an absolute path.
+- `npm run lint:demos` (part of `npm run verify`): every `packages/plugin-*` has `site/public/demos/<name>/index.html` and `demo.js`; every scenario in `sandbox-scenarios.json` exists in `demo.js` `scenarios`; every action in the plugin's `actions` is listed in `coverage`; no demo calls a RUM API, holds a credential-shaped key or uses an absolute path. It also enforces the *(checked)* demo-asset rules above: `_shared/demo.css` and `bridge.js` linked, the required tokens defined, every `<title>` saying "demo", and no images, image or font files, or remote loads.
 - The browser test project (`site/test/demos.integration.test.ts`) loads each demo, plays every scenario, and asserts the posted calls match `fixtures/.generated/events.json` for the actions they share, and that every `coverage.reachable` action is actually sent by some scenario.
 
 ## Plugin pages: what to write
