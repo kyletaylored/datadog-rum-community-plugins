@@ -23,7 +23,7 @@ datadogRum.init({
 Always an exact version with an SRI hash. There is no auto-updating `latest` URL; pin a version.
 
 ```html
-<script src="https://www.datadoghq-browser-agent.com/<site>/v6/datadog-rum.js"></script>
+<script src="https://www.datadoghq-browser-agent.com/<site>/v7/datadog-rum.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-__NAME__@0.1.0/dist/plugin.js"
         integrity="sha384-REPLACE_WITH_THE_HASH_FROM_THE_RELEASE" crossorigin="anonymous"></script>
 <script>
