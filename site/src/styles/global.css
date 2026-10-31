@@ -130,6 +130,9 @@ a:hover { color: var(--text); }
 
 code, pre, kbd { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; }
 code { font-size: 0.875em; background: var(--code-bg); border: 1px solid var(--border); padding: 0.1em 0.38em; border-radius: 6px; }
+/* Identifiers such as checkout_contact_info_submitted are one long word; in running text let them
+   break rather than push a phone layout sideways. */
+p code, li code, td code { overflow-wrap: anywhere; }
 pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; overflow-x: auto; margin: 0 0 1.25rem; font-size: 0.82rem; line-height: 1.6; }
 pre code { background: none; border: none; padding: 0; font-size: inherit; }
 
@@ -425,7 +428,9 @@ tbody th { font-weight: 620; color: var(--text); white-space: nowrap; }
    Docs shell: sticky sidebar
    ========================================================================== */
 .docs { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 2.5rem; align-items: start; }
-@media (max-width: 64rem) { .docs { grid-template-columns: 1fr; gap: 1.25rem; } }
+/* minmax(0, …): a plain 1fr column grows to its widest code block or table, which on a phone
+   pushed the docs pages to 937px. This lets those scroll inside their own box instead. */
+@media (max-width: 64rem) { .docs { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; } }
 
 .docs-nav { position: sticky; top: 5rem; font-size: 0.9rem; }
 @media (max-width: 64rem) {
