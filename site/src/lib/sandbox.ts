@@ -200,8 +200,9 @@ export function pluginOptions(plugin: string, state: SandboxState, manifestOptio
 
   const options: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(wanted)) {
-    // An option missing from the manifest has no declared default, so it is always printed.
-    if (!defaults.has(key) || defaults.get(key) !== value) options[key] = value
+    // Only options this plugin declares: the sandbox's commerce controls mean nothing to a
+    // learning plugin, and printing them would hand a merchant options the plugin ignores.
+    if (defaults.has(key) && defaults.get(key) !== value) options[key] = value
   }
   return options
 }

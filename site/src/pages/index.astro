@@ -9,11 +9,12 @@ const featured = order
   .map((name) => plugins.find((plugin) => plugin.name === name))
   .filter((plugin) => plugin !== undefined)
 
-const familyIcon: Record<string, 'cart' | 'shield' | 'user' | 'puzzle' | 'bolt'> = {
+const familyIcon: Record<string, 'cart' | 'shield' | 'user' | 'puzzle' | 'bolt' | 'check'> = {
   commerce: 'cart',
   engagement: 'bolt',
   consent: 'shield',
   identity: 'user',
+  learning: 'check',
 }
 
 const guarantees = [

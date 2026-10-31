@@ -12,11 +12,12 @@ const sorted = [
 
 const families = [...new Set(plugins.map((plugin) => plugin.family))].sort()
 const tierLabel: Record<string, string> = { seed: 'Maintainer', verified: 'Verified', listed: 'Community' }
-const familyIcon: Record<string, 'cart' | 'shield' | 'user' | 'puzzle' | 'bolt'> = {
+const familyIcon: Record<string, 'cart' | 'shield' | 'user' | 'puzzle' | 'bolt' | 'check'> = {
   commerce: 'cart',
   engagement: 'bolt',
   consent: 'shield',
   identity: 'user',
+  learning: 'check',
 }
 
 const planned = [

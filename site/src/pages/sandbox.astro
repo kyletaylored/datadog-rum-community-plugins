@@ -771,6 +771,12 @@ const chevron = 'M5 7.5 10 12.5 15 7.5'
         }]
       }
       if (name === 'engagement') return [{ title: 'Consent', items: [accepted] }]
+      if (name === 'learndash') {
+        return [
+          { title: 'Consent', items: [accepted] },
+          { title: 'Identity', items: [{ kind: 'toggle', key: 'identifyUsers', label: 'Identify the learner', code: 'identifyUsers' }] },
+        ]
+      }
       const consent: Control = name === 'shopify'
         ? { kind: 'choice', key: 'customerPrivacy', label: 'Shopify consent API', code: 'customerPrivacy', choices: [['absent', 'Not present'], ['allowed', 'Allows'], ['denied', 'Blocks']] }
         : accepted
