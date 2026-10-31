@@ -118,6 +118,14 @@ Opened directly (not framed), the demo shows its own small call log in a corner,
 - `npm run lint:demos` (part of `npm run verify`): every `packages/plugin-*` has `site/public/demos/<name>/index.html` and `demo.js`; every scenario in `sandbox-scenarios.json` exists in `demo.js` `scenarios`; every action in the plugin's `actions` is listed in `coverage`; no demo calls a RUM API, holds a credential-shaped key or uses an absolute path.
 - The browser test project (`site/test/demos.integration.test.ts`) loads each demo, plays every scenario, and asserts the posted calls match `fixtures/.generated/events.json` for the actions they share, and that every `coverage.reachable` action is actually sent by some scenario.
 
+## Plugin pages: what to write
+
+The plugin page is generated. One field in `plugin.json` drives it and is required:
+
+- `journey`: ordered steps, each `{ "label": "Adds 2 t-shirts to the cart", "fixture": "added to cart" }`. Labels are a visitor's action in plain words. A fixture may repeat (a reloaded thank-you page). The snapshot test replays the journey through `recordJourney` and writes each step's calls, refusals and stripped keys to `events.json`; `validate-manifests` checks every named fixture exists.
+
+What each action feeds in Datadog (metrics, dashboard widgets, monitors) is derived from `assets/` by `site/src/lib/datadogAssets.ts`; don't hand-write it.
+
 ## Privacy rules (enforced by the conformance suite)
 
 - Never read DOM inputs or send payment data. Strip card fields even if a platform payload includes them.

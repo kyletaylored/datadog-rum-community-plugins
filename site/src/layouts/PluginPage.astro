@@ -1,7 +1,8 @@
----
-/**
- * The page for one plugin: header, install, the generated event list, footprint, options,
- * compatibility and verify steps, all from the plugin's `plugin.json` and fixture run.
+---/**
+ * The page for one plugin, journey first: what a visit sends, step by step; where it shows up in
+ * Datadog; then options, footprint, compatibility and the attribute reference. Every value comes
+ * from the plugin's `plugin.json`, its fixture run (`fixtures/.generated/events.json`) and the
+ * asset pack in `assets/`, never from hand-written copy.
  *
  * `pages/plugins/[plugin].astro` renders every plugin with it. A plugin that needs more than the
  * manifest can say gets a hand-written `pages/plugins/<name>.astro` that uses this layout and puts
@@ -12,18 +13,173 @@ import Page from './Page.astro'
 import InstallTabs from '../components/InstallTabs.astro'
 import Footprint from '../components/Footprint.astro'
 import { url } from '../lib/url'
+import { dashboard, metricsFor, monitors } from '../lib/datadogAssets'
 import type plugins from '../data/plugins.json'
+import schema from '../data/schema.json'
 
 interface Props {
   plugin: (typeof plugins)[number]
 }
 
+type Call = { api: string; label?: string; detail?: unknown; blocked?: string; stripped?: string[] }
+type JourneyReport = { options: Record<string, unknown>; init: Call[]; steps: { label: string; fixture: string; event: string; calls: Call[] }[] }
+
 const { plugin } = Astro.props
+const journey = (plugin as { journeyReport?: JourneyReport | null }).journeyReport ?? null
+const isConsent = plugin.family === 'consent'
 
 // Taken from the manifest, not derived from the slug: `woocommerce` exports `wooCommercePlugin`.
 const fnName = plugin.exportName
 const tierLabel: Record<string, string> = { seed: 'Maintainer', verified: 'Verified community', listed: 'Community' }
----
+const platformName = plugin.platforms?.[0]?.name ?? plugin.title ?? plugin.name
+
+// ---- What a visit sends ----------------------------------------------------------------------
+
+const ACTION_APIS = new Set(['addAction'])
+const counted = (calls: Call[]) => {
+  const tally = new Map<string, number>()
+  for (const call of calls) if (call.api !== 'not sent') tally.set(call.api, (tally.get(call.api) ?? 0) + 1)
+  return [...tally].map(([api, n]) => (n > 1 ? `${api} ×${n}` : api)).join(', ')
+}
+
+/** Session context as it lands on every event: context keys as set, the user under `usr.*`. */
+function sessionContext(calls: Call[]) {
+  const context: Record<string, unknown> = {}
+  for (const call of calls) {
+    if (call.api === 'setGlobalContextProperty' && call.label) context[call.label] = call.detail
+    if (call.api === 'setUser' && call.detail) {
+      for (const [key, value] of Object.entries(call.detail as Record<string, unknown>)) context[`usr.${key}`] = value
+    }
+    if (call.api === 'init' && call.label) {
+      const [, key, value] = /(\w+) = '([^']+)'/.exec(call.label) ?? []
+      if (key) context[`initConfiguration.${key}`] = value
+    }
+  }
+  return context
+}
+
+const list = (items: string[]) => (items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`)
+const dedupeHours = schema.limits.dedupeTtlHours
+
+type Row = {
+  n: number
+  kind: 'context' | 'sent' | 'refused' | 'quiet'
+  label: string
+  source: string
+  action: string
+  api: string
+  payloads: unknown[]
+  note?: { text: string; tone: 'stop' | 'muted' | 'dim' }
+}
+
+const rows: Row[] = []
+if (journey) {
+  rows.push({
+    n: 0,
+    kind: 'context',
+    label: 'Any page loads',
+    source: plugin.footprint.globals[0] ?? 'onInit',
+    action: 'session context',
+    api: counted(journey.init),
+    payloads: [sessionContext(journey.init)],
+    note: { text: 'Attached to every event in the session, not just this one.', tone: 'muted' },
+  })
+
+  const firstSeen = new Map<string, number>()
+  journey.steps.forEach((step, index) => {
+    const n = index + 1
+    const actions = step.calls.filter((call) => ACTION_APIS.has(call.api))
+    const refused = step.calls.filter((call) => call.blocked)
+    const consent = step.calls.find((call) => call.api === 'setTrackingConsent')
+    const names = [...new Set(actions.map((call) => call.label!))]
+    const repeats = names.map((name) => {
+      const times = actions.filter((call) => call.label === name).length
+      return times > 1 ? `${name} ×${times}` : name
+    })
+
+    let row: Row
+    if (actions.length > 0) {
+      const stripped = [...new Set(actions.flatMap((call) => call.stripped ?? []))]
+      const earlier = names.map((name) => firstSeen.get(name)).find((value) => value !== undefined)
+      row = {
+        n, kind: 'sent', label: step.label, source: step.event, action: repeats.join(', '), api: counted(step.calls),
+        payloads: actions.map((call) => call.detail),
+        note: stripped.length > 0
+          ? { text: `✕ ${list(stripped)} ${stripped.length > 1 ? 'are' : 'is'} in the payload and stripped.`, tone: 'stop' }
+          : earlier !== undefined
+            ? { text: `Same action as step ${earlier}.`, tone: 'muted' }
+            : undefined,
+      }
+    } else if (refused.length > 0) {
+      const reason = refused[0]!.blocked!
+      const dedupe = /^already counted/.test(reason)
+      row = {
+        n, kind: 'refused', label: step.label, source: step.event, action: 'not sent', api: 'refused by the core',
+        payloads: [],
+        note: {
+          text: `${refused.map((call) => call.label).join(', ')}: ${reason}.${dedupe ? ` Purchases dedupe for ${dedupeHours} hours, so revenue is not counted twice.` : ''}`,
+          tone: 'dim',
+        },
+      }
+    } else if (step.calls.length > 0) {
+      row = {
+        n,
+        kind: consent && consent.label !== 'granted' ? 'refused' : consent ? 'sent' : 'context',
+        label: step.label, source: step.event,
+        action: consent ? `setTrackingConsent('${consent.label}')` : 'session context',
+        api: counted(step.calls),
+        payloads: [sessionContext(step.calls)],
+      }
+    } else {
+      row = {
+        n, kind: 'quiet', label: step.label, source: step.event, action: 'nothing sent', api: 'no call', payloads: [],
+        note: { text: 'The plugin made no call for this event.', tone: 'dim' },
+      }
+    }
+    for (const name of names) if (!firstSeen.has(name)) firstSeen.set(name, n)
+    rows.push(row)
+  })
+}
+
+const recorded = new Set(plugin.events.map((event) => event.name))
+const notRecorded = (plugin.actions ?? []).filter((action) => !recorded.has(action))
+
+const intro: Record<string, string> = {
+  commerce: `One shopper's visit, replayed from this plugin's recorded fixtures. Each step is an event ${platformName} already emits; the plugin listens for it and sends one Datadog action. Nothing is added to your theme.`,
+  engagement: `One visitor's time on a page, replayed from this plugin's recorded fixtures. Each step is something the browser already reports; the plugin listens for it and sends a Datadog action. Nothing on the page is instrumented.`,
+  consent: `One visitor answering the cookie banner, replayed from this plugin's recorded fixtures. Each step is a signal ${platformName} already emits; the plugin holds RUM or releases it. It sends no actions of its own.`,
+}
+const replayedWith = journey ? Object.entries(journey.options).map(([key, value]) => `${key}: ${JSON.stringify(value).replace(/"/g, "'")}`) : []
+
+// ---- Where it shows up in Datadog ----------------------------------------------------------------
+
+const actions = plugin.actions ?? []
+const metrics = metricsFor(actions)
+const board = dashboard()
+const usesBoard = metrics.some((metric) => board.metrics.some((name) => name.startsWith(metric.name)))
+const boardMonitors = usesBoard
+  ? monitors().filter((monitor) => metrics.some((metric) => monitor.query.includes(metric.name)) || monitor.query.includes(`@context.${plugin.family}.platform`))
+  : []
+const metricEvents = [...new Set(metrics.map((metric) => metric.action!.replace(/^[a-z]+\./, '')))]
+
+const prefixes = [...new Set(actions.map((action) => action.slice(0, action.indexOf('.') + 1)))]
+const explorerQuery = `@type:action @action.name:${prefixes.length === 1 ? `${prefixes[0]}*` : `(${prefixes.map((prefix) => `${prefix}*`).join(' OR ')})`}`
+const explorerRows = rows
+  .filter((row) => row.kind === 'sent' && row.payloads.length > 0)
+  .flatMap((row) => row.action.split(', ').map((name) => ({ step: row.n, name: name.replace(/ ×\d+$/, ''), value: (row.payloads[0] as { value?: unknown })?.value })))
+  .reverse()
+  .slice(0, 6)
+const consentRows = rows.filter((row) => row.n > 0 && row.kind !== 'quiet')
+
+const metricSource = (metric: (typeof metrics)[number]) =>
+  metric.aggregation === 'distribution'
+    ? `distribution of ${metric.path} on ${metric.action!.replace(/^[a-z]+\./, '')}`
+    : `count of ${metric.action}`
+
+const monitorName = (name: string) => name.replace(/^\[[^\]]+\]\s*/, '')
+const terraformUrl = 'https://github.com/kyletaylored/datadog-rum-community-plugins/blob/main/assets/terraform/generated-metrics.tf'
+
+const contextCount = Object.keys(plugin.globalContext ?? {}).length---
 
 <Page
   title={plugin.title ?? plugin.name}
@@ -49,118 +205,326 @@ const tierLabel: Record<string, string> = { seed: 'Maintainer', verified: 'Verif
 
   <slot />
 
-  <h2>Events this plugin sends</h2>
-  {plugin.events.length === 0 ? (
-    <p class="muted">
-      {plugin.family === 'consent'
-        ? 'None. It holds RUM until the visitor accepts, then reports the accepted categories as session context.'
-        : 'No fixture run recorded yet.'}
-    </p>
+  <h2 class="section">What a visit sends</h2>
+  <p class="intro">{intro[plugin.family] ?? intro.commerce}</p>
+  {replayedWith.length > 0 && <p class="small muted">Replayed with <code>{`{ ${replayedWith.join(', ')} }`}</code>, as the fixture tests run it.</p>}
+
+  {journey ? (
+    <div class="journey">
+      <div class="journey-head" aria-hidden="true">
+        <span></span><span>{plugin.family === 'commerce' ? 'On the store' : 'On the page'}</span><span>Datadog action</span><span>What arrives in @context</span>
+      </div>
+      <ol>
+        {rows.map((row) => (
+          <li class={`journey-row ${row.kind}`}>
+            <span class="n">{row.n}</span>
+            <div>
+              <p class="what">{row.label}</p>
+              <p class="from">from {row.source}</p>
+            </div>
+            <div>
+              <code class="action">{row.action}</code>
+              <p class="api">{row.api}</p>
+            </div>
+            <div>
+              {row.payloads.map((payload) => <pre><code>{JSON.stringify(payload, null, 2)}</code></pre>)}
+              {row.note && <p class={`note ${row.note.tone}`}>{row.note.text}</p>}
+            </div>
+          </li>
+        ))}
+      </ol>
+      <div class="journey-foot">
+        <span>
+          {notRecorded.length > 0 ? (
+            <>Also declared, no fixture recorded yet: {notRecorded.map((action) => <><code>{action}</code>{' '}</>)}</>
+          ) : (
+            'Every declared action has a recorded fixture.'
+          )}
+        </span>
+        <a href={url(`/sandbox/?plugin=${plugin.name}`)}>Click through it in the sandbox →</a>
+      </div>
+    </div>
   ) : (
-    <>
-      <p class="small muted">Generated from this plugin's fixture run, so it is what the code actually does.</p>
-      {plugin.events.map((event) => (
-        <>
-          <h3><code>{event.name}</code></h3>
-          <div class="scroll-x">
-            <table>
-              <thead><tr><th>Attribute</th><th>Type</th></tr></thead>
-              <tbody>
-                {event.attributes.map((attribute) => (
-                  <tr><td><code>{attribute.name}</code></td><td class="muted">{attribute.type}</td></tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <details>
-            <summary class="small muted">Example from the fixtures</summary>
-            <pre><code>{JSON.stringify(event.example, null, 2)}</code></pre>
-          </details>
-        </>
-      ))}
-    </>
+    <p class="muted">No fixture run recorded yet.</p>
   )}
 
-  {Object.keys(plugin.globalContext ?? {}).length > 0 && (
+  <h2 class="section">Where it shows up in Datadog</h2>
+  {isConsent ? (
     <>
-      <h2>Session context it sets</h2>
-      <div class="scroll-x">
-        <table>
-          <thead><tr><th>Property</th><th>Example value</th></tr></thead>
-          <tbody>
-            {Object.entries(plugin.globalContext).map(([key, value]) => (
-              <tr><td><code>{key}</code></td><td class="muted"><code>{JSON.stringify(value)}</code></td></tr>
-            ))}
-          </tbody>
-        </table>
+      <p class="intro">
+        A consent plugin sends no actions. What it changes is which sessions exist at all, and each
+        one that does carries the categories the visitor accepted.
+      </p>
+      <div class="dd-diagram one">
+        <div>
+          <p class="dd-caption">RUM Explorer, sessions</p>
+          <div class="dd-panel">
+            <div class="dd-search"><span class="dd-key">@type</span>:session <span class="dd-key">@context.consent.categories</span>:*</div>
+            <div class="dd-table consent">
+              <div class="dd-th"><span>Step</span><span>Visitor</span><span>consent.categories</span></div>
+              {consentRows.map((row) => (
+                <div class="dd-tr">
+                  <span class="dd-mono dd-dim">{row.n}</span>
+                  <span><i class="dd-dot"></i>{row.label}</span>
+                  <span class="dd-mono">{[(row.payloads[0] as Record<string, unknown> | undefined)?.['consent.categories'] ?? '–'].flat().join(', ')}</span>
+                </div>
+              ))}
+            </div>
+            <div class="dd-foot">A held session sends nothing, so RUM shows opted-in sessions only, never the opt-in rate.</div>
+          </div>
+        </div>
       </div>
     </>
+  ) : (
+    <>
+      <p class="intro">
+        Every action is a RUM event you can search right away.
+        {metrics.length > 0 && (
+          <> Import the asset pack and the {list(metricEvents)} {metricEvents.length > 1 ? 'actions' : 'action'} also become generated metrics{usesBoard ? `, which feed a dashboard and ${boardMonitors.length} monitors` : ''}.</>
+        )}
+      </p>
+      <div class={`dd-diagram ${usesBoard ? 'three' : metrics.length > 0 ? 'two' : 'one'}`}>
+        <div>
+          <p class="dd-caption">1 · RUM Explorer, right away</p>
+          <div class="dd-panel">
+            <div class="dd-search"><span class="dd-key">@type</span>:action <span class="dd-key">@action.name</span>:{explorerQuery.split('@action.name:')[1]}</div>
+            <div class="dd-table">
+              <div class="dd-th"><span>Step</span><span>Action</span><span class="dd-right">Value</span></div>
+              {explorerRows.map((row) => (
+                <div class="dd-tr">
+                  <span class="dd-mono dd-dim">{row.step}</span>
+                  <span class="dd-mono"><i class="dd-dot"></i>{row.name}</span>
+                  <span class="dd-mono dd-right">{row.value === undefined ? '–' : String(row.value)}</span>
+                </div>
+              ))}
+            </div>
+            <div class="dd-foot">Attributes under <span class="dd-key">@context.*</span> · session context on every event</div>
+          </div>
+        </div>
+        {metrics.length > 0 && (
+          <>
+            <span class="dd-arrow" aria-hidden="true">→</span>
+            <div>
+              <p class="dd-caption">2 · Generated metrics</p>
+              <div class="dd-cards">
+                {metrics.map((metric) => (
+                  <div class="dd-panel dd-card">
+                    <p class="dd-mono dd-strong">{metric.name}</p>
+                    <p class="dd-dim">{metricSource(metric)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+        {usesBoard && (
+          <>
+            <span class="dd-arrow" aria-hidden="true">→</span>
+            <div>
+              <p class="dd-caption">3 · Dashboard and monitors</p>
+              <div class="dd-panel dd-board">
+                <p class="dd-strong">{board.title}</p>
+                <div class="dd-values">
+                  {board.queryValues.slice(0, 4).map((widget) => (
+                    <div class="dd-value"><p>{widget.title}</p><p class="dd-mono dd-accent">{widget.formula}</p></div>
+                  ))}
+                </div>
+                {board.funnel && (
+                  <div class="dd-funnel">
+                    <p>{board.funnel.title}</p>
+                    <ol class="dd-steps">
+                      {board.funnel.steps.map((step) => <li>{step}</li>)}
+                    </ol>
+                  </div>
+                )}
+                <ul class="dd-monitors">
+                  {boardMonitors.map((monitor) => <li><i class="dd-ok"></i>{monitorName(monitor.name)}</li>)}
+                </ul>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+      {metrics.length > 0 && (
+        <p class="dd-links">
+          {usesBoard && <a href={url('/docs/datadog-assets/')}>Import the dashboard and monitors →</a>}
+          <a href={terraformUrl}>Terraform for the generated metrics →</a>
+        </p>
+      )}
+    </>
   )}
-
-  <h2>What it touches</h2>
-  <Footprint footprint={plugin.footprint} />
 
   {plugin.options && plugin.options.length > 0 && (
     <>
-      <h2>Options</h2>
-      <div class="scroll-x">
-        <table>
-          <thead><tr><th>Option</th><th>Default</th><th>Effect</th></tr></thead>
-          <tbody>
-            {plugin.options.map((option) => (
-              <tr>
-                <td><code>{option.name}</code></td>
-                <td class="muted"><code>{option.default === null ? 'none' : JSON.stringify(option.default)}</code></td>
-                <td>{option.description}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <h2 class="section">Options</h2>
+      <div class="options-table">
+        {plugin.options.map((option) => (
+          <div class="option-row">
+            <code>{option.name}</code>
+            <code class="muted">{option.default === null ? 'none' : JSON.stringify(option.default)}</code>
+            <span>{option.description}</span>
+          </div>
+        ))}
       </div>
     </>
   )}
 
-  <h2>Compatibility and maintainer</h2>
-  <div class="scroll-x">
-    <table>
-      <tbody>
-        <tr><th scope="row">RUM SDK</th><td><code>@datadog/browser-rum@{plugin.rumSdk}</code></td></tr>
-        <tr><th scope="row">Schema</th><td><code>{plugin.schemaVersion}</code> · <a href={url('/docs/schema/')}>reference</a></td></tr>
-        {plugin.platforms && plugin.platforms.length > 0 && (
-          <tr>
-            <th scope="row">Platforms</th>
-            <td>
-              {plugin.platforms.map((platform) => (
-                <div>
-                  <strong>{platform.name}</strong>
-                  {platform.versions && <> <code>{platform.versions}</code></>}
-                  {platform.notes && <div class="small muted">{platform.notes}</div>}
-                </div>
-              ))}
-            </td>
-          </tr>
-        )}
-        <tr>
-          <th scope="row">Maintainer</th>
-          <td>{plugin.maintainer.name} (<a href={`https://github.com/${plugin.maintainer.github}`}>@{plugin.maintainer.github}</a>)</td>
-        </tr>
-        <tr>
-          <th scope="row">Source</th>
-          <td><a href={`https://github.com/kyletaylored/datadog-rum-community-plugins/tree/main/packages/plugin-${plugin.name}`}>packages/plugin-{plugin.name}</a></td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="two-up">
+    <div>
+      <h2 class="sub">What it touches</h2>
+      <Footprint footprint={plugin.footprint} />
+    </div>
+    <div>
+      <h2 class="sub">Compatibility and maintainer</h2>
+      <div class="scroll-x">
+        <table>
+          <tbody>
+            <tr><th scope="row">RUM SDK</th><td><code>@datadog/browser-rum@{plugin.rumSdk}</code></td></tr>
+            <tr><th scope="row">Schema</th><td><code>{plugin.schemaVersion}</code> · <a href={url('/docs/schema/')}>reference</a></td></tr>
+            {plugin.platforms && plugin.platforms.length > 0 && (
+              <tr>
+                <th scope="row">Platforms</th>
+                <td>
+                  {plugin.platforms.map((platform) => (
+                    <div>
+                      <strong>{platform.name}</strong>
+                      {platform.versions && <> <code>{platform.versions}</code></>}
+                      {platform.notes && <div class="small muted">{platform.notes}</div>}
+                    </div>
+                  ))}
+                </td>
+              </tr>
+            )}
+            <tr>
+              <th scope="row">Maintainer</th>
+              <td>{plugin.maintainer.name} (<a href={`https://github.com/${plugin.maintainer.github}`}>@{plugin.maintainer.github}</a>)</td>
+            </tr>
+            <tr>
+              <th scope="row">Source</th>
+              <td><a href={`https://github.com/kyletaylored/datadog-rum-community-plugins/tree/main/packages/plugin-${plugin.name}`}>packages/plugin-{plugin.name}</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
-  <h2>Verify</h2>
-  <ol class="steps">
-    <li>Add <code>{`{ debug: true }`}</code> and reload — every mapped event prints to the console.</li>
-    <li>
-      Query the RUM Explorer:
-      <pre><code>{plugin.events.length > 0
-        ? `@type:action @action.name:${plugin.events[0].name}`
-        : '@type:session @context.consent.categories:*'}</code></pre>
-    </li>
-    <li>Reconcile against the platform's own report. These are browser-measured and undercount; the bar is within 5%.</li>
-  </ol>
+  <details class="reference">
+    <summary>
+      Attribute reference
+      <span class="muted"> · {plugin.events.length} recorded actions, {contextCount} context properties, generated from the fixtures</span>
+    </summary>
+    <div class="reference-grid">
+      {plugin.events.map((event) => (
+        <div class="ref-card">
+          <p class="ref-head"><code>{event.name}</code></p>
+          {event.attributes.map((attribute) => (
+            <p class="ref-row"><code>{attribute.name}</code><span class="muted">{attribute.type}</span></p>
+          ))}
+        </div>
+      ))}
+      {contextCount > 0 && (
+        <div class="ref-card">
+          <p class="ref-head context">Session context</p>
+          {Object.entries(plugin.globalContext).map(([key, value]) => (
+            <p class="ref-row"><code>{key}</code><span class="muted"><code>{JSON.stringify(value)}</code></span></p>
+          ))}
+        </div>
+      )}
+    </div>
+  </details>
+  <p class="small muted">Full type list for every family lives in the <a href={url('/docs/schema/')}>event schema</a>.</p>
 </Page>
+
+<style>
+  .section { margin-top: 3.5rem; }
+  .intro { color: var(--text-dim); max-width: 46rem; }
+
+  .journey { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); overflow: hidden; margin-top: 1rem; }
+  .journey-head, .journey-row { display: grid; grid-template-columns: 2.5rem minmax(0, 15rem) minmax(0, 15rem) minmax(0, 1fr); column-gap: 1.25rem; }
+  .journey-head { padding: 0.7rem 1.25rem; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .journey ol { list-style: none; margin: 0; padding: 0; }
+  .journey-row { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); align-items: start; }
+  .journey-row p { margin: 0; }
+  .n { width: 1.75rem; height: 1.75rem; border-radius: 999px; display: grid; place-items: center; background: var(--gradient); color: #fff; font-size: 0.8rem; font-weight: 720; }
+  .context .n, .quiet .n { background: var(--border-strong); }
+  .refused .n { background: var(--stop-soft); color: var(--stop); }
+  .what { font-size: 0.95rem; font-weight: 620; }
+  .from { margin-top: 0.15rem !important; font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace); font-size: 0.72rem; color: var(--muted); overflow-wrap: anywhere; }
+  .action { font-size: 0.82rem; font-weight: 600; color: var(--ok); overflow-wrap: anywhere; }
+  .refused .action { color: var(--stop); }
+  .context .action, .quiet .action { color: var(--text-dim); }
+  .api { margin-top: 0.3rem !important; font-size: 0.78rem; color: var(--muted); }
+  .journey-row pre { margin: 0 0 0.4rem; padding: 0.5rem 0.65rem; font-size: 0.74rem; line-height: 1.55; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; }
+  .note { font-size: 0.8rem; }
+  .note.stop { color: var(--stop); }
+  .note.muted { color: var(--muted); }
+  .note.dim { color: var(--text-dim); }
+  .journey-foot { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding: 0.85rem 1.25rem; font-size: 0.84rem; color: var(--muted); }
+
+  /* The Datadog side, drawn in Datadog's own light surface on purpose: these literals are the
+     DRUIDS light tokens and stay the same in both site themes. */
+  .dd-diagram { display: grid; gap: 0; align-items: start; margin-top: 1rem; }
+  .dd-diagram.three { grid-template-columns: minmax(0, 1.25fr) 2rem minmax(0, 1fr) 2rem minmax(0, 1.1fr); }
+  .dd-diagram.two { grid-template-columns: minmax(0, 1.25fr) 2rem minmax(0, 1fr); }
+  .dd-diagram.one { grid-template-columns: minmax(0, 46rem); }
+  .dd-arrow { align-self: center; text-align: center; font-size: 20px; color: var(--muted); }
+  .dd-caption { margin: 0 0 0.5rem; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--muted); }
+  .dd-panel { background: #fff; border: 1px solid #e2e5ed; border-radius: 8px; color: rgba(28, 43, 52, 0.98); font: 12px/1.5 'Noto Sans', ui-sans-serif, system-ui, sans-serif; overflow: hidden; }
+  .dd-panel p { margin: 0; }
+  .dd-mono { font-family: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .dd-dim { color: rgba(28, 43, 52, 0.68); }
+  .dd-strong { font-weight: 600; }
+  .dd-accent, .dd-key { color: #632ca6; }
+  .dd-search { margin: 8px; padding: 6px 8px; border: 1px solid #e2e5ed; border-radius: 4px; font-family: 'Roboto Mono', ui-monospace, monospace; overflow-wrap: anywhere; }
+  .dd-th, .dd-tr { display: grid; grid-template-columns: 3rem minmax(0, 1fr) 4.5rem; gap: 8px; padding: 6px 10px; border-bottom: 1px solid #e2e5ed; }
+  .consent .dd-th, .consent .dd-tr { grid-template-columns: 3rem minmax(0, 1fr) 14rem; }
+  .dd-th { background: #f9fafb; font-size: 11px; text-transform: uppercase; color: rgba(28, 43, 52, 0.68); }
+  .dd-right { text-align: right; }
+  .dd-dot { display: inline-block; width: 6px; height: 6px; margin-right: 6px; background: #632ca6; vertical-align: middle; }
+  .dd-foot { padding: 8px 10px; color: rgba(28, 43, 52, 0.68); }
+  .dd-cards { display: flex; flex-direction: column; gap: 6px; }
+  .dd-card { padding: 9px 11px; }
+  .dd-board { padding: 10px; }
+  .dd-values { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; }
+  .dd-value { padding: 7px 9px; border: 1px solid #e2e5ed; border-radius: 4px; }
+  .dd-value p:first-child { color: rgba(28, 43, 52, 0.68); }
+  .dd-funnel { padding: 7px 9px; border: 1px solid #e2e5ed; border-radius: 4px; color: rgba(28, 43, 52, 0.68); }
+  .dd-steps { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0 0; padding: 0; list-style: none; counter-reset: step; color: rgba(28, 43, 52, 0.98); }
+  .dd-steps li { counter-increment: step; }
+  .dd-steps li::before { content: counter(step) '. '; color: #632ca6; font-family: 'Roboto Mono', ui-monospace, monospace; }
+  .dd-monitors { list-style: none; margin: 8px 0 0; padding: 0; }
+  .dd-monitors li { padding: 2px 0; }
+  .dd-ok { display: inline-block; width: 7px; height: 7px; border-radius: 999px; margin-right: 7px; background: #41c464; }
+  .dd-links { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 1rem; }
+
+  .options-table { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+  .option-row { display: grid; grid-template-columns: 11rem 10.5rem minmax(0, 1fr); gap: 1rem; padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.92rem; align-items: baseline; }
+  .option-row:last-child { border-bottom: none; }
+  .option-row code { overflow-wrap: anywhere; background: none; border: none; padding: 0; }
+
+  /* minmax(0, …): a plain 1fr column grows to its widest table; this lets .scroll-x scroll instead. */
+  .two-up { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; margin-top: 3rem; }
+  .sub { font-size: 1.35rem; }
+
+  .reference { margin-top: 3rem; padding: 0.85rem 1.1rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  .reference summary { cursor: pointer; font-weight: 650; }
+  .reference-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; margin-top: 1rem; }
+  .ref-card { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--raised); }
+  .ref-head { margin: 0; padding: 0.5rem 0.8rem; background: var(--code-bg); border-bottom: 1px solid var(--border); }
+  .ref-head code { color: var(--ok); }
+  .ref-head.context { font-weight: 650; font-size: 0.9rem; }
+  .ref-row { display: flex; justify-content: space-between; gap: 1rem; margin: 0; padding: 0.35rem 0.8rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+  .ref-row:last-child { border-bottom: none; }
+
+  @media (max-width: 64rem) {
+    .dd-diagram.three, .dd-diagram.two { grid-template-columns: 1fr; gap: 0.75rem; }
+    .dd-arrow { transform: rotate(90deg); }
+  }
+  @media (max-width: 48rem) {
+    .journey-head { display: none; }
+    .journey-row { grid-template-columns: 2.5rem minmax(0, 1fr); row-gap: 0.6rem; }
+    .journey-row > div:nth-of-type(2), .journey-row > div:nth-of-type(3) { grid-column: 2; }
+    .option-row, .two-up, .reference-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
