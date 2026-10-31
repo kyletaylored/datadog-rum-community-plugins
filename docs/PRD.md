@@ -197,7 +197,7 @@ datadogRum.init({
 **CDN**
 
 ```html
-<script src="https://www.datadoghq-browser-agent.com/<site>/v6/datadog-rum.js"></script>
+<script src="https://www.datadoghq-browser-agent.com/<site>/v7/datadog-rum.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-woocommerce@0.1.0/dist/plugin.js"
         integrity="sha384-..." crossorigin="anonymous"></script>
 <script>

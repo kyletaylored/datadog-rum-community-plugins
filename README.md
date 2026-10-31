@@ -30,7 +30,7 @@ A script tag, because most of these sites cannot run a build. Consent plugins go
 is collected before the visitor accepts.
 
 ```html
-<script src="https://www.datadoghq-browser-agent.com/us1/v6/datadog-rum.js"></script>
+<script src="https://www.datadoghq-browser-agent.com/us1/v7/datadog-rum.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-onetrust@0.1.0/dist/plugin.js"
         integrity="sha384-REPLACE_FROM_RELEASE" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-woocommerce@0.1.0/dist/plugin.js"

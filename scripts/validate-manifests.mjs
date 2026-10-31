@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Validates every plugin.json against the manifest JSON schema, and cross-checks the facts that
-// a schema cannot: the package name, the version (in plugin.json and PLUGIN_VERSION), and the
-// schema version the core ships.
+// a schema cannot: the package name, the version (in plugin.json and PLUGIN_VERSION), the
+// schema version the core ships, and that every CDN install snippet loads the SDK major the
+// plugins declare in rumSdk.
 import Ajv from 'ajv'
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { join, relative } from 'node:path'
@@ -96,6 +97,43 @@ for (const dir of readdirSync(fromRoot('packages')).sort()) {
 
   if (manifest.footprint.rumApis.length === 0) {
     problems.push(`${where}: footprint.rumApis is empty; every adapter calls at least one RUM API`)
+  }
+}
+
+// Every CDN install snippet loads the Browser SDK by major version
+// (datadoghq-browser-agent.com/<site>/v7/datadog-rum.js). A snippet on a different major from the
+// plugins' peer range hands a merchant an SDK the plugins were never tested against, and nothing
+// else catches it: the snippets are prose. Every manifest declares the same range, so its major
+// is the one the snippets must load.
+const sdkMajors = new Set()
+for (const dir of readdirSync(fromRoot('packages'))) {
+  const manifestPath = fromRoot('packages', dir, 'plugin.json')
+  if (!existsSync(manifestPath)) continue
+  const major = />=\s*(\d+)\./.exec(JSON.parse(readFileSync(manifestPath, 'utf8')).rumSdk ?? '')?.[1]
+  if (major) sdkMajors.add(major)
+}
+if (sdkMajors.size !== 1) {
+  problems.push(`plugin.json rumSdk ranges disagree on the SDK major (${[...sdkMajors].join(', ') || 'none'}); the CDN snippets cannot match them all`)
+} else {
+  const [major] = sdkMajors
+  const snippetFiles = [
+    'README.md',
+    'docs/PRD.md',
+    'templates/plugin/README.md',
+    ...readdirSync(fromRoot('packages')).map((dir) => join('packages', dir, 'README.md')),
+    ...['site/src/components', 'site/src/pages', 'site/src/pages/docs', 'site/src/layouts'].flatMap((dir) =>
+      existsSync(fromRoot(dir)) ? readdirSync(fromRoot(dir)).filter((file) => file.endsWith('.astro')).map((file) => join(dir, file)) : [],
+    ),
+  ]
+  for (const file of snippetFiles) {
+    if (!existsSync(fromRoot(file))) continue
+    readFileSync(fromRoot(file), 'utf8').split('\n').forEach((line, index) => {
+      for (const found of line.matchAll(/datadoghq-browser-agent\.com\/[^/"'\s]+\/v(\d+)\/datadog-rum/g)) {
+        if (found[1] !== major) {
+          problems.push(`${file}:${index + 1}: CDN snippet loads SDK v${found[1]}, but plugin.json declares rumSdk ${major}.x`)
+        }
+      }
+    })
   }
 }
 

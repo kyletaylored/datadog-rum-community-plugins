@@ -29,7 +29,7 @@ datadogRum.init({
 CDN, pinned to an exact version with its SRI hash from the release (there is no `latest` URL):
 
 ```html
-<script src="https://www.datadoghq-browser-agent.com/<site>/v6/datadog-rum.js"></script>
+<script src="https://www.datadoghq-browser-agent.com/<site>/v7/datadog-rum.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-onetrust@0.1.0/dist/plugin.js"
         integrity="sha384-..." crossorigin="anonymous"></script>
 <script>

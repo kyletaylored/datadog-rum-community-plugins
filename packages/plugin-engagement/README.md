@@ -15,7 +15,7 @@ instead of one.
 ## Install
 
 ```html
-<script src="https://www.datadoghq-browser-agent.com/us1/v6/datadog-rum.js"></script>
+<script src="https://www.datadoghq-browser-agent.com/us1/v7/datadog-rum.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@kyletaylored/datadog-rum-plugin-engagement@0.1.0/dist/plugin.js"
         integrity="sha384-REPLACE_FROM_RELEASE" crossorigin="anonymous"></script>
 <script>
