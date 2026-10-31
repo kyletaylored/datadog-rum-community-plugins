@@ -1,7 +1,7 @@
 {
   "name": "@kyletaylored/datadog-rum-plugin-engagement",
   "version": "0.2.0",
-  "description": "Datadog RUM plugin for Engagement. A personal community project, not provided or supported by Datadog.",
+  "description": "Datadog RUM Community Plugins: the engagement kit, with scroll depth, outbound and contact clicks, downloads, video and forms read from the page. A personal community project, not provided or supported by Datadog.",
   "author": "Kyle Taylor <kyle.taylor@datadoghq.com>",
   "license": "MIT",
   "type": "module",

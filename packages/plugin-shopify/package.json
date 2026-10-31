@@ -1,7 +1,7 @@
 {
   "name": "@kyletaylored/datadog-rum-plugin-shopify",
   "version": "0.2.0",
-  "description": "Datadog RUM plugin for Shopify: checkout events, order value and customer identity from Web Pixels, composed with the official shopifyPlugin. A personal community project, not provided or supported by Datadog.",
+  "description": "Datadog RUM Community Plugins: Shopify checkout events, order value and customer identity from Web Pixels, composed with the official shopifyPlugin. A personal community project, not provided or supported by Datadog.",
   "author": "Kyle Taylor <kyle.taylor@datadoghq.com>",
   "license": "MIT",
   "type": "module",

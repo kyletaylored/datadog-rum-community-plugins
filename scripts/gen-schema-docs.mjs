@@ -91,6 +91,8 @@ for (const dir of readdirSync(fromRoot('packages')).sort()) {
     events: report?.actions ?? [],
     globalContext: report?.globalContext ?? {},
     observedRumApis: report?.rumApis ?? [],
+    // The manifest's journey, replayed by the snapshot test: what each step sent or refused.
+    journeyReport: report?.journey ?? null,
     readme: existsSync(readmePath) ? readFileSync(readmePath, 'utf8') : null,
   })
 }

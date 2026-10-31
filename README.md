@@ -1,4 +1,4 @@
-# Datadog RUM community plugins
+# Datadog RUM Community Plugins
 
 > A personal community project under [@kyletaylored](https://github.com/kyletaylored), MIT licensed.
 > **Not provided or supported by Datadog.**
@@ -16,8 +16,8 @@ Events use [GA4's names and parameters](https://developers.google.com/analytics/
 behind a family prefix, so a marketing or product team arriving from GA4, Matomo or Plausible
 recognises them on sight.
 
-**Status: Phase 0.** The core, the harness, three adapters, the asset pack, the build and release
-pipeline and the site are in place. Nothing is published to npm yet.
+**Status: Phase 0.** The core, the harness, four plugins, the asset pack, the build and release
+pipeline, the site and a demo site per plugin are in place. Nothing is published to npm yet.
 
 **[Try the sandbox](https://kyletaylored.github.io/datadog-rum-community-plugins/sandbox/)** — a
 shopper clicks through a store and you watch exactly what the plugin sends, and what it refuses to

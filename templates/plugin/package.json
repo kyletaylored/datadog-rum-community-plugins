@@ -1,7 +1,7 @@
 {
   "name": "@kyletaylored/datadog-rum-plugin-__NAME__",
   "version": "0.1.0",
-  "description": "Datadog RUM plugin for __TITLE__. A personal community project, not provided or supported by Datadog.",
+  "description": "Datadog RUM Community Plugins: __TITLE__. A personal community project, not provided or supported by Datadog.",
   "author": "__MAINTAINER__",
   "license": "MIT",
   "type": "module",

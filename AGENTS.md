@@ -6,10 +6,12 @@ A community-maintained library of Datadog Browser RUM plugins. Each plugin reads
 
 This is a **personal community project** under `@kyletaylored`, not an official Datadog product. Never present it as Datadog-provided or Datadog-supported.
 
-**Status:** Phase 0 built, not yet released. The core, the test harness, three adapters, the asset
-pack, the build and release pipeline and the site all exist and `npm run verify` passes. Nothing is
-published to npm, the GitHub repo is not created, and Pages is not enabled — all of which need the
-maintainer's go-ahead. The exit gate below is **not met yet**: it needs two real test stores.
+**Status:** Phase 0 built, not yet on npm. The core, the test harness, four plugins (Shopify,
+WooCommerce, OneTrust and the engagement kit), the asset pack, the build and release pipeline, the
+site and a demo site per plugin all exist, and `npm run verify` passes. The GitHub repo is public at
+`kyletaylored/datadog-rum-community-plugins` and the site is live on GitHub Pages. Nothing is
+published to npm yet; that needs the maintainer's go-ahead. The exit gate below is **not met yet**:
+it needs two real test stores.
 
 ---
 
@@ -118,6 +120,14 @@ Opened directly (not framed), the demo shows its own small call log in a corner,
 - `npm run lint:demos` (part of `npm run verify`): every `packages/plugin-*` has `site/public/demos/<name>/index.html` and `demo.js`; every scenario in `sandbox-scenarios.json` exists in `demo.js` `scenarios`; every action in the plugin's `actions` is listed in `coverage`; no demo calls a RUM API, holds a credential-shaped key or uses an absolute path.
 - The browser test project (`site/test/demos.integration.test.ts`) loads each demo, plays every scenario, and asserts the posted calls match `fixtures/.generated/events.json` for the actions they share, and that every `coverage.reachable` action is actually sent by some scenario.
 
+## Plugin pages: what to write
+
+The plugin page is generated. One field in `plugin.json` drives it and is required:
+
+- `journey`: ordered steps, each `{ "label": "Adds 2 t-shirts to the cart", "fixture": "added to cart" }`. Labels are a visitor's action in plain words. A fixture may repeat (a reloaded thank-you page). The snapshot test replays the journey through `recordJourney` and writes each step's calls, refusals and stripped keys to `events.json`; `validate-manifests` checks every named fixture exists.
+
+What each action feeds in Datadog (metrics, dashboard widgets, monitors) is derived from `assets/` by `site/src/lib/datadogAssets.ts`; don't hand-write it.
+
 ## Privacy rules (enforced by the conformance suite)
 
 - Never read DOM inputs or send payment data. Strip card fields even if a platform payload includes them.
@@ -186,7 +196,7 @@ test can stand in for.
 - **Pin everything.** Exact versions in CDN snippets, SHA-pinned GitHub Actions, a narrow `@datadog/browser-rum` peer range.
 - **Relative paths on the site.** It's served from `/datadog-rum-community-plugins/`.
 - **Never commit credentials.** No application IDs, client tokens or npm tokens in the repo. The site's snippet builder never asks for them.
-- **Ask before anything public.** Creating the GitHub repo, pushing, publishing to npm and enabling Pages all need the maintainer's go-ahead.
+- **Ask before anything public.** Pushing, opening or merging a PR, publishing to npm and changing the Pages setup all need the maintainer's go-ahead.
 
 ## Workspaces: one git worktree per change
 
