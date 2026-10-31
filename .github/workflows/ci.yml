@@ -82,5 +82,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      # Catches broken links and schema errors before deploy, on every push and PR.
+      # scripts/site-meta.mjs renders each page's share image in Chromium after the Astro build.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      # Catches broken links, schema errors and missing page metadata before deploy, on every
+      # push and PR.
       - run: npm run site:build

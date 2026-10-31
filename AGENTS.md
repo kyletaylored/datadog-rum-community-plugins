@@ -198,6 +198,18 @@ test can stand in for.
 - **Never commit credentials.** No application IDs, client tokens or npm tokens in the repo. The site's snippet builder never asks for them.
 - **Ask before anything public.** Pushing, opening or merging a PR, publishing to npm and changing the Pages setup all need the maintainer's go-ahead.
 
+## Site pages: search and social metadata
+
+A link to any page on the site gets pasted into search results, Slack, X, LinkedIn and Facebook. Each of those renders a preview card: the title, a description, and an image. A page that previews as a blank card looks broken to whoever it was shared with, so every page ships the full set, and the build checks it.
+
+- **Built on `Base.astro`, nothing hand-written per page.** Base emits the `<title>` (`{page} · Datadog RUM Community Plugins`), `description`, `canonical`, the Open Graph tags (`og:title`, `og:description`, `og:url`, `og:image` with its width, height and alt) and the Twitter card (`summary_large_image`). A new page only has to pass `title` and `description` to `Page` or `Base`.
+- **Write a real description**, 50 to 200 characters. It is the snippet under the title in every preview: say what the page gives the reader, not what it is ("Checkout events, order value and customer identity from Shopify Web Pixels…", not "The Shopify plugin page").
+- **Titles are unique.** Two pages with one title look like duplicates in search.
+- **Share images are generated, never drawn by hand.** `scripts/site-meta.mjs` runs after `astro build`. It renders one 1200×630 image per page from a single template (the brand, a label from where the page lives, the page's title and description, its address, and "Not provided or supported by Datadog.") into `og/<slug>.png`, where the slug is the page's path. Change the template there, not per page, so every image stays consistent. The demo sites under `demos/` are excluded: the sandbox frames them, nobody shares them.
+- **Absolute URLs use the host that serves the site**, `https://kyletaylored.com` (`site` in `astro.config.mjs`). `kyletaylored.github.io` redirects there, and some crawlers will not follow a redirect to fetch an image.
+- **The build fails** on a missing tag, a description out of range, a duplicate title, or a canonical or image URL that doesn't match the page. Don't work around the check; fix the page.
+- **Check a new or renamed page's preview before merging**: paste its URL into a link-preview tool, or open `site/dist/og/<slug>.png`. CI's site build needs Chromium for the images; both workflows install it.
+
 ## Workspaces: one git worktree per change
 
 The main checkout often holds the maintainer's own uncommitted, in-progress work. Never build a feature or fix there, and never switch its branch.

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node ../scripts/build-demos.mjs && astro dev",
-    "build:site": "node ../scripts/gen-schema-docs.mjs && node ../scripts/build-demos.mjs && astro build",
+    "build:site": "node ../scripts/gen-schema-docs.mjs && node ../scripts/build-demos.mjs && astro build && node ../scripts/site-meta.mjs",
     "preview": "astro preview",
     "check": "astro check"
   },
