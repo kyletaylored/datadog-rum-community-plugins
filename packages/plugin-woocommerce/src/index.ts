@@ -54,6 +54,8 @@ interface WooEventDetail {
   product?: WooCartItem
   productId?: number | string
   quantity?: number
+  /** Set by `wc-blocks_product_list_rendered`. */
+  listName?: string
 }
 
 function readGlobal(name: string): WooGlobalPayload | undefined {
@@ -117,7 +119,17 @@ export function wooCommercePlugin(options: WooCommercePluginOptions = {}): RumPl
       }
 
       for (const event of WOO_EVENTS) {
-        target.addEventListener(event, (raw) => handleWooEvent(tracker, event, raw as CustomEvent<WooEventDetail>))
+        target.addEventListener(event, (raw) => handleWooEvent(tracker, event, (raw as CustomEvent<WooEventDetail>).detail))
+      }
+
+      // Classic themes raise added_to_cart and removed_from_cart with jQuery's trigger(), which
+      // never reaches a native listener, so listen through jQuery too when the page has it. The
+      // event carries (fragments, cart_hash, $button): no cart, so the product comes from the button.
+      const jQuery = (globalThis as { jQuery?: JQueryLike }).jQuery
+      if (typeof jQuery === 'function') {
+        jQuery(target).on('added_to_cart removed_from_cart', (event, _fragments, _hash, button) =>
+          handleWooEvent(tracker, event.type, fromButton(button)),
+        )
       }
 
       tracker.logger.info(`listening for ${WOO_EVENTS.length} WooCommerce events`)
@@ -131,56 +143,53 @@ const trackers = new WeakMap<RumPlugin, Tracker>()
 
 /** Fire `commerce.purchase` from a server-rendered order payload. */
 export function trackOrder(tracker: Tracker, order: WooOrderPayload): void {
-  if (!order.transaction_id) {
-    tracker.logger.warn('order payload has no transaction_id; skipping purchase')
-    return
-  }
+  // A payload without a transaction_id is dropped by the core, which cannot deduplicate it.
   tracker.track('purchase', toPurchase(order))
 }
 
-function handleWooEvent(tracker: Tracker, event: string, raw: CustomEvent<WooEventDetail>): void {
-  const detail = raw.detail ?? {}
+/** The slice of jQuery the plugin uses: `$(element).on(types, handler)`. */
+type JQueryLike = (target: EventTarget) => {
+  on: (types: string, handler: (event: { type: string }, ...args: unknown[]) => void) => unknown
+}
+
+/**
+ * The product a classic theme's add-to-cart button names. Woo passes the button as a jQuery
+ * object (`$thisbutton`). The event carries no price, so none is sent.
+ */
+function fromButton(button: unknown): WooEventDetail {
+  const read = (name: string) => (button as { attr?: (name: string) => string | undefined } | undefined)?.attr?.(name)
+  const id = read('data-product_id')
+  return id ? { product: { id, sku: read('data-product_sku'), quantity: Number(read('data-quantity')) || 1 } } : {}
+}
+
+function handleWooEvent(tracker: Tracker, event: string, raw: WooEventDetail | undefined): void {
+  const detail = raw ?? {}
   const cart = detail.cart
-  const currency = cartCurrency(cart)
 
-  switch (event) {
-    case 'wc-blocks_added_to_cart':
-    case 'added_to_cart': {
-      const item = detail.product ?? findItem(cart, detail.productId)
-      tracker.track('add_to_cart', {
-        value: lineValue(item, detail.quantity) ?? cartValue(cart?.totals),
-        currency,
-        cart_id: cart?.cart_key,
-        items: toItems(item ? [item] : cart?.items),
-        ...itemCounts(item ? [item] : cart?.items),
-      })
-      break
-    }
-
-    case 'wc-blocks_removed_from_cart':
-    case 'removed_from_cart': {
-      const item = detail.product ?? findItem(cart, detail.productId)
-      tracker.track('remove_from_cart', {
-        value: lineValue(item, detail.quantity) ?? cartValue(cart?.totals),
-        currency,
-        cart_id: cart?.cart_key,
-        items: toItems(item ? [item] : undefined),
-        ...itemCounts(item ? [item] : undefined),
-      })
-      break
-    }
-
-    case 'wc-blocks_product_list_rendered': {
-      tracker.track('view_item_list', {
-        item_list_name: (raw.detail as { listName?: string } | undefined)?.listName,
-        items: toItems(cart?.items),
-      })
-      break
-    }
-
-    default:
-      tracker.logger.dropped(event, 'no schema event for this platform event')
+  if (event === 'wc-blocks_product_list_rendered') {
+    tracker.track('view_item_list', { item_list_name: detail.listName, items: toItems(cart?.items) })
+    return
   }
+
+  // Nothing to report. This is also what Woo's block scripts re-dispatch natively for a classic
+  // theme's jQuery add, which the jQuery listener has already reported, so it is not counted twice.
+  if (!cart && !detail.product && detail.productId === undefined) {
+    tracker.logger.dropped(event, 'no cart or product in the event')
+    return
+  }
+
+  // Every other event is an add or a remove, which carry the same payload; only the schema event
+  // differs. An add that names no item reports the cart; a remove reports only what it can name.
+  const added = event.endsWith('added_to_cart')
+  const item = detail.product ?? findItem(cart, detail.productId)
+  const lines = item ? [item] : added ? cart?.items : undefined
+  tracker.track(added ? 'add_to_cart' : 'remove_from_cart', {
+    value: lineValue(item, detail.quantity) ?? cartValue(cart?.totals),
+    currency: cartCurrency(cart),
+    cart_id: cart?.cart_key,
+    items: toItems(lines),
+    ...itemCounts(lines),
+  })
 }
 
 /**
@@ -196,48 +205,22 @@ function isTracker(source: Tracker | RumPlugin): source is Tracker {
 }
 
 export function createCheckoutReporter(source: Tracker | RumPlugin) {
-  const report = (step: string, send: (tracker: Tracker) => void) => {
+  /** Every step sends the cart's value and currency, when there is a cart, plus its own fields. */
+  const send = (step: string, cart: WooCart | undefined, fields: Record<string, unknown>): void => {
     const tracker = isTracker(source) ? source : trackers.get(source)
-    if (tracker) send(tracker)
-    else globalThis.console?.warn(`[dd-rum:woocommerce] ${step} dropped: the plugin passed to createCheckoutReporter has not been initialized`)
+    if (!tracker) {
+      globalThis.console?.warn(`[dd-rum:woocommerce] ${step} dropped: plugin has not been initialized`)
+      return
+    }
+    tracker.track(step, cart ? { value: cartValue(cart.totals), currency: cartCurrency(cart), ...fields } : fields)
   }
+  const lines = (cart: WooCart) => ({ cart_id: cart.cart_key, items: toItems(cart.items), ...itemCounts(cart.items) })
   return {
-    viewCart(cart: WooCart): void {
-      report('view_cart', (tracker) => tracker.track('view_cart', {
-        value: cartValue(cart.totals),
-        currency: cartCurrency(cart),
-        cart_id: cart.cart_key,
-        items: toItems(cart.items),
-        ...itemCounts(cart.items),
-      }))
-    },
-    beginCheckout(cart: WooCart): void {
-      report('begin_checkout', (tracker) => tracker.track('begin_checkout', {
-        value: cartValue(cart.totals),
-        currency: cartCurrency(cart),
-        cart_id: cart.cart_key,
-        coupon: cart.coupons?.[0]?.code,
-        items: toItems(cart.items),
-        ...itemCounts(cart.items),
-      }))
-    },
-    addShippingInfo(cart: WooCart, shippingTier?: string): void {
-      report('add_shipping_info', (tracker) => tracker.track('add_shipping_info', {
-        value: cartValue(cart.totals),
-        currency: cartCurrency(cart),
-        shipping_tier: shippingTier,
-      }))
-    },
-    addPaymentInfo(cart: WooCart, paymentType?: string): void {
-      report('add_payment_info', (tracker) => tracker.track('add_payment_info', {
-        value: cartValue(cart.totals),
-        currency: cartCurrency(cart),
-        payment_type: paymentType,
-      }))
-    },
-    search(term: string): void {
-      report('search', (tracker) => tracker.track('search', { search_term_length: term.length }))
-    },
+    viewCart: (cart: WooCart): void => send('view_cart', cart, lines(cart)),
+    beginCheckout: (cart: WooCart): void => send('begin_checkout', cart, { ...lines(cart), coupon: cart.coupons?.[0]?.code }),
+    addShippingInfo: (cart: WooCart, shippingTier?: string): void => send('add_shipping_info', cart, { shipping_tier: shippingTier }),
+    addPaymentInfo: (cart: WooCart, paymentType?: string): void => send('add_payment_info', cart, { payment_type: paymentType }),
+    search: (term: string): void => send('search', undefined, { search_term_length: term.length }),
   }
 }
 

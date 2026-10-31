@@ -39,6 +39,47 @@ function emitTo(target: EventTarget, fixture: Fixture) {
   target.dispatchEvent(new CustomEvent(fixture.event, { detail: fixture.payload }))
 }
 
+/**
+ * A classic theme's jQuery: `$(element).on(types, handler)` and `.trigger(type, args)`. Like real
+ * jQuery, a trigger reaches only jQuery handlers, never a native addEventListener, which is
+ * exactly the gap the plugin's jQuery listener closes.
+ */
+function fakeJQuery() {
+  const handlers = new Map<EventTarget, Map<string, ((event: { type: string }, ...args: unknown[]) => void)[]>>()
+  const $ = (element: EventTarget) => ({
+    on(types: string, handler: (event: { type: string }, ...args: unknown[]) => void) {
+      const byType = handlers.get(element) ?? new Map()
+      for (const type of types.split(' ')) byType.set(type, [...(byType.get(type) ?? []), handler])
+      handlers.set(element, byType)
+      return this
+    },
+    trigger(type: string, args: unknown[] = []) {
+      for (const handler of handlers.get(element)?.get(type) ?? []) handler({ type }, ...args)
+      return this
+    },
+  })
+  return $
+}
+
+/** classic-jquery.json's events are jQuery-only; their `event` is the jQuery event, prefixed `jquery:`. */
+const JQUERY = 'jquery:'
+type JQueryCall = { fragments: unknown; cart_hash: string; button: Record<string, string> }
+
+function triggerThroughJQuery(target: EventTarget, fixture: Fixture) {
+  const { fragments, cart_hash: cartHash, button } = fixture.payload as JQueryCall
+  const $ = (globalThis as { jQuery?: ReturnType<typeof fakeJQuery> }).jQuery
+  // Woo passes the add-to-cart link as a jQuery object.
+  $?.(target).trigger(fixture.event.slice(JQUERY.length), [fragments, cartHash, { attr: (name: string) => button[name] }])
+}
+
+// The plugin looks for window.jQuery at init, as on a classic theme. Fresh per test.
+beforeEach(() => {
+  ;(globalThis as Record<string, unknown>).jQuery = fakeJQuery()
+})
+afterEach(() => {
+  delete (globalThis as Record<string, unknown>).jQuery
+})
+
 /** checkout.json's steps have no DOM event; their `event` names the reporter method to call. */
 const REPORTER = 'createCheckoutReporter.'
 type ReporterCall = { cart?: WooCart; shippingTier?: string; paymentType?: string; term?: string }
@@ -48,6 +89,7 @@ type ReporterCall = { cart?: WooCart; shippingTier?: string; paymentType?: strin
  * funnel step, a call on the plugin's checkout reporter, built from the instance as the CDN exposes it.
  */
 function replay(target: EventTarget, reporter: ReturnType<typeof createCheckoutReporter>, fixture: Fixture) {
+  if (fixture.event.startsWith(JQUERY)) return triggerThroughJQuery(target, fixture)
   if (!fixture.event.startsWith(REPORTER)) return emitTo(target, fixture)
   const call = fixture.payload as ReporterCall
   switch (fixture.event.slice(REPORTER.length)) {
@@ -197,6 +239,9 @@ describe('storefront cart events', () => {
       'commerce.add_shipping_info',
       'commerce.add_payment_info',
       'commerce.search',
+      // classic-jquery.json, through jQuery
+      'commerce.add_to_cart',
+      'commerce.remove_from_cart',
     ])
   })
 
@@ -215,10 +260,49 @@ describe('storefront cart events', () => {
     writeEventReport(packageDir, 'woocommerce', rum, await journey())
   })
 
-  it('covers classic themes through the jQuery added_to_cart event', async () => {
+  it('maps an added_to_cart dispatched as a native DOM event, with its cart', async () => {
     const { rum } = await run()
-    const classic = rum.actions().filter((action) => action.name === 'commerce.add_to_cart')
-    expect(classic[1]?.context.value).toBe(12)
+    const native = rum.actions().filter((action) => action.name === 'commerce.add_to_cart')
+    expect(native[1]?.context.value).toBe(12)
+  })
+
+  it('hears a classic theme that raises added_to_cart only through jQuery', async () => {
+    const rum = createFakeRum({})
+    const target = new EventTarget()
+    await wooCommercePlugin({ consent: 'ignore', target }).onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
+    const fixture = allFixtures.find((entry) => entry.name === 'added to cart on a classic theme, through jQuery')!
+    triggerThroughJQuery(target, fixture)
+
+    // The product comes from the button; the jQuery event carries no price, so none is sent.
+    expect(rum.actions()).toEqual([
+      {
+        api: 'addAction',
+        name: 'commerce.add_to_cart',
+        context: { item_count: 1, unique_items: 1 },
+      },
+    ])
+  })
+
+  it('does not count a jQuery add twice when the block scripts re-dispatch it natively', async () => {
+    const rum = createFakeRum({})
+    const target = new EventTarget()
+    await wooCommercePlugin({ consent: 'ignore', includeItems: true, target }).onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
+    triggerThroughJQuery(target, allFixtures.find((entry) => entry.name === 'added to cart on a classic theme, through jQuery')!)
+    // What Woo's block scripts dispatch for a jQuery add: the native event, with no cart in it.
+    target.dispatchEvent(new CustomEvent('wc-blocks_added_to_cart', { detail: { preserveCartData: true } }))
+
+    const adds = rum.actions().filter((action) => action.name === 'commerce.add_to_cart')
+    expect(adds).toHaveLength(1)
+    expect(adds[0]?.context.items).toEqual([{ item_id: 'SOCK-WHT-L', quantity: 1 }])
+  })
+
+  it('still hears native events on a page without jQuery', async () => {
+    delete (globalThis as Record<string, unknown>).jQuery
+    const rum = createFakeRum({})
+    const target = new EventTarget()
+    await wooCommercePlugin({ consent: 'ignore', target }).onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
+    emitTo(target, cartFixtures[0]!)
+    expect(rum.actions().map((action) => action.name)).toEqual(['commerce.add_to_cart'])
   })
 
   it('listens on every event the manifest declares', async () => {
