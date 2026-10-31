@@ -12,10 +12,10 @@
   "dependencies": {
     "@astrojs/mdx": "^8.1.1",
     "astro": "^7.4.2",
-    "@kyletaylored/datadog-rum-community-plugins": "0.2.0",
-    "@kyletaylored/datadog-rum-plugin-engagement": "0.2.0",
-    "@kyletaylored/datadog-rum-plugin-onetrust": "0.2.0",
-    "@kyletaylored/datadog-rum-plugin-shopify": "0.2.0",
-    "@kyletaylored/datadog-rum-plugin-woocommerce": "0.2.0"
+    "@kyletaylored/datadog-rum-community-plugins": "0.3.0",
+    "@kyletaylored/datadog-rum-plugin-engagement": "0.2.1",
+    "@kyletaylored/datadog-rum-plugin-onetrust": "0.2.1",
+    "@kyletaylored/datadog-rum-plugin-shopify": "0.2.1",
+    "@kyletaylored/datadog-rum-plugin-woocommerce": "0.3.0"
   }
 }

@@ -403,7 +403,7 @@
   ],
   "globalContext": {
     "commerce.platform": "shopify",
-    "commerce.plugin_version": "0.2.0",
+    "commerce.plugin_version": "0.2.1",
     "commerce.schema_version": "1.2.0"
   },
   "rumApis": [

@@ -347,7 +347,7 @@
   ],
   "globalContext": {
     "commerce.platform": "woocommerce",
-    "commerce.plugin_version": "0.2.0",
+    "commerce.plugin_version": "0.3.0",
     "commerce.schema_version": "1.2.0",
     "store.id": "shop.example.com",
     "store.currency": "USD",

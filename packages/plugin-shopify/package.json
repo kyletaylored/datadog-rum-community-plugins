@@ -1,6 +1,6 @@
 {
   "name": "@kyletaylored/datadog-rum-plugin-shopify",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Datadog RUM Community Plugins: Shopify checkout events, order value and customer identity from Web Pixels, composed with the official shopifyPlugin. A personal community project, not provided or supported by Datadog.",
   "author": "Kyle Taylor <kyle.taylor@datadoghq.com>",
   "license": "MIT",
@@ -40,7 +40,7 @@
     "build": "vite build && vite build --config vite.config.cdn.ts"
   },
   "dependencies": {
-    "@kyletaylored/datadog-rum-community-plugins": "0.2.0"
+    "@kyletaylored/datadog-rum-community-plugins": "0.3.0"
   },
   "peerDependencies": {
     "@datadog/browser-rum": ">=7.0.0 <8.0.0"

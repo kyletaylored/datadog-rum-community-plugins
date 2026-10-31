@@ -1,5 +1,15 @@
 # @kyletaylored/datadog-rum-plugin-shopify
 
+## 0.2.1
+
+### Patch Changes
+
+- fd76323: Emit schema 1.2.0 (`commerce.schema_version`). Nothing a plugin sends changes otherwise. The CDN bundles are smaller, by about 140 bytes gzipped each: every other family's event names had been leaking into every bundle through the schema spec's prefix reads, and no longer do.
+- Updated dependencies [f4262ea]
+- Updated dependencies [22551ac]
+- Updated dependencies [fd76323]
+  - @kyletaylored/datadog-rum-community-plugins@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
