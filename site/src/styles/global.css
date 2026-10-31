@@ -442,15 +442,28 @@ tbody th { font-weight: 620; color: var(--text); white-space: nowrap; }
 .docs-nav .group:first-child { margin-top: 0; }
 .docs-nav ul { list-style: none; margin: 0; padding: 0; }
 .docs-nav li a {
+  position: relative;
   display: block;
-  padding: 0.33rem 0.6rem;
+  padding: 0.33rem 0.6rem 0.33rem 0.85rem;
   border-radius: 8px;
   color: var(--muted);
   text-decoration: none;
-  border-left: 2px solid transparent;
+}
+/* The current page's marker: a short rounded bar inset from the edge. A border-left on a rounded
+   link bends around the corner radius, which read as a mistake. */
+.docs-nav li a::before {
+  content: '';
+  position: absolute;
+  left: 0.3rem;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  width: 3px;
+  border-radius: 999px;
+  background: transparent;
 }
 .docs-nav li a:hover { color: var(--text); background: var(--surface); }
-.docs-nav li a[aria-current='page'] { color: var(--accent); background: var(--accent-soft); border-left-color: var(--accent); font-weight: 620; }
+.docs-nav li a[aria-current='page'] { color: var(--accent); background: var(--accent-soft); font-weight: 620; }
+.docs-nav li a[aria-current='page']::before { background: var(--accent); }
 .docs-nav-toggle { display: none; }
 @media (max-width: 64rem) {
   .docs-nav-toggle { display: flex; align-items: center; gap: 0.4rem; font: inherit; font-size: 0.88rem; font-weight: 620; background: none; border: none; color: var(--text); cursor: pointer; padding: 0.3rem 0; width: 100%; }
