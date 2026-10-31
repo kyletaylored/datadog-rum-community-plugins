@@ -17,6 +17,11 @@ export interface PluginManifest {
   platforms?: { name: string; versions?: string; notes?: string }[]
   install?: { npm?: boolean; cdn?: boolean; platform?: string }
   actions?: string[]
+  /**
+   * One visitor's path, in order. Each step names a fixture; the snapshot test replays them and the
+   * plugin page renders what each step sent. A fixture may repeat, e.g. a reloaded thank-you page.
+   */
+  journey: { label: string; fixture: string }[]
   options?: { name: string; type?: string; default: unknown; description: string }[]
   footprint: PluginFootprint
   demo?: string

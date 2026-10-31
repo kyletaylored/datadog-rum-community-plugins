@@ -4,7 +4,7 @@
 // schema version the core ships.
 import Ajv from 'ajv'
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
-import { relative } from 'node:path'
+import { join, relative } from 'node:path'
 import { fromRoot, repoRoot } from './repo-root.mjs'
 
 const schema = JSON.parse(readFileSync(fromRoot('packages/core/schema/plugin-manifest.schema.json'), 'utf8'))
@@ -75,6 +75,25 @@ for (const dir of readdirSync(fromRoot('packages')).sort()) {
   if (manifest.family !== 'consent' && (manifest.actions ?? []).length === 0) {
     problems.push(`${where}: a ${manifest.family} adapter declares no actions`)
   }
+  // The journey drives the plugin page. A step naming a fixture that does not exist would make
+  // the snapshot test throw, but saying which step here is a faster failure to read.
+  const fixturesDir = fromRoot('packages', dir, 'fixtures')
+  const fixtureNames = new Set(
+    existsSync(fixturesDir)
+      ? readdirSync(fixturesDir)
+          .filter((file) => file.endsWith('.json'))
+          .flatMap((file) => {
+            const parsed = JSON.parse(readFileSync(join(fixturesDir, file), 'utf8'))
+            return (Array.isArray(parsed) ? parsed : parsed.fixtures).map((fixture) => fixture.name)
+          })
+      : [],
+  )
+  for (const [index, step] of (manifest.journey ?? []).entries()) {
+    if (!fixtureNames.has(step.fixture)) {
+      problems.push(`${where}: journey[${index}] "${step.label}" names fixture "${step.fixture}", which is not in fixtures/*.json`)
+    }
+  }
+
   if (manifest.footprint.rumApis.length === 0) {
     problems.push(`${where}: footprint.rumApis is empty; every adapter calls at least one RUM API`)
   }

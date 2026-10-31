@@ -40,6 +40,28 @@
     "commerce.purchase",
     "commerce.search"
   ],
+  "journey": [
+    {
+      "label": "Adds 2 t-shirts to the cart",
+      "fixture": "added to cart"
+    },
+    {
+      "label": "Removes the cap",
+      "fixture": "removed from cart"
+    },
+    {
+      "label": "Adds socks on a classic theme",
+      "fixture": "added to cart on a classic theme"
+    },
+    {
+      "label": "Lands on the thank-you page",
+      "fixture": "order received"
+    },
+    {
+      "label": "Reloads the thank-you page",
+      "fixture": "order received"
+    }
+  ],
   "options": [
     {
       "name": "events",

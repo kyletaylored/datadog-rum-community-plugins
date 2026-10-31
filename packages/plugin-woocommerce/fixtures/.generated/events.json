@@ -188,5 +188,230 @@
     "addAction",
     "setGlobalContextProperty",
     "setUser"
-  ]
+  ],
+  "journey": {
+    "options": {
+      "consent": "ignore"
+    },
+    "init": [
+      {
+        "api": "setGlobalContextProperty",
+        "label": "commerce.platform",
+        "detail": "woocommerce"
+      },
+      {
+        "api": "setGlobalContextProperty",
+        "label": "commerce.plugin_version",
+        "detail": "0.2.0"
+      },
+      {
+        "api": "setGlobalContextProperty",
+        "label": "commerce.schema_version",
+        "detail": "1.1.0"
+      },
+      {
+        "api": "setGlobalContextProperty",
+        "label": "store.id",
+        "detail": "shop.example.com"
+      },
+      {
+        "api": "setGlobalContextProperty",
+        "label": "store.currency",
+        "detail": "USD"
+      },
+      {
+        "api": "setGlobalContextProperty",
+        "label": "store.locale",
+        "detail": "en-US"
+      },
+      {
+        "api": "setGlobalContextProperty",
+        "label": "customer.type",
+        "detail": "returning"
+      },
+      {
+        "api": "setUser",
+        "detail": {
+          "id": "42"
+        }
+      }
+    ],
+    "steps": [
+      {
+        "label": "Adds 2 t-shirts to the cart",
+        "fixture": "added to cart",
+        "event": "wc-blocks_added_to_cart",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "commerce.add_to_cart",
+            "detail": {
+              "value": 56,
+              "currency": "USD",
+              "cart_id": "c1-8f2a",
+              "item_count": 2,
+              "unique_items": 1
+            }
+          }
+        ]
+      },
+      {
+        "label": "Removes the cap",
+        "fixture": "removed from cart",
+        "event": "wc-blocks_removed_from_cart",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "commerce.remove_from_cart",
+            "detail": {
+              "value": 28.5,
+              "currency": "USD",
+              "cart_id": "c1-8f2a",
+              "item_count": 1,
+              "unique_items": 1
+            }
+          }
+        ]
+      },
+      {
+        "label": "Adds socks on a classic theme",
+        "fixture": "added to cart on a classic theme",
+        "event": "added_to_cart",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "commerce.add_to_cart",
+            "detail": {
+              "value": 12,
+              "currency": "USD",
+              "cart_id": "c1-8f2a",
+              "item_count": 1,
+              "unique_items": 1
+            }
+          }
+        ]
+      },
+      {
+        "label": "Lands on the thank-you page",
+        "fixture": "order received",
+        "event": "order_received",
+        "calls": [
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.platform",
+            "detail": "woocommerce"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.plugin_version",
+            "detail": "0.2.0"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.schema_version",
+            "detail": "1.1.0"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "store.id",
+            "detail": "shop.example.com"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "store.currency",
+            "detail": "USD"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "store.locale",
+            "detail": "en-US"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "customer.type",
+            "detail": "returning"
+          },
+          {
+            "api": "setUser",
+            "detail": {
+              "id": "42"
+            }
+          },
+          {
+            "api": "addAction",
+            "label": "commerce.purchase",
+            "detail": {
+              "transaction_id": "wc_1042",
+              "value": 100.6,
+              "currency": "USD",
+              "tax": 6.2,
+              "shipping": 4.95,
+              "coupon": "WELCOME10",
+              "payment_type": "paypal",
+              "shipping_tier": "Ground",
+              "item_count": 3,
+              "unique_items": 2
+            },
+            "stripped": [
+              "card_number",
+              "billing_address"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Reloads the thank-you page",
+        "fixture": "order received",
+        "event": "order_received",
+        "calls": [
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.platform",
+            "detail": "woocommerce"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.plugin_version",
+            "detail": "0.2.0"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.schema_version",
+            "detail": "1.1.0"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "store.id",
+            "detail": "shop.example.com"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "store.currency",
+            "detail": "USD"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "store.locale",
+            "detail": "en-US"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "customer.type",
+            "detail": "returning"
+          },
+          {
+            "api": "setUser",
+            "detail": {
+              "id": "42"
+            }
+          },
+          {
+            "api": "not sent",
+            "label": "purchase",
+            "blocked": "already counted for transaction wc_1042"
+          }
+        ]
+      }
+    ]
+  }
 }

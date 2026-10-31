@@ -36,6 +36,52 @@
     "commerce.purchase",
     "commerce.search"
   ],
+  "journey": [
+    {
+      "label": "Searches for \"red tee medium\"",
+      "fixture": "search submitted"
+    },
+    {
+      "label": "Browses the sale collection",
+      "fixture": "collection viewed"
+    },
+    {
+      "label": "Looks at a t-shirt",
+      "fixture": "product viewed"
+    },
+    {
+      "label": "Adds 2 t-shirts to the cart",
+      "fixture": "product added to cart"
+    },
+    {
+      "label": "Removes the cap",
+      "fixture": "product removed from cart"
+    },
+    {
+      "label": "Opens the cart",
+      "fixture": "cart viewed"
+    },
+    {
+      "label": "Starts checkout",
+      "fixture": "checkout started"
+    },
+    {
+      "label": "Chooses Ground shipping",
+      "fixture": "shipping info submitted"
+    },
+    {
+      "label": "Enters payment details",
+      "fixture": "payment info submitted, with card data in the payload"
+    },
+    {
+      "label": "Places the order",
+      "fixture": "checkout completed"
+    },
+    {
+      "label": "Reloads the thank-you page",
+      "fixture": "checkout completed again, same order"
+    }
+  ],
   "options": [
     {
       "name": "analytics",

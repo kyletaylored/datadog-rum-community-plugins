@@ -7,10 +7,11 @@ import {
   formatFindings,
   installMemoryLocalStorage,
   loadFixtures,
+  recordJourney,
   writeEventReport,
   type Fixture,
 } from '../../test-harness/src/index.js'
-import type { PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
+import { blockedKeys, type PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
 import { WOO_EVENTS, wooCommercePlugin } from '../src/index.js'
 import { wooMoney } from '../src/mapping.js'
 import type { WooGlobalPayload } from '../src/types.js'
@@ -50,6 +51,37 @@ async function run(options: Parameters<typeof wooCommercePlugin>[0] = {}) {
   await plugin.onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
   for (const fixture of cartFixtures) emitTo(target, fixture)
   return { rum, target }
+}
+
+/**
+ * The manifest's journey, replayed for the plugin page. Store and customer are printed on every
+ * page by the WordPress plugin, so they are there at init; the order only on the thank-you page,
+ * which is why "order received" is a fresh adapter reading the full payload, as a reload is.
+ */
+function journey() {
+  const page = orderFixture.payload as WooGlobalPayload
+  const options = { consent: 'ignore' as const }
+  return recordJourney({
+    platform: 'woocommerce',
+    journey: manifest.journey,
+    fixtures: allFixtures,
+    options,
+    start: async ({ publicApi, initConfiguration }) => {
+      const target = new EventTarget()
+      const everyPage = { store: page.store, customer: page.customer }
+      await wooCommercePlugin({ ...options, debug: true, target, data: everyPage }).onInit?.({ initConfiguration, publicApi })
+      return async (fixture) => {
+        if (fixture.event === 'order_received') {
+          const reloaded = wooCommercePlugin({ ...options, debug: true, target, data: fixture.payload as WooGlobalPayload })
+          await reloaded.onInit?.({ initConfiguration, publicApi })
+          return
+        }
+        emitTo(target, fixture)
+      }
+    },
+    // Only the order's own keys: the customer's email is identity, held back by includeEmail.
+    strippedFor: (fixture) => blockedKeys((fixture.payload as WooGlobalPayload).order),
+  })
 }
 
 describe('money', () => {
@@ -150,7 +182,7 @@ describe('storefront cart events', () => {
     const { rum } = await run({ includeItems: true })
     expect(rum.actions()).toMatchSnapshot()
     // The site's "Events this plugin sends" is generated here, from this same run.
-    writeEventReport(packageDir, 'woocommerce', rum)
+    writeEventReport(packageDir, 'woocommerce', rum, await journey())
   })
 
   it('covers classic themes through the jQuery added_to_cart event', async () => {

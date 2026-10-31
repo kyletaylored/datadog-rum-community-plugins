@@ -6,6 +6,7 @@ import {
   createFakeRum,
   formatFindings,
   loadFixtures,
+  recordJourney,
   writeEventReport,
   type Fixture,
 } from '../../test-harness/src/index.js'
@@ -50,6 +51,22 @@ async function run(options: Parameters<typeof shopifyPlugin>[0] = {}) {
   for (const fixture of fixtures) analytics.emit(fixture)
 
   return { rum, analytics, outcome, fixtures }
+}
+
+/** The manifest's journey, replayed for the plugin page. */
+function journey() {
+  const options = { consent: 'ignore' as const }
+  return recordJourney({
+    platform: 'shopify',
+    journey: manifest.journey,
+    fixtures: loadFixtures(fixturesDir).flatMap((entry) => entry.fixtures),
+    options,
+    start: async ({ publicApi, initConfiguration }) => {
+      const analytics = fakeAnalytics()
+      await shopifyPlugin({ ...options, debug: true, analytics: analytics.api }).onInit?.({ initConfiguration, publicApi })
+      return (fixture) => analytics.emit(fixture)
+    },
+  })
 }
 
 describe('composition with the official plugin', () => {
@@ -101,7 +118,7 @@ describe('event mapping', () => {
     const { rum } = await run({ includeItems: true })
     expect(rum.actions()).toMatchSnapshot()
     // The site's "Events this plugin sends" is generated here, from this same run.
-    writeEventReport(packageDir, 'shopify', rum)
+    writeEventReport(packageDir, 'shopify', rum, await journey())
   })
 
   it('reports order value, tax, shipping and coupon on purchase', async () => {

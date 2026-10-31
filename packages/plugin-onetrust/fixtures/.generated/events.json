@@ -4,12 +4,100 @@
   "actions": [],
   "globalContext": {
     "consent.categories": [
-      "C0001",
-      "C0002"
+      "C0001"
     ]
   },
   "rumApis": [
     "setGlobalContextProperty",
     "setTrackingConsent"
-  ]
+  ],
+  "journey": {
+    "options": {},
+    "init": [
+      {
+        "api": "init",
+        "label": "trackingConsent = 'not-granted'"
+      }
+    ],
+    "steps": [
+      {
+        "label": "Banner appears, not answered",
+        "fixture": "banner not yet answered",
+        "event": "OneTrustGroupsUpdated",
+        "calls": []
+      },
+      {
+        "label": "Rejects everything optional",
+        "fixture": "strictly necessary only",
+        "event": "OneTrustGroupsUpdated",
+        "calls": [
+          {
+            "api": "setGlobalContextProperty",
+            "label": "consent.categories",
+            "detail": [
+              "C0001"
+            ]
+          },
+          {
+            "api": "setTrackingConsent",
+            "label": "not-granted"
+          }
+        ]
+      },
+      {
+        "label": "Accepts analytics cookies",
+        "fixture": "performance accepted",
+        "event": "OneTrustGroupsUpdated",
+        "calls": [
+          {
+            "api": "setGlobalContextProperty",
+            "label": "consent.categories",
+            "detail": [
+              "C0001",
+              "C0002"
+            ]
+          },
+          {
+            "api": "setTrackingConsent",
+            "label": "granted"
+          }
+        ]
+      },
+      {
+        "label": "Accepts all cookies",
+        "fixture": "all categories accepted",
+        "event": "OneTrustGroupsUpdated",
+        "calls": [
+          {
+            "api": "setGlobalContextProperty",
+            "label": "consent.categories",
+            "detail": [
+              "C0001",
+              "C0002",
+              "C0003",
+              "C0004"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Later turns analytics off",
+        "fixture": "consent withdrawn",
+        "event": "OneTrustGroupsUpdated",
+        "calls": [
+          {
+            "api": "setGlobalContextProperty",
+            "label": "consent.categories",
+            "detail": [
+              "C0001"
+            ]
+          },
+          {
+            "api": "setTrackingConsent",
+            "label": "not-granted"
+          }
+        ]
+      }
+    ]
+  }
 }
