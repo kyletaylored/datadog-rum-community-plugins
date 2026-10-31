@@ -54,8 +54,10 @@ const guarantees = [
     <div class="grid">
       {featured.map((plugin) => (
         <a class="card" href={url(`/plugins/${plugin.name}/`)}>
-          <span class="card-icon"><Icon name={familyIcon[plugin.family] ?? 'puzzle'} /></span>
-          <h3>{plugin.title ?? plugin.name}</h3>
+          <div class="card-head">
+            <span class="card-icon"><Icon name={familyIcon[plugin.family] ?? 'puzzle'} /></span>
+            <h3>{plugin.title ?? plugin.name}</h3>
+          </div>
           <p>{plugin.description}</p>
           <div class="badges">
             <span class="badge">{plugin.family}</span>
@@ -65,8 +67,10 @@ const guarantees = [
         </a>
       ))}
       <a class="card" href={url('/docs/contributing/')}>
-        <span class="card-icon"><Icon name="code" /></span>
-        <h3>Something missing?</h3>
+        <div class="card-head">
+          <span class="card-icon"><Icon name="code" /></span>
+          <h3>Something missing?</h3>
+        </div>
         <p>BigCommerce, Adobe Commerce, Auth0, Intercom and more are open. The scaffold gets you to a working plugin in about a week.</p>
         <div class="badges"><span class="badge">Contribute</span></div>
       </a>
@@ -127,8 +131,10 @@ const guarantees = [
     <div class="grid">
       {guarantees.map((item) => (
         <div class="card">
-          <span class="card-icon"><Icon name={item.icon} /></span>
-          <h3>{item.title}</h3>
+          <div class="card-head">
+            <span class="card-icon"><Icon name={item.icon} /></span>
+            <h3>{item.title}</h3>
+          </div>
           <p>{item.body}</p>
         </div>
       ))}

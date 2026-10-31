@@ -313,14 +313,17 @@ a.card:hover, .card.interactive:hover { transform: translateY(-3px); border-colo
 .card h3 a { text-decoration: none; }
 .card p { margin: 0; color: var(--text-dim); font-size: 0.92rem; }
 
+/* The icon and the title share a row, so the title reads as the card's label, not a line below it. */
+.card-head { display: flex; align-items: center; gap: 0.7rem; }
+.card-head h3 { min-width: 0; }
 .card-icon {
+  flex: none;
   width: 2.3rem; height: 2.3rem;
   border-radius: 10px;
   display: grid; place-items: center;
   background: var(--accent-soft);
   border: 1px solid var(--border-strong);
   color: var(--accent);
-  margin-bottom: 0.2rem;
 }
 .card-icon svg { width: 1.15rem; height: 1.15rem; }
 
