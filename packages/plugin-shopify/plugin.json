@@ -82,6 +82,27 @@
       "fixture": "checkout completed again, same order"
     }
   ],
+  "howItWorks": {
+    "summary": "Runs inside a Shopify custom pixel next to the official shopifyPlugin, and subscribes to Shopify's Web Pixels standard events through the analytics object the pixel receives. It never touches the storefront's DOM.",
+    "steps": [
+      {
+        "title": "Reads the storefront and its consent API",
+        "detail": "At init it reads `window.Shopify` for the shop, currency and locale, which become session context. It also asks Shopify's Customer Privacy API whether analytics is allowed: allowed opens the consent gate, denied keeps it shut, and absent (inside the pixel sandbox) defers to the consent Shopify already applied."
+      },
+      {
+        "title": "Subscribes to Web Pixels events",
+        "detail": "It calls `analytics` `.subscribe` once for each of `collection_viewed`, `product_viewed`, `product_added_to_cart`, `product_removed_from_cart`, `cart_viewed`, `checkout_started`, `checkout_shipping_info_submitted`, `payment_info_submitted`, `checkout_completed` and `search_submitted`. `analytics` is the object Shopify hands a custom pixel; each event is mapped to one commerce action."
+      },
+      {
+        "title": "Leaves the official plugin's events alone",
+        "detail": "`page_viewed`, `clicked` and `ui_extension_errored` are not subscribed: the official shopifyPlugin already binds those, and also patches the pixel sandbox so the SDK can run. The two compose rather than overlap."
+      },
+      {
+        "title": "Identifies at checkout, and counts each order once",
+        "detail": "On `checkout_completed` it calls `setUser` with the Shopify customer ID before sending the purchase. The core records each order ID in `dd_rum_commerce_seen` in localStorage for 24 hours, so a reloaded thank-you page is not counted twice."
+      }
+    ]
+  },
   "options": [
     {
       "name": "analytics",

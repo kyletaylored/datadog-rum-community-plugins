@@ -17,7 +17,8 @@
     "schemaVersion",
     "rumSdk",
     "footprint",
-    "journey"
+    "journey",
+    "howItWorks"
   ],
   "properties": {
     "name": {
@@ -155,6 +156,44 @@
           "fixture": {
             "type": "string",
             "description": "The name of a fixture in fixtures/*.json. A name may repeat, e.g. a reload of the thank-you page."
+          }
+        }
+      }
+    },
+    "howItWorks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "steps"
+      ],
+      "description": "What the plugin actually does on a page: which listeners it adds, which platform APIs and globals it reads, and how it reports. Rendered on the plugin page. validate-manifests requires every footprint global and event to be explained here. Wrap identifiers in backticks.",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "One or two sentences: where the plugin gets its events from."
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "title",
+              "detail"
+            ],
+            "properties": {
+              "title": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "detail": {
+                "type": "string",
+                "maxLength": 600
+              }
+            }
           }
         }
       }

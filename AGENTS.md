@@ -122,7 +122,9 @@ Opened directly (not framed), the demo shows its own small call log in a corner,
 
 ## Plugin pages: what to write
 
-The plugin page is generated. One field in `plugin.json` drives it and is required:
+The plugin page is generated. Two fields in `plugin.json` drive it and are required:
+
+- `howItWorks`: `{ summary, steps: [{ title, detail }] }`, what the plugin actually does on a page. Which listeners it adds and where (`document.body`, a platform's `analytics.subscribe`, a window event), which platform APIs and globals it reads, how it decides consent, and how it reports. Write it from the code, not from intent: if the code doesn't do something, the page mustn't say it does. Wrap identifiers in backticks; they render as code. `validate-manifests` fails if any footprint global or event goes unexplained. It renders as "How it works" on the plugin page, and its summary appears on `/docs/how-it-works/`.
 
 - `journey`: ordered steps, each `{ "label": "Adds 2 t-shirts to the cart", "fixture": "added to cart" }`. Labels are a visitor's action in plain words. A fixture may repeat (a reloaded thank-you page). The snapshot test replays the journey through `recordJourney` and writes each step's calls, refusals and stripped keys to `events.json`; `validate-manifests` checks every named fixture exists.
 

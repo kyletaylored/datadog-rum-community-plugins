@@ -93,6 +93,31 @@
       "fixture": "submits an ordinary form"
     }
   ],
+  "howItWorks": {
+    "summary": "Reads the page itself. A few delegated listeners on the document see what a visitor does, so nothing on the site needs instrumenting and it works on any site.",
+    "steps": [
+      {
+        "title": "Scroll depth",
+        "detail": "A passive `scroll` listener measures depth at most once per animation frame and fires `engagement.scroll` at 25, 50, 75 and 90% (`scrollThresholds`), each once per view. `popstate` on `window` resets the thresholds on back and forward navigation."
+      },
+      {
+        "title": "Links, contact links and downloads",
+        "detail": "One capture-phase `click` listener on `document` reads the clicked link: outbound links, `mailto:` and `tel:` links (their kind only, never the address), and downloads by file extension. Internal links are skipped, because RUM already records them as views. A URL's query string and fragment are never sent."
+      },
+      {
+        "title": "HTML5 video",
+        "detail": "`play`, `timeupdate` and `ended` do not bubble, so they are captured on `document` for every `<video>`: start, progress at 10, 25, 50 and 75%, and completion."
+      },
+      {
+        "title": "Forms, without reading a field",
+        "detail": "`focusin` marks a form as started, once. `submit` reports the form's id, label and destination host. No field value is read, at any point. A form marked `data-dd-lead` (or `data-lead`) also sends `lead.generate_lead`."
+      },
+      {
+        "title": "Consent",
+        "detail": "It has no consent source of its own. Pair it with a consent plugin, or pass `consent: 'ignore'` when the page already holds RUM's tracking consent."
+      }
+    ]
+  },
   "options": [
     {
       "name": "scrollThresholds",

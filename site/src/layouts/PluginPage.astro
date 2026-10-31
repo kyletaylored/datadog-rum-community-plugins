@@ -12,6 +12,7 @@
 import Page from './Page.astro'
 import InstallTabs from '../components/InstallTabs.astro'
 import Footprint from '../components/Footprint.astro'
+import InlineCode from '../components/InlineCode.astro'
 import { url } from '../lib/url'
 import { dashboard, metricsFor, monitors } from '../lib/datadogAssets'
 import type plugins from '../data/plugins.json'
@@ -204,6 +205,25 @@ const contextCount = Object.keys(plugin.globalContext ?? {}).length---
   />
 
   <slot />
+
+  {plugin.howItWorks && (
+    <>
+      <h2 class="section">How it works</h2>
+      <p class="intro"><InlineCode text={plugin.howItWorks.summary} /></p>
+      <ol class="how">
+        {plugin.howItWorks.steps.map((step) => (
+          <li>
+            <p class="how-title">{step.title}</p>
+            <p class="how-detail"><InlineCode text={step.detail} /></p>
+          </li>
+        ))}
+      </ol>
+      <p class="small muted">
+        Then every event goes through the same core: the consent gate, the PII filter and size caps,
+        the purchase dedupe. <a href={url('/docs/how-it-works/')}>How every plugin works →</a>
+      </p>
+    </>
+  )}
 
   <h2 class="section">What a visit sends</h2>
   <p class="intro">{intro[plugin.family] ?? intro.commerce}</p>
@@ -438,6 +458,16 @@ const contextCount = Object.keys(plugin.globalContext ?? {}).length---
 
 <style>
   .section { margin-top: 3.5rem; }
+
+  .how { list-style: none; counter-reset: how; margin: 1rem 0 0.75rem; padding: 0; display: grid; gap: 0.75rem; max-width: 52rem; }
+  .how li { counter-increment: how; position: relative; padding: 0.85rem 1rem 0.85rem 3.1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+  .how li::before {
+    content: counter(how); position: absolute; left: 1rem; top: 0.85rem;
+    width: 1.5rem; height: 1.5rem; border-radius: 999px; background: var(--gradient); color: #fff;
+    display: grid; place-items: center; font-size: 0.75rem; font-weight: 720;
+  }
+  .how-title { margin: 0 0 0.2rem; font-weight: 650; }
+  .how-detail { margin: 0; color: var(--text-dim); font-size: 0.94rem; }
   .intro { color: var(--text-dim); max-width: 46rem; }
 
   .journey { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); overflow: hidden; margin-top: 1rem; }

@@ -22,6 +22,11 @@ export interface PluginManifest {
    * plugin page renders what each step sent. A fixture may repeat, e.g. a reloaded thank-you page.
    */
   journey: { label: string; fixture: string }[]
+  /**
+   * What the plugin does on a page, in plain words: the listeners it adds, the platform APIs and
+   * globals it reads, how it reports. Every footprint global and event must be explained here.
+   */
+  howItWorks: { summary: string; steps: { title: string; detail: string }[] }
   options?: { name: string; type?: string; default: unknown; description: string }[]
   footprint: PluginFootprint
   demo?: string
