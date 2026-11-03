@@ -1,0 +1,25 @@
+/* Relay Academy: the Relay brand (tokens in ../_shared/relay.css), as a course site. */
+.academy { max-width: 760px; margin: 0 auto; padding: 40px 28px 72px; }
+.learner { margin-left: auto; font-size: 13px; color: var(--dim); }
+.crumb { margin: 0 0 6px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); }
+.academy h1 { margin: 0 0 14px; font-size: 34px; letter-spacing: -0.02em; }
+.academy h2 { margin: 0 0 6px; font-size: 19px; }
+.academy p { color: var(--dim); }
+.lede { font-size: 18px; }
+.progress-line strong { color: var(--ink); }
+.actions { display: flex; gap: 14px; align-items: center; margin: 22px 0; }
+.actions button:not(.cta) { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font-weight: 650; }
+.cta[hidden] { display: none; }
+.outline { margin: 28px 0 0; padding: 0; list-style: none; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.outline li { display: flex; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.outline li:last-child { border-bottom: none; }
+.outline li span { color: var(--dim); font-size: 13px; }
+.outline li.done { color: var(--dim); }
+.outline li.done::before { content: '✓ '; color: #1f9d55; }
+.topic { margin-top: 24px; padding: 20px 22px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.questions fieldset { margin: 0 0 14px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.questions legend { font-weight: 700; padding: 0 4px; }
+.questions label { display: block; padding: 4px 0; }
+.questions[hidden] { display: none; }
+.certificate { aspect-ratio: 1.6; border-radius: 14px; }
+.player { margin: 10px 0 18px; }

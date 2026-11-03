@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Status updates check · Relay Academy (a demo site)</title>
+  <link rel="stylesheet" href="../_shared/demo.css" />
+  <link rel="stylesheet" href="../_shared/relay.css" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- The sandbox's recorder, the LearnDash and engagement bundles, and LearnDash's fixtures. -->
+  <script src="../_shared/runtime.js"></script>
+  <script src="../_shared/plugins/learndash.js"></script>
+  <script src="../_shared/plugins/engagement.js"></script>
+  <script src="../_shared/fixtures/learndash.js"></script>
+  <script type="module" src="demo.js"></script>
+</head>
+<body data-page="quiz">
+  <header class="nav">
+    <a class="logo" href="index.html" data-go="index.html"><i aria-hidden="true"></i>Relay Academy</a>
+    <nav><a href="index.html" data-go="index.html">Incident response basics</a></nav>
+    <span class="learner">Signed in as a demo learner</span>
+  </header>
+  <main class="academy">
+    <p class="crumb">Quiz</p>
+    <h1>Status updates check</h1>
+    <p>Three questions. The pass mark is 7 out of 10.</p>
+    <!-- LearnDash renders quizzes with WP Pro Quiz, whose start button is an input named startQuiz. -->
+    <p class="actions"><input type="button" class="cta wpProQuiz_button" name="startQuiz" value="Start quiz" data-start-quiz /></p>
+    <form class="questions" data-questions hidden>
+      <fieldset><legend>1. What goes in the first update?</legend>
+        <label><input type="radio" name="q1" value="a" /> The root cause</label>
+        <label><input type="radio" name="q1" value="b" data-answer /> What is affected</label></fieldset>
+      <fieldset><legend>2. Severity follows…</legend>
+        <label><input type="radio" name="q2" value="a" data-answer /> Customer impact</label>
+        <label><input type="radio" name="q2" value="b" /> Engineering effort</label></fieldset>
+      <fieldset><legend>3. When is the next update due?</legend>
+        <label><input type="radio" name="q3" value="a" data-answer /> When you said it would be</label>
+        <label><input type="radio" name="q3" value="b" /> When it is fixed</label></fieldset>
+      <p class="actions"><button type="button" class="cta" data-submit-quiz>Submit answers</button></p>
+    </form>
+  </main>
+</body>
+</html>

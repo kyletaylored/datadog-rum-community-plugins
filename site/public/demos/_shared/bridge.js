@@ -66,10 +66,11 @@ function flash(element) {
  *   defaults?: Record<string, unknown>,// plugin options when opened outside the sandbox
  *   scenarios?: Record<string, ((demo) => unknown)[]>,
  *   sourceFor?: (call) => string | undefined,
+ *   alsoCapture?: string[],            // companion plugins whose debug log (refusals) to show too
  * }} config
  */
 export function startDemo(config) {
-  const { plugin, page, entry = 'index.html', defaults = {}, scenarios = {}, sourceFor } = config
+  const { plugin, page, entry = 'index.html', defaults = {}, scenarios = {}, sourceFor, alsoCapture = [] } = config
   const stored = readJson(key(plugin, 'options'))
   const options = stored?.options ?? defaults
   const platform = stored?.platform ?? {}
@@ -88,7 +89,9 @@ export function startDemo(config) {
     }
   }
 
-  runtime.captureDebugLog(plugin, post, () => true)
+  // A demo that runs a companion plugin (the LearnDash academy runs the engagement kit for its
+  // lesson video) names it here, so that plugin's refusals reach the feed too.
+  for (const tag of [plugin, ...alsoCapture]) runtime.captureDebugLog(tag, post, () => true)
   const publicApi = runtime.createRecorder(post, () => true)
 
   /**
@@ -221,6 +224,14 @@ export function startDemo(config) {
       try {
         for (const storageKey of Object.keys(sessionStorage)) {
           if (storageKey.startsWith(`ddrum-demo:${plugin}:`)) sessionStorage.removeItem(storageKey)
+        }
+      } catch {}
+      // Every key the core or a plugin writes starts dd_rum_ (the purchase dedupe, LearnDash's
+      // reported-event IDs). Clearing by prefix covers a new plugin's key without listing it here;
+      // clearing only the purchase key left LearnDash refusing a replayed course as "already reported".
+      try {
+        for (const storageKey of Object.keys(localStorage)) {
+          if (storageKey.startsWith('dd_rum_')) localStorage.removeItem(storageKey)
         }
       } catch {}
       runtime.clearDedupe()

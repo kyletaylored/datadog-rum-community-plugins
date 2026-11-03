@@ -103,6 +103,7 @@ The demos should look like a set: recognizably different stores and sites, built
 | `shopify` | Northline | Gadget store | White, deep green `#1e3a2f`, uppercase tracked wordmark, 10px radius |
 | `engagement` | Relay | SaaS (status pages) | `#fbfbfd`, ink `#14161f`, accent `#2f6bff` |
 | `onetrust` | Relay, with a generic consent banner | SaaS | As Relay, banner in neutral white |
+| `learndash` | Relay Academy | Course site (incident response training) | As Relay; runs the engagement kit alongside for lesson video |
 
 A new commerce plugin gets a new gadget-store brand; a new SaaS-side plugin (login, support, forms) reuses Relay, the way OneTrust does, so its events show up on a page people already know.
 

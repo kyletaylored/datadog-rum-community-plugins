@@ -1,0 +1,432 @@
+{
+  "generatedFrom": "fixture run via @kyletaylored/datadog-rum-test-harness; do not edit by hand",
+  "plugin": "learndash",
+  "actions": [
+    {
+      "name": "learning.course_complete",
+      "attributes": [
+        {
+          "name": "course_id",
+          "type": "string"
+        },
+        {
+          "name": "course_name",
+          "type": "string"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "course_id": "1204",
+        "course_name": "Incident response basics"
+      }
+    },
+    {
+      "name": "learning.course_enroll",
+      "attributes": [
+        {
+          "name": "course_id",
+          "type": "string"
+        },
+        {
+          "name": "course_name",
+          "type": "string"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "course_id": "1204",
+        "course_name": "Incident response basics"
+      }
+    },
+    {
+      "name": "learning.lesson_complete",
+      "attributes": [
+        {
+          "name": "course_id",
+          "type": "string"
+        },
+        {
+          "name": "course_name",
+          "type": "string"
+        },
+        {
+          "name": "lesson_id",
+          "type": "string"
+        },
+        {
+          "name": "lesson_name",
+          "type": "string"
+        },
+        {
+          "name": "progress_percent",
+          "type": "integer"
+        },
+        {
+          "name": "step_type",
+          "type": "string"
+        }
+      ],
+      "occurrences": 3,
+      "example": {
+        "course_id": "1204",
+        "course_name": "Incident response basics",
+        "lesson_id": "1311",
+        "lesson_name": "Writing a status update",
+        "step_type": "lesson",
+        "progress_percent": 40
+      }
+    },
+    {
+      "name": "learning.quiz_complete",
+      "attributes": [
+        {
+          "name": "attempt",
+          "type": "integer"
+        },
+        {
+          "name": "course_id",
+          "type": "string"
+        },
+        {
+          "name": "course_name",
+          "type": "string"
+        },
+        {
+          "name": "passed",
+          "type": "boolean"
+        },
+        {
+          "name": "quiz_id",
+          "type": "string"
+        },
+        {
+          "name": "quiz_name",
+          "type": "string"
+        },
+        {
+          "name": "score",
+          "type": "number"
+        },
+        {
+          "name": "score_max",
+          "type": "number"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "course_id": "1204",
+        "course_name": "Incident response basics",
+        "quiz_id": "1402",
+        "quiz_name": "Status updates check",
+        "score": 8,
+        "score_max": 10,
+        "passed": true,
+        "attempt": 1
+      }
+    },
+    {
+      "name": "learning.quiz_start",
+      "attributes": [
+        {
+          "name": "course_id",
+          "type": "string"
+        },
+        {
+          "name": "quiz_id",
+          "type": "string"
+        },
+        {
+          "name": "quiz_name",
+          "type": "string"
+        }
+      ],
+      "occurrences": 1,
+      "example": {
+        "course_id": "1204",
+        "quiz_id": "1402",
+        "quiz_name": "Status updates check"
+      }
+    }
+  ],
+  "globalContext": {
+    "commerce.platform": "learndash",
+    "commerce.plugin_version": "0.1.0",
+    "commerce.schema_version": "1.2.0"
+  },
+  "rumApis": [
+    "addAction",
+    "setGlobalContextProperty",
+    "setUser"
+  ],
+  "journey": {
+    "options": {
+      "consent": "ignore"
+    },
+    "init": [],
+    "steps": [
+      {
+        "label": "Enrols in a course",
+        "fixture": "enrols in a course",
+        "event": "page",
+        "calls": [
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.platform",
+            "detail": "learndash"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.plugin_version",
+            "detail": "0.1.0"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.schema_version",
+            "detail": "1.2.0"
+          },
+          {
+            "api": "setUser",
+            "detail": {
+              "id": "57"
+            }
+          },
+          {
+            "api": "addAction",
+            "label": "learning.course_enroll",
+            "detail": {
+              "course_id": "1204",
+              "course_name": "Incident response basics"
+            },
+            "stripped": [
+              "email"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Finishes a lesson",
+        "fixture": "completes a lesson",
+        "event": "page",
+        "calls": [
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.platform",
+            "detail": "learndash"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.plugin_version",
+            "detail": "0.1.0"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.schema_version",
+            "detail": "1.2.0"
+          },
+          {
+            "api": "setUser",
+            "detail": {
+              "id": "57"
+            }
+          },
+          {
+            "api": "addAction",
+            "label": "learning.lesson_complete",
+            "detail": {
+              "course_id": "1204",
+              "course_name": "Incident response basics",
+              "lesson_id": "1311",
+              "lesson_name": "Writing a status update",
+              "step_type": "lesson",
+              "progress_percent": 40
+            }
+          }
+        ]
+      },
+      {
+        "label": "Finishes a topic",
+        "fixture": "completes a topic",
+        "event": "page",
+        "calls": [
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.platform",
+            "detail": "learndash"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.plugin_version",
+            "detail": "0.1.0"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.schema_version",
+            "detail": "1.2.0"
+          },
+          {
+            "api": "setUser",
+            "detail": {
+              "id": "57"
+            }
+          },
+          {
+            "api": "addAction",
+            "label": "learning.lesson_complete",
+            "detail": {
+              "course_id": "1204",
+              "course_name": "Incident response basics",
+              "lesson_id": "1321",
+              "lesson_name": "Severity in practice",
+              "step_type": "topic",
+              "progress_percent": 60
+            }
+          }
+        ]
+      },
+      {
+        "label": "Starts the quiz",
+        "fixture": "starts the quiz",
+        "event": "click",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "learning.quiz_start",
+            "detail": {
+              "course_id": "1204",
+              "quiz_id": "1402",
+              "quiz_name": "Status updates check"
+            }
+          }
+        ]
+      },
+      {
+        "label": "Passes the quiz, 8 out of 10",
+        "fixture": "passes the quiz",
+        "event": "page",
+        "calls": [
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.platform",
+            "detail": "learndash"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.plugin_version",
+            "detail": "0.1.0"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.schema_version",
+            "detail": "1.2.0"
+          },
+          {
+            "api": "setUser",
+            "detail": {
+              "id": "57"
+            }
+          },
+          {
+            "api": "addAction",
+            "label": "learning.quiz_complete",
+            "detail": {
+              "course_id": "1204",
+              "course_name": "Incident response basics",
+              "quiz_id": "1402",
+              "quiz_name": "Status updates check",
+              "score": 8,
+              "score_max": 10,
+              "passed": true,
+              "attempt": 1
+            }
+          }
+        ]
+      },
+      {
+        "label": "Finishes the last lesson and the course",
+        "fixture": "completes the course",
+        "event": "page",
+        "calls": [
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.platform",
+            "detail": "learndash"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.plugin_version",
+            "detail": "0.1.0"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.schema_version",
+            "detail": "1.2.0"
+          },
+          {
+            "api": "setUser",
+            "detail": {
+              "id": "57"
+            }
+          },
+          {
+            "api": "addAction",
+            "label": "learning.lesson_complete",
+            "detail": {
+              "course_id": "1204",
+              "course_name": "Incident response basics",
+              "lesson_id": "1331",
+              "lesson_name": "Running the retro",
+              "step_type": "lesson",
+              "progress_percent": 100
+            }
+          },
+          {
+            "api": "addAction",
+            "label": "learning.course_complete",
+            "detail": {
+              "course_id": "1204",
+              "course_name": "Incident response basics"
+            }
+          }
+        ]
+      },
+      {
+        "label": "Reloads the completion page",
+        "fixture": "completes the course",
+        "event": "page",
+        "calls": [
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.platform",
+            "detail": "learndash"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.plugin_version",
+            "detail": "0.1.0"
+          },
+          {
+            "api": "setGlobalContextProperty",
+            "label": "commerce.schema_version",
+            "detail": "1.2.0"
+          },
+          {
+            "api": "setUser",
+            "detail": {
+              "id": "57"
+            }
+          },
+          {
+            "api": "not sent",
+            "label": "step_complete",
+            "blocked": "already reported event step-57-1331"
+          },
+          {
+            "api": "not sent",
+            "label": "course_complete",
+            "blocked": "already reported event complete-57-1204"
+          }
+        ]
+      }
+    ]
+  }
+}
