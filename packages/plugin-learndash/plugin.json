@@ -37,14 +37,60 @@
     "learning.course_complete"
   ],
   "journey": [
-    { "label": "Enrols in a course", "fixture": "enrols in a course" },
-    { "label": "Finishes a lesson", "fixture": "completes a lesson" },
-    { "label": "Finishes a topic", "fixture": "completes a topic" },
-    { "label": "Starts the quiz", "fixture": "starts the quiz" },
-    { "label": "Passes the quiz, 8 out of 10", "fixture": "passes the quiz" },
-    { "label": "Finishes the last lesson and the course", "fixture": "completes the course" },
-    { "label": "Reloads the completion page", "fixture": "completes the course" }
+    {
+      "label": "Enrols in a course",
+      "fixture": "enrols in a course"
+    },
+    {
+      "label": "Finishes a lesson",
+      "fixture": "completes a lesson"
+    },
+    {
+      "label": "Finishes a topic",
+      "fixture": "completes a topic"
+    },
+    {
+      "label": "Starts the quiz",
+      "fixture": "starts the quiz"
+    },
+    {
+      "label": "Passes the quiz, 8 out of 10",
+      "fixture": "passes the quiz"
+    },
+    {
+      "label": "Finishes the last lesson and the course",
+      "fixture": "completes the course"
+    },
+    {
+      "label": "Reloads the completion page",
+      "fixture": "completes the course"
+    }
   ],
+  "howItWorks": {
+    "summary": "Reads the learning events the companion WordPress plugin prints on each page, because LearnDash completes lessons and quizzes with form posts the browser never sees. The one in-page signal, starting a quiz, it reads from the click.",
+    "steps": [
+      {
+        "title": "Reads what just happened, from the server",
+        "detail": "At init it reads `window.ddRumLearnDash`: the learner's WordPress user ID, the course and step the page shows, and the events recorded since the last page (enrolment, completed lessons and topics, graded quizzes, course completion). The user ID goes to `setUser`; nothing else about the learner is read."
+      },
+      {
+        "title": "Reports each event once",
+        "detail": "Every printed event carries an `id`. The plugin reports an ID once and records it in `dd_rum_learning_seen` in localStorage for 24 hours, so a reloaded or cached page that prints the same events again sends nothing twice. An event with no ID is dropped, since it could not be reported only once."
+      },
+      {
+        "title": "Hears the quiz start",
+        "detail": "On a quiz page it adds one capture-phase `click` listener on `document`, and sends `learning.quiz_start` when the click lands on the start button: WP Pro Quiz's `[name=\"startQuiz\"]` by default, or `quizStartSelector`."
+      },
+      {
+        "title": "Scores, never answers",
+        "detail": "A graded quiz sends its score, the points available, whether it passed and which attempt it was. The answers are never sent, even when the payload holds them. Lesson video is not LearnDash's to report: add the engagement kit, which reads it from the page."
+      },
+      {
+        "title": "Consent",
+        "detail": "It has no consent source of its own, so under the default `consent: 'auto'` it sends nothing. On a page with a consent plugin, pass `consent: 'ignore'`: the consent plugin then holds RUM itself until the visitor accepts."
+      }
+    ]
+  },
   "options": [
     {
       "name": "events",
