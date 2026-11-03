@@ -42,19 +42,19 @@
   ],
   "journey": [
     {
-      "label": "Searches for \"red tee medium\"",
+      "label": "Searches for \"silver laptop\"",
       "fixture": "product search"
     },
     {
-      "label": "Adds 2 t-shirts to the cart",
+      "label": "Adds a laptop to the cart",
       "fixture": "added to cart"
     },
     {
-      "label": "Removes the cap",
+      "label": "Removes the phone",
       "fixture": "removed from cart"
     },
     {
-      "label": "Adds socks on a classic theme",
+      "label": "Adds a watch on a classic theme",
       "fixture": "added to cart on a classic theme, through jQuery"
     },
     {

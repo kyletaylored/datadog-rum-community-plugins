@@ -14,35 +14,60 @@ main { max-width: 960px; margin: 0 auto; padding: 28px; }
 .crumb { margin: 0 0 6px; font-size: 12px; color: var(--dim); }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 h1 { margin: 0 0 20px; font-size: 28px; }
-.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
-.card h2 { margin: 10px 0 2px; font-size: 17px; }
-.price { margin: 0 0 10px; color: var(--dim); }
 button, .primary { padding: 8px 14px; border: 1px solid var(--ink); border-radius: 4px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 600; text-decoration: none; display: inline-block; }
-.card button { width: 100%; }
-.product { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
-.qty { display: inline-flex; align-items: center; gap: 10px; margin: 6px 12px 16px 0; }
+.muted { color: var(--dim); font-size: 13px; }
+
+/* ---- The grid: one column per product, photo on top, the button pinned to the bottom ---------- */
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
+.product-card { position: relative; display: flex; flex-direction: column; gap: 4px; padding-bottom: 2px; }
+.product-photo { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 4px; background: var(--panel); margin-bottom: 10px; }
+.product-card h2 { margin: 0; font-size: 18px; line-height: 1.25; }
+.product-card .meta { margin: 0; font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+.product-card .price { margin: 2px 0 12px; }
+.product-card button { margin-top: auto; width: 100%; position: relative; z-index: 1; }
+/* The laptop's whole card opens its product page; its button sits above the link. */
+.card-link { position: absolute; inset: 0; z-index: 0; border-radius: 4px; }
+.card-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.price { margin: 0 0 10px; color: var(--dim); }
+
+/* ---- Product page ------------------------------------------------------------------------------ */
+.product { display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px; align-items: start; }
+.product-photo.large { aspect-ratio: 4 / 3; margin: 0; }
+.buy h1 { margin-bottom: 6px; }
+.price.large { font-size: 20px; color: var(--ink); margin-bottom: 2px; }
+.sku { margin: 0 0 18px; font-size: 12px; color: var(--dim); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.options { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 14px; align-items: center; margin-bottom: 16px; }
+.options label { font-size: 13px; font-weight: 600; }
+.options select { width: 100%; max-width: 240px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 4px; background: #fff; font-size: 14px; }
+.qty { display: inline-flex; align-items: center; gap: 10px; margin: 0 12px 0 0; }
 .qty button { padding: 2px 10px; background: transparent; color: var(--ink); }
+
+/* ---- Cart ------------------------------------------------------------------------------------ */
 .line { display: grid; grid-template-columns: 64px 1fr auto auto; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
-.line .ph { aspect-ratio: 1; }
+.line-photo { width: 64px; height: 64px; object-fit: cover; border-radius: 4px; background: var(--panel); }
 .line strong { display: block; }
 .line button { background: transparent; color: var(--ink); padding: 4px 10px; font-size: 13px; }
-.muted { color: var(--dim); font-size: 13px; }
 .summary { margin-top: 18px; padding: 16px; background: var(--panel); border-radius: 4px; }
 .summary p { display: flex; justify-content: space-between; margin: 0 0 6px; }
 .summary .total { font-weight: 700; border-top: 1px solid var(--line); padding-top: 8px; }
+
+/* ---- Checkout -------------------------------------------------------------------------------- */
 .checkout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; align-items: start; }
 .checkout .summary { margin-top: 0; }
 fieldset { border: 1px solid var(--line); border-radius: 4px; margin: 0 0 16px; padding: 12px 16px; }
 legend { font-weight: 700; padding: 0 4px; }
 .choice { display: flex; gap: 8px; align-items: center; padding: 6px 0; }
 .choice span { margin-left: auto; color: var(--dim); }
-.card { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-top: 8px; }
-.card[hidden] { display: none; }
-.card input { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: #fff; font-family: ui-monospace, monospace; font-size: 13px; }
-.card label { font-size: 12px; color: var(--dim); }
+.card-fields { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-top: 8px; }
+.card-fields[hidden] { display: none; }
+.card-fields input { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: #fff; font-family: ui-monospace, monospace; font-size: 13px; }
+.card-fields label { font-size: 12px; color: var(--dim); }
+
+/* ---- Thank-you ------------------------------------------------------------------------------- */
 .order { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); margin: 0 0 20px; }
 .order div { background: #fff; padding: 12px 16px; }
 .order dt { font-size: 12px; color: var(--dim); }
 .order dd { margin: 0; font-weight: 700; }
 .actions { display: flex; gap: 14px; align-items: center; }
+
 @media (max-width: 640px) { .grid, .product, .checkout { grid-template-columns: 1fr; } .top { flex-wrap: wrap; } }

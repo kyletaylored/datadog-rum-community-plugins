@@ -38,7 +38,7 @@
   ],
   "journey": [
     {
-      "label": "Searches for \"red tee medium\"",
+      "label": "Searches for \"silver laptop\"",
       "fixture": "search submitted"
     },
     {
@@ -46,15 +46,15 @@
       "fixture": "collection viewed"
     },
     {
-      "label": "Looks at a t-shirt",
+      "label": "Looks at a laptop",
       "fixture": "product viewed"
     },
     {
-      "label": "Adds 2 t-shirts to the cart",
+      "label": "Adds a laptop to the cart",
       "fixture": "product added to cart"
     },
     {
-      "label": "Removes the cap",
+      "label": "Removes the phone",
       "fixture": "product removed from cart"
     },
     {

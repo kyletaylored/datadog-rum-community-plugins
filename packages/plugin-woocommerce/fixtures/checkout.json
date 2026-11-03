@@ -1,5 +1,5 @@
 {
-  "source": "Checkout funnel steps WooCommerce has no DOM event for, as the companion WordPress plugin reports them: createCheckoutReporter calls from the Cart and Checkout blocks' hooks, with the Store API cart. The cart is the one left after cart.json's steps (two tees and the socks; the cap was removed), built from the items recorded there. The event field names the reporter method; payload holds its arguments.",
+  "source": "Checkout funnel steps WooCommerce has no DOM event for, as the companion WordPress plugin reports them: createCheckoutReporter calls from the Cart and Checkout blocks' hooks, with the Store API cart. The cart is the one left after cart.json's steps (the laptop and the watch; the phone was removed), built from the items recorded there. The event field names the reporter method; payload holds its arguments.",
   "fixtures": [
     {
       "name": "cart viewed",
@@ -7,68 +7,90 @@
       "payload": {
         "cart": {
           "cart_key": "c1-8f2a",
-          "items_count": 3,
+          "items_count": 2,
           "totals": {
-            "total_price": "6800",
-            "total_items": "6800",
+            "total_price": "154800",
+            "total_items": "154800",
             "currency_code": "USD",
             "currency_minor_unit": 2
           },
-          "coupons": [
-            {
-              "code": "WELCOME10"
-            }
-          ],
           "items": [
             {
               "key": "a1b2",
               "id": 184,
-              "name": "Classic Tee",
-              "sku": "TEE-RED-M",
-              "quantity": 2,
+              "name": "Lumen 14 Laptop",
+              "sku": "LAP-14-SLV-512",
+              "quantity": 1,
               "prices": {
-                "price": "2800",
-                "regular_price": "2800",
+                "price": "129900",
+                "regular_price": "129900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
               },
               "totals": {
-                "line_total": "5600",
+                "line_total": "129900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
               },
+              "categories": [
+                {
+                  "name": "Laptops"
+                }
+              ],
+              "images": [
+                {
+                  "id": 9000,
+                  "src": "https://picsum.photos/id/0/800/600",
+                  "thumbnail": "https://picsum.photos/id/0/300/300",
+                  "alt": "Lumen 14 Laptop"
+                }
+              ],
               "variation": [
                 {
                   "attribute": "Color",
-                  "value": "Red"
+                  "value": "Silver"
                 },
                 {
-                  "attribute": "Size",
-                  "value": "M"
-                }
-              ],
-              "categories": [
-                {
-                  "name": "Shirts"
+                  "attribute": "Storage",
+                  "value": "512 GB"
                 }
               ]
             },
             {
               "key": "e5f6",
               "id": 212,
-              "name": "Crew Socks",
-              "sku": "SOCK-WHT-L",
+              "name": "Pulse Watch",
+              "sku": "WCH-PLS-44",
               "quantity": 1,
               "prices": {
-                "price": "1200",
+                "price": "24900",
+                "regular_price": "24900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
               },
               "totals": {
-                "line_total": "1200",
+                "line_total": "24900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
-              }
+              },
+              "categories": [
+                {
+                  "name": "Watches"
+                }
+              ],
+              "images": [
+                {
+                  "id": 9004,
+                  "src": "https://picsum.photos/id/4/800/600",
+                  "thumbnail": "https://picsum.photos/id/4/300/300",
+                  "alt": "Pulse Watch"
+                }
+              ]
+            }
+          ],
+          "coupons": [
+            {
+              "code": "WELCOME10"
             }
           ]
         }
@@ -80,68 +102,90 @@
       "payload": {
         "cart": {
           "cart_key": "c1-8f2a",
-          "items_count": 3,
+          "items_count": 2,
           "totals": {
-            "total_price": "6800",
-            "total_items": "6800",
+            "total_price": "154800",
+            "total_items": "154800",
             "currency_code": "USD",
             "currency_minor_unit": 2
           },
-          "coupons": [
-            {
-              "code": "WELCOME10"
-            }
-          ],
           "items": [
             {
               "key": "a1b2",
               "id": 184,
-              "name": "Classic Tee",
-              "sku": "TEE-RED-M",
-              "quantity": 2,
+              "name": "Lumen 14 Laptop",
+              "sku": "LAP-14-SLV-512",
+              "quantity": 1,
               "prices": {
-                "price": "2800",
-                "regular_price": "2800",
+                "price": "129900",
+                "regular_price": "129900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
               },
               "totals": {
-                "line_total": "5600",
+                "line_total": "129900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
               },
+              "categories": [
+                {
+                  "name": "Laptops"
+                }
+              ],
+              "images": [
+                {
+                  "id": 9000,
+                  "src": "https://picsum.photos/id/0/800/600",
+                  "thumbnail": "https://picsum.photos/id/0/300/300",
+                  "alt": "Lumen 14 Laptop"
+                }
+              ],
               "variation": [
                 {
                   "attribute": "Color",
-                  "value": "Red"
+                  "value": "Silver"
                 },
                 {
-                  "attribute": "Size",
-                  "value": "M"
-                }
-              ],
-              "categories": [
-                {
-                  "name": "Shirts"
+                  "attribute": "Storage",
+                  "value": "512 GB"
                 }
               ]
             },
             {
               "key": "e5f6",
               "id": 212,
-              "name": "Crew Socks",
-              "sku": "SOCK-WHT-L",
+              "name": "Pulse Watch",
+              "sku": "WCH-PLS-44",
               "quantity": 1,
               "prices": {
-                "price": "1200",
+                "price": "24900",
+                "regular_price": "24900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
               },
               "totals": {
-                "line_total": "1200",
+                "line_total": "24900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
-              }
+              },
+              "categories": [
+                {
+                  "name": "Watches"
+                }
+              ],
+              "images": [
+                {
+                  "id": 9004,
+                  "src": "https://picsum.photos/id/4/800/600",
+                  "thumbnail": "https://picsum.photos/id/4/300/300",
+                  "alt": "Pulse Watch"
+                }
+              ]
+            }
+          ],
+          "coupons": [
+            {
+              "code": "WELCOME10"
             }
           ]
         }
@@ -153,68 +197,90 @@
       "payload": {
         "cart": {
           "cart_key": "c1-8f2a",
-          "items_count": 3,
+          "items_count": 2,
           "totals": {
-            "total_price": "6800",
-            "total_items": "6800",
+            "total_price": "154800",
+            "total_items": "154800",
             "currency_code": "USD",
             "currency_minor_unit": 2
           },
-          "coupons": [
-            {
-              "code": "WELCOME10"
-            }
-          ],
           "items": [
             {
               "key": "a1b2",
               "id": 184,
-              "name": "Classic Tee",
-              "sku": "TEE-RED-M",
-              "quantity": 2,
+              "name": "Lumen 14 Laptop",
+              "sku": "LAP-14-SLV-512",
+              "quantity": 1,
               "prices": {
-                "price": "2800",
-                "regular_price": "2800",
+                "price": "129900",
+                "regular_price": "129900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
               },
               "totals": {
-                "line_total": "5600",
+                "line_total": "129900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
               },
+              "categories": [
+                {
+                  "name": "Laptops"
+                }
+              ],
+              "images": [
+                {
+                  "id": 9000,
+                  "src": "https://picsum.photos/id/0/800/600",
+                  "thumbnail": "https://picsum.photos/id/0/300/300",
+                  "alt": "Lumen 14 Laptop"
+                }
+              ],
               "variation": [
                 {
                   "attribute": "Color",
-                  "value": "Red"
+                  "value": "Silver"
                 },
                 {
-                  "attribute": "Size",
-                  "value": "M"
-                }
-              ],
-              "categories": [
-                {
-                  "name": "Shirts"
+                  "attribute": "Storage",
+                  "value": "512 GB"
                 }
               ]
             },
             {
               "key": "e5f6",
               "id": 212,
-              "name": "Crew Socks",
-              "sku": "SOCK-WHT-L",
+              "name": "Pulse Watch",
+              "sku": "WCH-PLS-44",
               "quantity": 1,
               "prices": {
-                "price": "1200",
+                "price": "24900",
+                "regular_price": "24900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
               },
               "totals": {
-                "line_total": "1200",
+                "line_total": "24900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
-              }
+              },
+              "categories": [
+                {
+                  "name": "Watches"
+                }
+              ],
+              "images": [
+                {
+                  "id": 9004,
+                  "src": "https://picsum.photos/id/4/800/600",
+                  "thumbnail": "https://picsum.photos/id/4/300/300",
+                  "alt": "Pulse Watch"
+                }
+              ]
+            }
+          ],
+          "coupons": [
+            {
+              "code": "WELCOME10"
             }
           ]
         },
@@ -227,68 +293,90 @@
       "payload": {
         "cart": {
           "cart_key": "c1-8f2a",
-          "items_count": 3,
+          "items_count": 2,
           "totals": {
-            "total_price": "6800",
-            "total_items": "6800",
+            "total_price": "154800",
+            "total_items": "154800",
             "currency_code": "USD",
             "currency_minor_unit": 2
           },
-          "coupons": [
-            {
-              "code": "WELCOME10"
-            }
-          ],
           "items": [
             {
               "key": "a1b2",
               "id": 184,
-              "name": "Classic Tee",
-              "sku": "TEE-RED-M",
-              "quantity": 2,
+              "name": "Lumen 14 Laptop",
+              "sku": "LAP-14-SLV-512",
+              "quantity": 1,
               "prices": {
-                "price": "2800",
-                "regular_price": "2800",
+                "price": "129900",
+                "regular_price": "129900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
               },
               "totals": {
-                "line_total": "5600",
+                "line_total": "129900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
               },
+              "categories": [
+                {
+                  "name": "Laptops"
+                }
+              ],
+              "images": [
+                {
+                  "id": 9000,
+                  "src": "https://picsum.photos/id/0/800/600",
+                  "thumbnail": "https://picsum.photos/id/0/300/300",
+                  "alt": "Lumen 14 Laptop"
+                }
+              ],
               "variation": [
                 {
                   "attribute": "Color",
-                  "value": "Red"
+                  "value": "Silver"
                 },
                 {
-                  "attribute": "Size",
-                  "value": "M"
-                }
-              ],
-              "categories": [
-                {
-                  "name": "Shirts"
+                  "attribute": "Storage",
+                  "value": "512 GB"
                 }
               ]
             },
             {
               "key": "e5f6",
               "id": 212,
-              "name": "Crew Socks",
-              "sku": "SOCK-WHT-L",
+              "name": "Pulse Watch",
+              "sku": "WCH-PLS-44",
               "quantity": 1,
               "prices": {
-                "price": "1200",
+                "price": "24900",
+                "regular_price": "24900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
               },
               "totals": {
-                "line_total": "1200",
+                "line_total": "24900",
                 "currency_code": "USD",
                 "currency_minor_unit": 2
-              }
+              },
+              "categories": [
+                {
+                  "name": "Watches"
+                }
+              ],
+              "images": [
+                {
+                  "id": 9004,
+                  "src": "https://picsum.photos/id/4/800/600",
+                  "thumbnail": "https://picsum.photos/id/4/300/300",
+                  "alt": "Pulse Watch"
+                }
+              ]
+            }
+          ],
+          "coupons": [
+            {
+              "code": "WELCOME10"
             }
           ]
         },
@@ -300,7 +388,7 @@
       "description": "Only the term's length is sent; the text never leaves the browser.",
       "event": "createCheckoutReporter.search",
       "payload": {
-        "term": "red tee medium"
+        "term": "silver laptop"
       }
     }
   ]

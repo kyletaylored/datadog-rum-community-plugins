@@ -2,7 +2,7 @@
 // Checks the demo sites against the rules in AGENTS.md "Demo sites": every plugin has one, every
 // sandbox scenario is playable, every declared action is accounted for, and no demo calls a RUM
 // API, holds a credential or links to an absolute path. It also checks the demo-asset standard:
-// shared files linked, the required colour tokens defined, every page titled as a demo, and no
+// shared files linked, the required color tokens defined, every page titled as a demo, and no
 // images or remote loads. Static checks only; the browser test plays the scenarios for real.
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
@@ -120,8 +120,10 @@ for (const dir of readdirSync(fromRoot('packages')).sort()) {
 const RUM_CALL = /\.(addAction|setUser|setAccount|setGlobalContextProperty|setTrackingConsent|startView|addError|clearUser|clearAccount)\s*\(|DD_RUM\.init|datadogRum\b/
 const CREDENTIAL = /applicationId|clientToken|pub[0-9a-f]{32}/
 const ABSOLUTE = /(?:src|href|action)\s*=\s*["'`]\/(?!\/)|location\.href\s*=\s*["'`]\//
-// Demos load nothing from outside the site, and use no images: placeholders are the shared .ph.
-// Outbound <a href> links are allowed; only loads (src, stylesheet links, CSS imports) are not.
+// Demos load nothing from outside the site. The one exception is product photos, which come from
+// the fixtures (a store's payload carries them) and are Lorem Picsum images by fixed ID; see below.
+// Everything else uses the shared .ph placeholder. Outbound <a href> links are allowed; only loads
+// (src, stylesheet links, CSS imports) are not.
 const REMOTE_LOAD = /\bsrc\s*=\s*["'](?:https?:)?\/\/|<link[^>]+href\s*=\s*["'](?:https?:)?\/\/|@import|@font-face|url\(\s*["']?(?:https?:)?\/\//
 const IMAGE_TAG = /<(img|picture)\b/
 
@@ -141,11 +143,33 @@ for (const file of walk(demosDir)) {
   readFileSync(file, 'utf8').split('\n').forEach((line, index) => {
     const code = stripComments(line)
     if (REMOTE_LOAD.test(code)) problems.push(`${where}:${index + 1}: loads something from outside the site; demos load only their own files`)
-    if (IMAGE_TAG.test(code)) problems.push(`${where}:${index + 1}: no <img> or <picture> in a demo; use the shared .ph placeholder`)
+    if (IMAGE_TAG.test(code)) problems.push(`${where}:${index + 1}: no <img> or <picture> in a demo page; a product photo is built from its fixture's image, anything else uses the shared .ph placeholder`)
     if (RUM_CALL.test(code)) problems.push(`${where}:${index + 1}: a demo must not call a RUM API; the plugin does the mapping`)
     if (CREDENTIAL.test(code)) problems.push(`${where}:${index + 1}: no application ID or client token in a demo`)
     if (ABSOLUTE.test(code)) problems.push(`${where}:${index + 1}: absolute path; the site is served from a subpath`)
   })
+}
+
+// Product photos in the fixtures: Lorem Picsum by fixed ID and size, so every run shows the same
+// picture and nothing else remote can reach a demo through fixture data.
+const PICSUM = /^https:\/\/picsum\.photos\/id\/\d+\/\d+\/\d+$/
+const IMAGE_KEYS = new Set(['src', 'thumbnail'])
+function checkImages(value, where) {
+  if (Array.isArray(value)) return value.forEach((entry) => checkImages(entry, where))
+  if (!value || typeof value !== 'object') return
+  for (const [key, entry] of Object.entries(value)) {
+    if (IMAGE_KEYS.has(key) && typeof entry === 'string' && !PICSUM.test(entry)) {
+      problems.push(`${where}: image ${entry} must be https://picsum.photos/id/<id>/<width>/<height>`)
+    }
+    checkImages(entry, where)
+  }
+}
+for (const dir of readdirSync(fromRoot('packages')).filter((name) => name.startsWith('plugin-'))) {
+  const fixturesDir = fromRoot('packages', dir, 'fixtures')
+  if (!existsSync(fixturesDir)) continue
+  for (const name of readdirSync(fixturesDir).filter((file) => file.endsWith('.json'))) {
+    checkImages(JSON.parse(readFileSync(join(fixturesDir, name), 'utf8')), relative(repoRoot, join(fixturesDir, name)))
+  }
 }
 
 if (problems.length > 0) {

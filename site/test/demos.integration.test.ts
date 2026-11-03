@@ -97,7 +97,7 @@ async function reachable(plugin: string): Promise<string[]> {
   return [...block.matchAll(/'([a-z]+\.[a-z_]+)'\s*:/g)].map((match) => match[1]!)
 }
 
-const SECRETS = ['4242424242', 'sk_live', 'token=8f2a', 'sig=', 'jane@company.example', '5550100199', 'sales@relay.example', 'billing_address', 'red tee medium']
+const SECRETS = ['4242424242', 'sk_live', 'token=8f2a', 'sig=', 'jane@company.example', '5550100199', 'sales@relay.example', 'billing_address', 'silver laptop']
 
 for (const plugin of presets.order) {
   describe(`the ${plugin} demo`, () => {

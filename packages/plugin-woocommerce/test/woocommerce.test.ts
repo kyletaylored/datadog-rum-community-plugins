@@ -172,14 +172,14 @@ describe('order-received page', () => {
     const purchase = rum.actions().find((action) => action.name === 'commerce.purchase')
     expect(purchase?.context).toEqual({
       transaction_id: 'wc_1042',
-      value: 100.6,
+      value: 1676.79,
       currency: 'USD',
-      tax: 6.2,
+      tax: 123.84,
       shipping: 4.95,
       coupon: 'WELCOME10',
       payment_type: 'paypal',
       shipping_tier: 'Ground',
-      item_count: 3,
+      item_count: 2,
       unique_items: 2,
     })
   })
@@ -248,8 +248,8 @@ describe('storefront cart events', () => {
   it('reports the value of the line that changed, not the whole cart', async () => {
     const { rum } = await run()
     const added = rum.actions().filter((action) => action.name === 'commerce.add_to_cart')
-    // Two tees at 28.00 is the line that changed; the cart total is 84.50.
-    expect(added[0]?.context.value).toBe(56)
+    // One laptop at 1,299.00 is the line that changed; the cart total, with the phone, is 2,098.00.
+    expect(added[0]?.context.value).toBe(1299)
     expect(added[0]?.context.cart_id).toBe('c1-8f2a')
   })
 
@@ -263,7 +263,7 @@ describe('storefront cart events', () => {
   it('maps an added_to_cart dispatched as a native DOM event, with its cart', async () => {
     const { rum } = await run()
     const native = rum.actions().filter((action) => action.name === 'commerce.add_to_cart')
-    expect(native[1]?.context.value).toBe(12)
+    expect(native[1]?.context.value).toBe(249)
   })
 
   it('hears a classic theme that raises added_to_cart only through jQuery', async () => {
@@ -293,7 +293,7 @@ describe('storefront cart events', () => {
 
     const adds = rum.actions().filter((action) => action.name === 'commerce.add_to_cart')
     expect(adds).toHaveLength(1)
-    expect(adds[0]?.context.items).toEqual([{ item_id: 'SOCK-WHT-L', quantity: 1 }])
+    expect(adds[0]?.context.items).toEqual([{ item_id: 'WCH-PLS-44', quantity: 1 }])
   })
 
   it('still hears native events on a page without jQuery', async () => {
