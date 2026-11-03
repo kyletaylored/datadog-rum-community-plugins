@@ -126,14 +126,14 @@ describe('event mapping', () => {
     const purchase = rum.actions().find((action) => action.name === 'commerce.purchase')
     expect(purchase?.context).toEqual({
       transaction_id: '5512345678901',
-      value: 100.6,
+      value: 2270.79,
       currency: 'USD',
-      tax: 6.2,
+      tax: 167.84,
       shipping: 4.95,
       coupon: 'WELCOME10',
       payment_type: 'paypal',
       shipping_tier: 'Ground',
-      item_count: 3,
+      item_count: 2,
       unique_items: 2,
     })
   })
@@ -156,13 +156,13 @@ describe('event mapping', () => {
   it('sends the search term length, never the term', async () => {
     const { rum } = await run()
     const search = rum.actions().find((action) => action.name === 'commerce.search')
-    expect(search?.context).toEqual({ search_term_length: 14 })
+    expect(search?.context).toEqual({ search_term_length: 13 })
   })
 
   it('strips card data that a payload carries, down to the payment method name', async () => {
     const { rum } = await run()
     const payment = rum.actions().find((action) => action.name === 'commerce.add_payment_info')
-    expect(payment?.context).toEqual({ value: 100.6, currency: 'USD', payment_type: 'paypal' })
+    expect(payment?.context).toEqual({ value: 2270.79, currency: 'USD', payment_type: 'paypal' })
     expect(JSON.stringify(rum.calls)).not.toContain('4242')
   })
 
@@ -170,7 +170,7 @@ describe('event mapping', () => {
     const { rum } = await run({ includeItems: true })
     const items = rum.actions().flatMap((action) => (action.context.items as Record<string, unknown>[] | undefined) ?? [])
     expect(items.some((item) => item.item_variant === 'Default Title')).toBe(false)
-    expect(items.some((item) => item.item_variant === 'Red / M')).toBe(true)
+    expect(items.some((item) => item.item_variant === 'Silver / 512 GB')).toBe(true)
   })
 })
 

@@ -5,13 +5,14 @@
  * custom pixel receives, and the plugin subscribes to it exactly as it does in a real pixel.
  * Payloads take their shape, and where the visit matches the recording their values, from the
  * plugin's fixtures — card number and CVV included on a card payment, as the fixture records them.
+ * Product photos are the variants' `image.src`, which Web Pixels payloads carry; no plugin sends them.
  */
 import { startDemo } from '../_shared/bridge.js'
 
 const fixtures = window.DDRumDemoFixtures.shopify
 const page = document.body.dataset.page
 
-// ---- Catalogue, from the fixtures -------------------------------------------------------------
+// ---- Catalog, from the fixtures ---------------------------------------------------------------
 
 const collection = fixtures['collection viewed'].payload.data.collection
 const viewed = fixtures['product viewed'].payload.data.productVariant
@@ -20,16 +21,56 @@ const completed = fixtures['checkout completed'].payload.data.checkout
 const completedAgain = fixtures['checkout completed again, same order'].payload.data.checkout
 const startedRecording = fixtures['checkout started'].payload.data.checkout
 
-/** Product variants by SKU. The tee is the richer `product viewed` variant, with its IDs. */
+/** Product variants by SKU. The laptop is the richer `product viewed` variant, with its IDs. */
 const CATALOGUE = Object.fromEntries(
   collection.productVariants.map((variant) => [variant.sku, variant.sku === viewed.sku ? viewed : variant]),
 )
-const TEE = viewed.sku
-const CAP = 'CAP-BLK'
-const TAX = startedRecording.totalTax.amount
+const LAPTOP = viewed.sku
+/** The line the recording removes from the cart: the phone. */
+const PHONE = fixtures['product removed from cart'].payload.data.cartLine.merchandise.sku
+
+/**
+ * The laptop's other variants, which no fixture records. Kept in the Web Pixels ProductVariant
+ * shape, next to the fixture data, so they are easy to replace with recordings: each has its own
+ * ID, SKU, title and price, with the fixture's Silver / 512 GB as the default the scenarios add.
+ */
+const COLORS = [['Silver', 'SLV'], ['Space Gray', 'GRY']]
+const STORAGE = [['256 GB', '256', -200], ['512 GB', '512', 0]]
+const VARIANTS = Object.fromEntries(
+  COLORS.flatMap(([color, colorCode], colorIndex) =>
+    STORAGE.map(([storage, storageCode, priceDelta], storageIndex) => {
+      const title = `${color} / ${storage}`
+      const variant = title === viewed.title ? viewed : {
+        ...viewed,
+        id: `${viewed.id}${colorIndex * 2 + storageIndex}`,
+        sku: `LAP-14-${colorCode}-${storageCode}`,
+        title,
+        price: money(viewed.price.amount + priceDelta),
+      }
+      return [title, variant]
+    }),
+  ),
+)
+for (const variant of Object.values(VARIANTS)) CATALOGUE[variant.sku] = variant
+/** The fixtures' tax rate: the recorded checkout's tax is 8% of its subtotal. */
+const TAX_RATE = startedRecording.totalTax.amount / startedRecording.subtotalPrice.amount
 const SHIPPING = { Ground: 4.95, Express: 14 }
-const money = (amount) => ({ amount: Math.round(amount * 100) / 100, currencyCode: 'USD' })
-const dollars = (amount) => `$${amount.toFixed(2)}`
+function money(amount) {
+  return { amount: Math.round(amount * 100) / 100, currencyCode: 'USD' }
+}
+const dollars = (amount) => `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+
+/** A product photo, from the image the variant carries. */
+function photo(variant, className, size = 800) {
+  const image = document.createElement('img')
+  image.src = variant.image?.src
+  image.alt = variant.product.title
+  image.width = size
+  image.height = size === 800 ? 600 : size
+  image.loading = 'lazy'
+  image.className = className
+  return image
+}
 
 /** One per sandbox preset, by id. */
 export const scenarios = {
@@ -105,12 +146,13 @@ function checkout() {
   const ship = demo.state('ship') ?? 'Ground'
   const pay = demo.state('pay') ?? 'paypal'
   const base = subtotal(list)
+  const tax = Math.round(base * TAX_RATE * 100) / 100
   return {
     token: startedRecording.token,
     currencyCode: 'USD',
     subtotalPrice: money(base),
-    totalTax: money(TAX),
-    totalPrice: money(base + TAX + SHIPPING[ship]),
+    totalTax: money(tax),
+    totalPrice: money(base + tax + SHIPPING[ship]),
     discountApplications: startedRecording.discountApplications,
     shippingLine: { title: ship, price: money(SHIPPING[ship]) },
     delivery: { selectedDeliveryOptions: [{ title: ship }] },
@@ -139,27 +181,56 @@ document.querySelector('[data-search]')?.addEventListener('keydown', (event) => 
 if (page === 'shop') {
   document.querySelector('[data-collection-title]').textContent = collection.title
   const grid = document.querySelector('[data-grid]')
-  for (const variant of Object.values(CATALOGUE)) {
+  for (const listed of collection.productVariants) {
+    const variant = CATALOGUE[listed.sku]
     const card = document.createElement('article')
-    card.className = 'card'
-    const title = variant.sku === TEE ? `<a href="product.html" data-product="${TEE}">${variant.product.title}</a>` : variant.product.title
-    card.innerHTML = `<div class="ph">product shot</div><h2>${title}</h2><p class="price">${dollars(variant.price.amount)}</p>
-      <button type="button" data-add="${variant.sku}">Quick add</button>`
-    card.querySelector('button').addEventListener('click', () => add(variant.sku, 1))
+    card.className = 'product-card'
+    const isLaptop = variant.sku === LAPTOP
+    const from = Math.min(...Object.values(VARIANTS).map((option) => option.price.amount))
+    card.innerHTML = `<h2></h2><p class="meta"></p><p class="price">${isLaptop ? `From ${dollars(from)}` : dollars(variant.price.amount)}</p>
+      <button type="button" data-add="${variant.sku}">${isLaptop ? 'Choose options' : 'Quick add'}</button>`
+    card.prepend(photo(variant, 'product-photo'))
+    card.querySelector('h2').textContent = variant.product.title
+    card.querySelector('.meta').textContent = variant.product.type
+    const button = card.querySelector('button')
+    if (isLaptop) {
+      // A product with options has no quick add: the shopper picks a color and storage first.
+      const link = document.createElement('a')
+      link.href = 'product.html'
+      link.dataset.product = variant.sku
+      link.className = 'card-link'
+      link.setAttribute('aria-label', variant.product.title)
+      card.append(link)
+      button.addEventListener('click', () => link.click())
+    } else {
+      button.addEventListener('click', () => add(variant.sku, 1))
+    }
     grid.append(card)
   }
   publish('collection_viewed', { collection })
 }
 
 if (page === 'product') {
+  document.querySelector('[data-product-photo]').replaceWith(photo(viewed, 'product-photo large'))
   document.querySelector('[data-product-name]').textContent = viewed.product.title
-  document.querySelector('[data-product-price]').textContent = dollars(viewed.price.amount)
-  document.querySelector('[data-product-variant]').textContent = viewed.title
+  const colorSelect = document.querySelector('[data-option="Color"]')
+  const storageSelect = document.querySelector('[data-option="Storage"]')
+  const [defaultColor, defaultStorage] = viewed.title.split(' / ')
+  for (const [color] of COLORS) colorSelect.add(new Option(color, color, color === defaultColor, color === defaultColor))
+  for (const [storage] of STORAGE) storageSelect.add(new Option(storage, storage, storage === defaultStorage, storage === defaultStorage))
+  const chosen = () => VARIANTS[`${colorSelect.value} / ${storageSelect.value}`]
+  const paint = () => {
+    document.querySelector('[data-product-price]').textContent = dollars(chosen().price.amount)
+    document.querySelector('[data-product-sku]').textContent = `SKU ${chosen().sku}`
+  }
+  colorSelect.addEventListener('change', paint)
+  storageSelect.addEventListener('change', paint)
+  paint()
   const output = document.querySelector('[data-qty]')
   const quantity = () => Number(output.textContent)
   document.querySelector('[data-qty-up]').addEventListener('click', () => { output.textContent = String(quantity() + 1) })
   document.querySelector('[data-qty-down]').addEventListener('click', () => { output.textContent = String(Math.max(1, quantity() - 1)) })
-  document.querySelector('[data-add-to-cart]').addEventListener('click', () => add(TEE, quantity()))
+  document.querySelector('[data-add-to-cart]').addEventListener('click', () => add(chosen().sku, quantity()))
   publish('product_viewed', { productVariant: viewed })
 }
 
@@ -173,8 +244,9 @@ if (page === 'cart') {
       const row = document.createElement('div')
       row.className = 'line'
       const variant = line.merchandise.title === 'Default Title' ? line.merchandise.product.type : line.merchandise.title
-      row.innerHTML = `<div class="ph">item</div><div><strong>${line.merchandise.product.title}</strong><span class="muted">${variant} · qty ${line.quantity}</span></div>
+      row.innerHTML = `<div><strong>${line.merchandise.product.title}</strong><span class="muted">${variant} · qty ${line.quantity}</span></div>
         <span>${dollars(line.cost.totalAmount.amount)}</span><button type="button" data-remove="${line.merchandise.sku}">Remove</button>`
+      row.prepend(photo(line.merchandise, 'line-photo', 300))
       row.querySelector('button').addEventListener('click', () => {
         demo.state('cart', { ...lines(), [line.merchandise.sku]: 0 })
         publish('product_removed_from_cart', { cartLine: line })
@@ -195,7 +267,7 @@ if (page === 'checkout') {
     const rows = current.lineItems.map((item) => `<p>${item.title} × ${item.quantity} <span>${dollars(item.variant.price.amount * item.quantity)}</span></p>`)
     document.querySelector('[data-order-summary]').innerHTML = `${rows.join('')}
       <p>Discount ${current.discountApplications[0].title} <span>applied</span></p><p>Shipping <span>${dollars(current.shippingLine.price.amount)}</span></p>
-      <p>Tax <span>${dollars(TAX)}</span></p><p class="total">Total <span>${dollars(current.totalPrice.amount)}</span></p>`
+      <p>Tax <span>${dollars(current.totalTax.amount)}</span></p><p class="total">Total <span>${dollars(current.totalPrice.amount)}</span></p>`
   }
   for (const input of document.querySelectorAll('[data-ship]')) {
     input.addEventListener('change', () => {
@@ -241,13 +313,13 @@ demo.ready()
 /** One visit through the store, driving the real buttons and links. */
 function visit({ pay }) {
   return [
-    (d) => d.type('[data-search]', 'red tee medium'),
+    (d) => d.type('[data-search]', 'silver laptop'),
     (d) => d.press('[data-search]', 'Enter'),
-    (d) => d.click(`[data-add="${CAP}"]`),
-    (d) => d.follow(`[data-product="${TEE}"]`),
+    (d) => d.click(`[data-add="${PHONE}"]`),
+    (d) => d.follow(`[data-product="${LAPTOP}"]`),
     (d) => d.click('[data-add-to-cart]'),
     (d) => d.follow('[data-cart-link]'),
-    (d) => d.click(`[data-remove="${CAP}"]`),
+    (d) => d.click(`[data-remove="${PHONE}"]`),
     (d) => d.follow('[data-checkout]'),
     (d) => d.click('[data-ship="Ground"]'),
     (d) => d.click(`[data-pay="${pay}"]`),

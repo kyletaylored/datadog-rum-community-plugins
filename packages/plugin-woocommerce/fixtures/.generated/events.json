@@ -20,7 +20,7 @@
       ],
       "occurrences": 1,
       "example": {
-        "value": 68,
+        "value": 1548,
         "currency": "USD",
         "payment_type": "paypal"
       }
@@ -43,7 +43,7 @@
       ],
       "occurrences": 1,
       "example": {
-        "value": 68,
+        "value": 1548,
         "currency": "USD",
         "shipping_tier": "Ground"
       }
@@ -78,20 +78,20 @@
       ],
       "occurrences": 3,
       "example": {
-        "value": 56,
+        "value": 1299,
         "currency": "USD",
         "cart_id": "c1-8f2a",
         "items": [
           {
-            "item_id": "TEE-RED-M",
-            "item_name": "Classic Tee",
-            "price": 28,
-            "quantity": 2,
-            "item_variant": "Red / M",
-            "item_category": "Shirts"
+            "item_id": "LAP-14-SLV-512",
+            "item_name": "Lumen 14 Laptop",
+            "price": 1299,
+            "quantity": 1,
+            "item_variant": "Silver / 512 GB",
+            "item_category": "Laptops"
           }
         ],
-        "item_count": 2,
+        "item_count": 1,
         "unique_items": 1
       }
     },
@@ -129,26 +129,27 @@
       ],
       "occurrences": 1,
       "example": {
-        "value": 68,
+        "value": 1548,
         "currency": "USD",
         "cart_id": "c1-8f2a",
         "items": [
           {
-            "item_id": "TEE-RED-M",
-            "item_name": "Classic Tee",
-            "price": 28,
-            "quantity": 2,
-            "item_variant": "Red / M",
-            "item_category": "Shirts"
+            "item_id": "LAP-14-SLV-512",
+            "item_name": "Lumen 14 Laptop",
+            "price": 1299,
+            "quantity": 1,
+            "item_variant": "Silver / 512 GB",
+            "item_category": "Laptops"
           },
           {
-            "item_id": "SOCK-WHT-L",
-            "item_name": "Crew Socks",
-            "price": 12,
-            "quantity": 1
+            "item_id": "WCH-PLS-44",
+            "item_name": "Pulse Watch",
+            "price": 249,
+            "quantity": 1,
+            "item_category": "Watches"
           }
         ],
-        "item_count": 3,
+        "item_count": 2,
         "unique_items": 2,
         "coupon": "WELCOME10"
       }
@@ -204,30 +205,30 @@
       "occurrences": 1,
       "example": {
         "transaction_id": "wc_1042",
-        "value": 100.6,
+        "value": 1676.79,
         "currency": "USD",
-        "tax": 6.2,
+        "tax": 123.84,
         "shipping": 4.95,
         "coupon": "WELCOME10",
         "payment_type": "paypal",
         "shipping_tier": "Ground",
-        "item_count": 3,
+        "item_count": 2,
         "unique_items": 2,
         "items": [
           {
-            "item_id": "TEE-RED-M",
-            "item_name": "Classic Tee",
-            "price": 28,
-            "quantity": 2,
-            "item_variant": "Red / M",
-            "item_category": "Shirts"
+            "item_id": "LAP-14-SLV-512",
+            "item_name": "Lumen 14 Laptop",
+            "price": 1299,
+            "quantity": 1,
+            "item_variant": "Silver / 512 GB",
+            "item_category": "Laptops"
           },
           {
-            "item_id": "CAP-BLK",
-            "item_name": "Logo Cap",
-            "price": 28.5,
+            "item_id": "WCH-PLS-44",
+            "item_name": "Pulse Watch",
+            "price": 249,
             "quantity": 1,
-            "item_category": "Hats"
+            "item_category": "Watches"
           }
         ]
       }
@@ -262,16 +263,16 @@
       ],
       "occurrences": 2,
       "example": {
-        "value": 28.5,
+        "value": 799,
         "currency": "USD",
         "cart_id": "c1-8f2a",
         "items": [
           {
-            "item_id": "CAP-BLK",
-            "item_name": "Logo Cap",
-            "price": 28.5,
+            "item_id": "PHN-ORB-128",
+            "item_name": "Orbit Phone",
+            "price": 799,
             "quantity": 1,
-            "item_category": "Hats"
+            "item_category": "Phones"
           }
         ],
         "item_count": 1,
@@ -288,7 +289,7 @@
       ],
       "occurrences": 1,
       "example": {
-        "search_term_length": 14
+        "search_term_length": 13
       }
     },
     {
@@ -321,26 +322,27 @@
       ],
       "occurrences": 1,
       "example": {
-        "value": 68,
+        "value": 1548,
         "currency": "USD",
         "cart_id": "c1-8f2a",
         "items": [
           {
-            "item_id": "TEE-RED-M",
-            "item_name": "Classic Tee",
-            "price": 28,
-            "quantity": 2,
-            "item_variant": "Red / M",
-            "item_category": "Shirts"
+            "item_id": "LAP-14-SLV-512",
+            "item_name": "Lumen 14 Laptop",
+            "price": 1299,
+            "quantity": 1,
+            "item_variant": "Silver / 512 GB",
+            "item_category": "Laptops"
           },
           {
-            "item_id": "SOCK-WHT-L",
-            "item_name": "Crew Socks",
-            "price": 12,
-            "quantity": 1
+            "item_id": "WCH-PLS-44",
+            "item_name": "Pulse Watch",
+            "price": 249,
+            "quantity": 1,
+            "item_category": "Watches"
           }
         ],
-        "item_count": 3,
+        "item_count": 2,
         "unique_items": 2
       }
     }
@@ -408,7 +410,7 @@
     ],
     "steps": [
       {
-        "label": "Searches for \"red tee medium\"",
+        "label": "Searches for \"silver laptop\"",
         "fixture": "product search",
         "event": "createCheckoutReporter.search",
         "calls": [
@@ -416,13 +418,13 @@
             "api": "addAction",
             "label": "commerce.search",
             "detail": {
-              "search_term_length": 14
+              "search_term_length": 13
             }
           }
         ]
       },
       {
-        "label": "Adds 2 t-shirts to the cart",
+        "label": "Adds a laptop to the cart",
         "fixture": "added to cart",
         "event": "wc-blocks_added_to_cart",
         "calls": [
@@ -430,25 +432,7 @@
             "api": "addAction",
             "label": "commerce.add_to_cart",
             "detail": {
-              "value": 56,
-              "currency": "USD",
-              "cart_id": "c1-8f2a",
-              "item_count": 2,
-              "unique_items": 1
-            }
-          }
-        ]
-      },
-      {
-        "label": "Removes the cap",
-        "fixture": "removed from cart",
-        "event": "wc-blocks_removed_from_cart",
-        "calls": [
-          {
-            "api": "addAction",
-            "label": "commerce.remove_from_cart",
-            "detail": {
-              "value": 28.5,
+              "value": 1299,
               "currency": "USD",
               "cart_id": "c1-8f2a",
               "item_count": 1,
@@ -458,7 +442,25 @@
         ]
       },
       {
-        "label": "Adds socks on a classic theme",
+        "label": "Removes the phone",
+        "fixture": "removed from cart",
+        "event": "wc-blocks_removed_from_cart",
+        "calls": [
+          {
+            "api": "addAction",
+            "label": "commerce.remove_from_cart",
+            "detail": {
+              "value": 799,
+              "currency": "USD",
+              "cart_id": "c1-8f2a",
+              "item_count": 1,
+              "unique_items": 1
+            }
+          }
+        ]
+      },
+      {
+        "label": "Adds a watch on a classic theme",
         "fixture": "added to cart on a classic theme, through jQuery",
         "event": "jquery:added_to_cart",
         "calls": [
@@ -481,10 +483,10 @@
             "api": "addAction",
             "label": "commerce.view_cart",
             "detail": {
-              "value": 68,
+              "value": 1548,
               "currency": "USD",
               "cart_id": "c1-8f2a",
-              "item_count": 3,
+              "item_count": 2,
               "unique_items": 2
             }
           }
@@ -499,10 +501,10 @@
             "api": "addAction",
             "label": "commerce.begin_checkout",
             "detail": {
-              "value": 68,
+              "value": 1548,
               "currency": "USD",
               "cart_id": "c1-8f2a",
-              "item_count": 3,
+              "item_count": 2,
               "unique_items": 2,
               "coupon": "WELCOME10"
             }
@@ -518,7 +520,7 @@
             "api": "addAction",
             "label": "commerce.add_shipping_info",
             "detail": {
-              "value": 68,
+              "value": 1548,
               "currency": "USD",
               "shipping_tier": "Ground"
             }
@@ -534,7 +536,7 @@
             "api": "addAction",
             "label": "commerce.add_payment_info",
             "detail": {
-              "value": 68,
+              "value": 1548,
               "currency": "USD",
               "payment_type": "paypal"
             }
@@ -592,14 +594,14 @@
             "label": "commerce.purchase",
             "detail": {
               "transaction_id": "wc_1042",
-              "value": 100.6,
+              "value": 1676.79,
               "currency": "USD",
-              "tax": 6.2,
+              "tax": 123.84,
               "shipping": 4.95,
               "coupon": "WELCOME10",
               "payment_type": "paypal",
               "shipping_tier": "Ground",
-              "item_count": 3,
+              "item_count": 2,
               "unique_items": 2
             },
             "stripped": [

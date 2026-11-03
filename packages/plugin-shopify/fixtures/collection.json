@@ -1,5 +1,5 @@
 {
-  "source": "Shopify collection_viewed, recorded from a development store. The variant list is trimmed to three entries.",
+  "source": "Shopify collection_viewed and product_removed_from_cart, in the shape a development store's custom pixel receives them; the product data is the project's demo catalogue. The variant list has three entries.",
   "fixtures": [
     {
       "name": "collection viewed",
@@ -10,11 +10,53 @@
         "data": {
           "collection": {
             "id": "gid://shopify/Collection/4412",
-            "title": "Summer sale",
+            "title": "Gadget sale",
             "productVariants": [
-              { "sku": "TEE-RED-M", "title": "Red / M", "price": { "amount": 28.0, "currencyCode": "USD" }, "product": { "title": "Classic Tee", "type": "Shirts" } },
-              { "sku": "CAP-BLK", "title": "Default Title", "price": { "amount": 28.5, "currencyCode": "USD" }, "product": { "title": "Logo Cap", "type": "Hats" } },
-              { "sku": "SOCK-WHT-L", "title": "White / L", "price": { "amount": 12.0, "currencyCode": "USD" }, "product": { "title": "Crew Socks", "type": "Socks" } }
+              {
+                "sku": "LAP-14-SLV-512",
+                "title": "Silver / 512 GB",
+                "price": {
+                  "amount": 1299.0,
+                  "currencyCode": "USD"
+                },
+                "product": {
+                  "title": "Lumen 14 Laptop",
+                  "type": "Laptops"
+                },
+                "image": {
+                  "src": "https://picsum.photos/id/0/800/600"
+                }
+              },
+              {
+                "sku": "PHN-ORB-128",
+                "title": "Default Title",
+                "price": {
+                  "amount": 799.0,
+                  "currencyCode": "USD"
+                },
+                "product": {
+                  "title": "Orbit Phone",
+                  "type": "Phones"
+                },
+                "image": {
+                  "src": "https://picsum.photos/id/3/800/600"
+                }
+              },
+              {
+                "sku": "WCH-PLS-44",
+                "title": "44 mm",
+                "price": {
+                  "amount": 249.0,
+                  "currencyCode": "USD"
+                },
+                "product": {
+                  "title": "Pulse Watch",
+                  "type": "Watches"
+                },
+                "image": {
+                  "src": "https://picsum.photos/id/4/800/600"
+                }
+              }
             ]
           }
         }
@@ -29,8 +71,27 @@
         "data": {
           "cartLine": {
             "quantity": 1,
-            "cost": { "totalAmount": { "amount": 28.5, "currencyCode": "USD" } },
-            "merchandise": { "sku": "CAP-BLK", "title": "Default Title", "price": { "amount": 28.5, "currencyCode": "USD" }, "product": { "title": "Logo Cap", "type": "Hats" } }
+            "cost": {
+              "totalAmount": {
+                "amount": 799.0,
+                "currencyCode": "USD"
+              }
+            },
+            "merchandise": {
+              "sku": "PHN-ORB-128",
+              "title": "Default Title",
+              "price": {
+                "amount": 799.0,
+                "currencyCode": "USD"
+              },
+              "product": {
+                "title": "Orbit Phone",
+                "type": "Phones"
+              },
+              "image": {
+                "src": "https://picsum.photos/id/3/800/600"
+              }
+            }
           }
         }
       }

@@ -1,5 +1,5 @@
 {
-  "source": "Shopify Web Pixels standard events, recorded from a development store's custom pixel sandbox. Payloads trimmed to the fields the adapter reads; a card_number field is added to the payment step on purpose, to prove the core strips it.",
+  "source": "Shopify Web Pixels standard events, in the shape a development store's custom pixel sandbox receives them; the product data is the project's demo catalogue. Payloads trimmed to the fields the adapter reads; a card_number field is added to the payment step on purpose, to prove the core strips it.",
   "fixtures": [
     {
       "name": "product viewed",
@@ -9,11 +9,22 @@
         "id": "evt-001",
         "data": {
           "productVariant": {
-            "id": "gid://shopify/ProductVariant/44210987",
-            "sku": "TEE-RED-M",
-            "title": "Red / M",
-            "price": { "amount": 28.0, "currencyCode": "USD" },
-            "product": { "id": "gid://shopify/Product/7781", "title": "Classic Tee", "type": "Shirts", "vendor": "Acme" }
+            "sku": "LAP-14-SLV-512",
+            "title": "Silver / 512 GB",
+            "price": {
+              "amount": 1299.0,
+              "currencyCode": "USD"
+            },
+            "product": {
+              "id": "gid://shopify/Product/7884",
+              "title": "Lumen 14 Laptop",
+              "type": "Laptops",
+              "vendor": "Northline"
+            },
+            "image": {
+              "src": "https://picsum.photos/id/0/800/600"
+            },
+            "id": "gid://shopify/ProductVariant/44210184"
           }
         }
       }
@@ -26,14 +37,30 @@
         "id": "evt-002",
         "data": {
           "cartLine": {
-            "quantity": 2,
-            "cost": { "totalAmount": { "amount": 56.0, "currencyCode": "USD" } },
+            "quantity": 1,
+            "cost": {
+              "totalAmount": {
+                "amount": 1299.0,
+                "currencyCode": "USD"
+              }
+            },
             "merchandise": {
-              "id": "gid://shopify/ProductVariant/44210987",
-              "sku": "TEE-RED-M",
-              "title": "Red / M",
-              "price": { "amount": 28.0, "currencyCode": "USD" },
-              "product": { "title": "Classic Tee", "type": "Shirts" }
+              "sku": "LAP-14-SLV-512",
+              "title": "Silver / 512 GB",
+              "price": {
+                "amount": 1299.0,
+                "currencyCode": "USD"
+              },
+              "product": {
+                "id": "gid://shopify/Product/7884",
+                "title": "Lumen 14 Laptop",
+                "type": "Laptops",
+                "vendor": "Northline"
+              },
+              "image": {
+                "src": "https://picsum.photos/id/0/800/600"
+              },
+              "id": "gid://shopify/ProductVariant/44210184"
             }
           }
         }
@@ -48,18 +75,61 @@
         "data": {
           "cart": {
             "id": "gid://shopify/Cart/c1-8f2a",
-            "totalQuantity": 3,
-            "cost": { "totalAmount": { "amount": 84.5, "currencyCode": "USD" } },
+            "totalQuantity": 2,
+            "cost": {
+              "totalAmount": {
+                "amount": 2098.0,
+                "currencyCode": "USD"
+              }
+            },
             "lines": [
               {
-                "quantity": 2,
-                "cost": { "totalAmount": { "amount": 56.0, "currencyCode": "USD" } },
-                "merchandise": { "sku": "TEE-RED-M", "title": "Red / M", "price": { "amount": 28.0, "currencyCode": "USD" }, "product": { "title": "Classic Tee", "type": "Shirts" } }
+                "quantity": 1,
+                "cost": {
+                  "totalAmount": {
+                    "amount": 1299.0,
+                    "currencyCode": "USD"
+                  }
+                },
+                "merchandise": {
+                  "sku": "LAP-14-SLV-512",
+                  "title": "Silver / 512 GB",
+                  "price": {
+                    "amount": 1299.0,
+                    "currencyCode": "USD"
+                  },
+                  "product": {
+                    "title": "Lumen 14 Laptop",
+                    "type": "Laptops"
+                  },
+                  "image": {
+                    "src": "https://picsum.photos/id/0/800/600"
+                  }
+                }
               },
               {
                 "quantity": 1,
-                "cost": { "totalAmount": { "amount": 28.5, "currencyCode": "USD" } },
-                "merchandise": { "sku": "CAP-BLK", "title": "Default Title", "price": { "amount": 28.5, "currencyCode": "USD" }, "product": { "title": "Logo Cap", "type": "Hats" } }
+                "cost": {
+                  "totalAmount": {
+                    "amount": 799.0,
+                    "currencyCode": "USD"
+                  }
+                },
+                "merchandise": {
+                  "sku": "PHN-ORB-128",
+                  "title": "Default Title",
+                  "price": {
+                    "amount": 799.0,
+                    "currencyCode": "USD"
+                  },
+                  "product": {
+                    "title": "Orbit Phone",
+                    "type": "Phones"
+                  },
+                  "image": {
+                    "src": "https://picsum.photos/id/3/800/600"
+                  }
+                }
               }
             ]
           }
@@ -76,13 +146,65 @@
           "checkout": {
             "token": "ck-7d31",
             "currencyCode": "USD",
-            "totalPrice": { "amount": 95.65, "currencyCode": "USD" },
-            "subtotalPrice": { "amount": 84.5, "currencyCode": "USD" },
-            "totalTax": { "amount": 6.2, "currencyCode": "USD" },
-            "discountApplications": [{ "title": "WELCOME10", "type": "DISCOUNT_CODE" }],
+            "totalPrice": {
+              "amount": 2265.84,
+              "currencyCode": "USD"
+            },
+            "subtotalPrice": {
+              "amount": 2098.0,
+              "currencyCode": "USD"
+            },
+            "totalTax": {
+              "amount": 167.84,
+              "currencyCode": "USD"
+            },
+            "discountApplications": [
+              {
+                "title": "WELCOME10",
+                "type": "DISCOUNT_CODE"
+              }
+            ],
             "lineItems": [
-              { "id": "li-1", "title": "Classic Tee", "quantity": 2, "variant": { "sku": "TEE-RED-M", "title": "Red / M", "price": { "amount": 28.0, "currencyCode": "USD" }, "product": { "title": "Classic Tee", "type": "Shirts" } } },
-              { "id": "li-2", "title": "Logo Cap", "quantity": 1, "variant": { "sku": "CAP-BLK", "title": "Default Title", "price": { "amount": 28.5, "currencyCode": "USD" }, "product": { "title": "Logo Cap", "type": "Hats" } } }
+              {
+                "id": "li-1",
+                "title": "Lumen 14 Laptop",
+                "quantity": 1,
+                "variant": {
+                  "sku": "LAP-14-SLV-512",
+                  "title": "Silver / 512 GB",
+                  "price": {
+                    "amount": 1299.0,
+                    "currencyCode": "USD"
+                  },
+                  "product": {
+                    "title": "Lumen 14 Laptop",
+                    "type": "Laptops"
+                  },
+                  "image": {
+                    "src": "https://picsum.photos/id/0/800/600"
+                  }
+                }
+              },
+              {
+                "id": "li-2",
+                "title": "Orbit Phone",
+                "quantity": 1,
+                "variant": {
+                  "sku": "PHN-ORB-128",
+                  "title": "Default Title",
+                  "price": {
+                    "amount": 799.0,
+                    "currencyCode": "USD"
+                  },
+                  "product": {
+                    "title": "Orbit Phone",
+                    "type": "Phones"
+                  },
+                  "image": {
+                    "src": "https://picsum.photos/id/3/800/600"
+                  }
+                }
+              }
             ]
           }
         }
@@ -98,9 +220,24 @@
           "checkout": {
             "token": "ck-7d31",
             "currencyCode": "USD",
-            "totalPrice": { "amount": 95.65, "currencyCode": "USD" },
-            "shippingLine": { "title": "Ground", "price": { "amount": 4.95, "currencyCode": "USD" } },
-            "delivery": { "selectedDeliveryOptions": [{ "title": "Ground" }] }
+            "totalPrice": {
+              "amount": 2270.79,
+              "currencyCode": "USD"
+            },
+            "shippingLine": {
+              "title": "Ground",
+              "price": {
+                "amount": 4.95,
+                "currencyCode": "USD"
+              }
+            },
+            "delivery": {
+              "selectedDeliveryOptions": [
+                {
+                  "title": "Ground"
+                }
+              ]
+            }
           }
         }
       }
@@ -116,8 +253,16 @@
           "checkout": {
             "token": "ck-7d31",
             "currencyCode": "USD",
-            "totalPrice": { "amount": 100.6, "currencyCode": "USD" },
-            "transactions": [{ "gateway": "shopify_payments", "paymentMethod": "paypal" }],
+            "totalPrice": {
+              "amount": 2270.79,
+              "currencyCode": "USD"
+            },
+            "transactions": [
+              {
+                "gateway": "shopify_payments",
+                "paymentMethod": "paypal"
+              }
+            ],
             "card_number": "4242424242424242",
             "cvv": "123"
           }
@@ -133,19 +278,93 @@
         "data": {
           "checkout": {
             "token": "ck-7d31",
-            "order": { "id": "5512345678901", "customer": { "id": 6612345678 } },
+            "order": {
+              "id": "5512345678901",
+              "customer": {
+                "id": 6612345678
+              }
+            },
             "currencyCode": "USD",
-            "totalPrice": { "amount": 100.6, "currencyCode": "USD" },
-            "subtotalPrice": { "amount": 84.5, "currencyCode": "USD" },
-            "totalTax": { "amount": 6.2, "currencyCode": "USD" },
-            "shippingLine": { "title": "Ground", "price": { "amount": 4.95, "currencyCode": "USD" } },
-            "discountApplications": [{ "title": "WELCOME10", "type": "DISCOUNT_CODE" }],
-            "delivery": { "selectedDeliveryOptions": [{ "title": "Ground" }] },
-            "transactions": [{ "gateway": "shopify_payments", "paymentMethod": "paypal" }],
+            "totalPrice": {
+              "amount": 2270.79,
+              "currencyCode": "USD"
+            },
+            "subtotalPrice": {
+              "amount": 2098.0,
+              "currencyCode": "USD"
+            },
+            "totalTax": {
+              "amount": 167.84,
+              "currencyCode": "USD"
+            },
+            "shippingLine": {
+              "title": "Ground",
+              "price": {
+                "amount": 4.95,
+                "currencyCode": "USD"
+              }
+            },
+            "discountApplications": [
+              {
+                "title": "WELCOME10",
+                "type": "DISCOUNT_CODE"
+              }
+            ],
+            "delivery": {
+              "selectedDeliveryOptions": [
+                {
+                  "title": "Ground"
+                }
+              ]
+            },
+            "transactions": [
+              {
+                "gateway": "shopify_payments",
+                "paymentMethod": "paypal"
+              }
+            ],
             "email": "shopper@example.com",
             "lineItems": [
-              { "id": "li-1", "title": "Classic Tee", "quantity": 2, "variant": { "sku": "TEE-RED-M", "title": "Red / M", "price": { "amount": 28.0, "currencyCode": "USD" }, "product": { "title": "Classic Tee", "type": "Shirts" } } },
-              { "id": "li-2", "title": "Logo Cap", "quantity": 1, "variant": { "sku": "CAP-BLK", "title": "Default Title", "price": { "amount": 28.5, "currencyCode": "USD" }, "product": { "title": "Logo Cap", "type": "Hats" } } }
+              {
+                "id": "li-1",
+                "title": "Lumen 14 Laptop",
+                "quantity": 1,
+                "variant": {
+                  "sku": "LAP-14-SLV-512",
+                  "title": "Silver / 512 GB",
+                  "price": {
+                    "amount": 1299.0,
+                    "currencyCode": "USD"
+                  },
+                  "product": {
+                    "title": "Lumen 14 Laptop",
+                    "type": "Laptops"
+                  },
+                  "image": {
+                    "src": "https://picsum.photos/id/0/800/600"
+                  }
+                }
+              },
+              {
+                "id": "li-2",
+                "title": "Orbit Phone",
+                "quantity": 1,
+                "variant": {
+                  "sku": "PHN-ORB-128",
+                  "title": "Default Title",
+                  "price": {
+                    "amount": 799.0,
+                    "currencyCode": "USD"
+                  },
+                  "product": {
+                    "title": "Orbit Phone",
+                    "type": "Phones"
+                  },
+                  "image": {
+                    "src": "https://picsum.photos/id/3/800/600"
+                  }
+                }
+              }
             ]
           }
         }
@@ -161,9 +380,17 @@
         "data": {
           "checkout": {
             "token": "ck-7d31",
-            "order": { "id": "5512345678901", "customer": { "id": 6612345678 } },
+            "order": {
+              "id": "5512345678901",
+              "customer": {
+                "id": 6612345678
+              }
+            },
             "currencyCode": "USD",
-            "totalPrice": { "amount": 100.6, "currencyCode": "USD" },
+            "totalPrice": {
+              "amount": 2270.79,
+              "currencyCode": "USD"
+            },
             "lineItems": []
           }
         }
@@ -176,7 +403,11 @@
       "payload": {
         "name": "search_submitted",
         "id": "evt-009",
-        "data": { "searchResult": { "query": "red tee medium" } }
+        "data": {
+          "searchResult": {
+            "query": "silver laptop"
+          }
+        }
       }
     }
   ]

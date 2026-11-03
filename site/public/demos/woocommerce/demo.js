@@ -2,8 +2,9 @@
  * Thread & Co., the WooCommerce demo store.
  *
  * Every cart event is a real WooCommerce DOM event on `document.body`, with a Store API cart
- * built from the plugin's recorded fixtures. Cart, checkout and search, which have no DOM event,
- * go through the plugin's checkout reporter, as the companion WordPress plugin drives them. The order on the thank-you page is the recorded
+ * built from the plugin's fixtures, product images included as the Store API carries them. Cart,
+ * checkout and search, which have no DOM event, go through the plugin's checkout reporter, as the
+ * companion WordPress plugin drives them. The order on the thank-you page is the fixture's
  * `order received` payload, card number and billing address included, exactly as the companion
  * WordPress plugin would print it.
  */
@@ -12,17 +13,48 @@ import { startDemo } from '../_shared/bridge.js'
 const fixtures = window.DDRumDemoFixtures.woocommerce
 const page = document.body.dataset.page
 
-// ---- Catalogue and cart, from the fixtures --------------------------------------------------
+// ---- Catalog and cart, from the fixtures --------------------------------------------------
 
 const added = fixtures['added to cart'].payload
 const native = fixtures['added to cart, as a native DOM event'].payload
 const jqueryAdd = fixtures['added to cart on a classic theme, through jQuery'].payload
 const order = fixtures['order received'].payload
 
-/** Store API cart items, keyed by product ID. Socks come from the native-event recording. */
+/** Store API cart items, keyed by product ID. The watch comes from the native-event fixture. */
 const CATALOGUE = Object.fromEntries(
   [...added.cart.items, ...native.cart.items].map((item) => [String(item.id), item]),
 )
+
+/** The variable product shown on the product page: the laptop, whose fixture item is one variation. */
+const LAPTOP_ID = String(added.productId)
+const LAPTOP = CATALOGUE[LAPTOP_ID]
+
+/**
+ * The laptop's other variations, which no fixture records. Kept in the Store API shape, next to the
+ * fixture data, so they are easy to replace with recordings: each is its own variation ID, SKU and
+ * price, with the fixture's Silver / 512 GB as the default and the one the scenarios add.
+ */
+const COLORS = [['Silver', 'SLV'], ['Space Gray', 'GRY']]
+const STORAGE = [['256 GB', '256', -20000], ['512 GB', '512', 0]]
+const VARIATIONS = Object.fromEntries(
+  COLORS.flatMap(([color, colorCode], colorIndex) =>
+    STORAGE.map(([storage, storageCode, priceDelta], storageIndex) => {
+      const isDefault = color === 'Silver' && storage === '512 GB'
+      const id = isDefault ? LAPTOP_ID : String(Number(LAPTOP_ID) * 10 + colorIndex * 2 + storageIndex)
+      const price = String(Number(LAPTOP.prices.price) + priceDelta)
+      const variation = isDefault ? LAPTOP : {
+        ...LAPTOP,
+        key: `lap-${colorCode}-${storageCode}`.toLowerCase(),
+        id: Number(id),
+        sku: `LAP-14-${colorCode}-${storageCode}`,
+        prices: { ...LAPTOP.prices, price, regular_price: price },
+        variation: [{ attribute: 'Color', value: color }, { attribute: 'Storage', value: storage }],
+      }
+      return [`${color}|${storage}`, variation]
+    }),
+  ),
+)
+for (const variation of Object.values(VARIATIONS)) CATALOGUE[String(variation.id)] = variation
 const CART_KEY = added.cart.cart_key
 const CURRENCY = { currency_code: 'USD', currency_minor_unit: 2 }
 /** The classic-theme product: added from the grid the way Woo's classic script does, through jQuery. */
@@ -30,7 +62,7 @@ const CLASSIC_ID = jqueryAdd.button['data-product_id']
 
 /**
  * A classic theme's jQuery: just `$(element).on(types, handler)` and `.trigger(type, args)`, enough
- * for the plugin to listen through and for the socks button to raise `added_to_cart` the way Woo's
+ * for the plugin to listen through and for the watch's button to raise `added_to_cart` the way Woo's
  * add-to-cart.js does. A jQuery-only event never reaches a native listener, which is the point.
  */
 const jqueryHandlers = new Map()
@@ -48,7 +80,22 @@ window.jQuery = (element) => ({
 const button = (attributes) => ({ attr: (name) => attributes[name] })
 
 const minor = (item) => Number(item.prices.price)
-const dollars = (cents) => `$${(cents / 100).toFixed(2)}`
+const dollars = (cents) => `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+/** The fixtures' tax rate: the recorded order's tax is 8% of its items. */
+const TAX_RATE = 0.08
+
+/** A product photo, from the image the Store API item carries. */
+function photo(item, size, className) {
+  const image = document.createElement('img')
+  const source = item.images?.[0]
+  image.src = size === 'thumbnail' ? source?.thumbnail : source?.src
+  image.alt = source?.alt ?? item.name
+  image.width = size === 'thumbnail' ? 300 : 800
+  image.height = size === 'thumbnail' ? 300 : 600
+  image.loading = 'lazy'
+  image.className = className
+  return image
+}
 
 /** One per sandbox preset, by id. The presets differ only in the options they start with. */
 export const scenarios = {
@@ -155,35 +202,61 @@ document.querySelector('[data-search]')?.addEventListener('keydown', (event) => 
 
 if (page === 'shop') {
   const grid = document.querySelector('[data-grid]')
-  for (const item of Object.values(CATALOGUE)) {
+  const listed = [...added.cart.items, ...native.cart.items]
+  for (const item of listed) {
     const card = document.createElement('article')
-    card.className = 'card'
-    const name = String(item.id) === '184'
-      ? `<a href="product.html" data-product="${item.id}">${item.name}</a>`
-      : item.name
-    card.innerHTML = `<div class="ph">product shot</div><h2>${name}</h2><p class="price">${dollars(minor(item))}</p>
-      <button type="button" data-add="${item.id}">Add to cart</button>`
-    card.querySelector('button').addEventListener('click', () => addToCart(String(item.id), 1))
+    card.className = 'product-card'
+    const isLaptop = String(item.id) === LAPTOP_ID
+    card.innerHTML = `<h2></h2><p class="meta"></p><p class="price">${isLaptop ? 'From ' : ''}${dollars(isLaptop ? Math.min(...Object.values(VARIATIONS).map(minor)) : minor(item))}</p>
+      <button type="button" data-add="${item.id}">${isLaptop ? 'Choose options' : 'Add to cart'}</button>`
+    card.prepend(photo(item, 'full', 'product-photo'))
+    card.querySelector('h2').textContent = item.name
+    card.querySelector('.meta').textContent = item.categories?.[0]?.name ?? ''
+    const choose = card.querySelector('button')
+    if (isLaptop) {
+      // A variable product has no grid add: the shopper picks a color and storage first.
+      const link = document.createElement('a')
+      link.href = 'product.html'
+      link.dataset.product = item.id
+      link.className = 'card-link'
+      link.setAttribute('aria-label', item.name)
+      card.append(link)
+      choose.addEventListener('click', () => link.click())
+    } else {
+      choose.addEventListener('click', () => addToCart(String(item.id), 1))
+    }
     grid.append(card)
   }
   demo.as('wc-blocks_product_list_rendered', () => {
     document.body.dispatchEvent(
       new CustomEvent('wc-blocks_product_list_rendered', {
-        detail: { listName: 'Shirts & accessories', cart: { items: Object.values(CATALOGUE) } },
+        detail: { listName: 'Laptops, phones & watches', cart: { items: listed } },
       }),
     )
   })
 }
 
 if (page === 'product') {
-  const tee = CATALOGUE['184']
-  document.querySelector('[data-product-name]').textContent = tee.name
-  document.querySelector('[data-product-price]').textContent = dollars(minor(tee))
+  document.querySelector('[data-product-photo]').replaceWith(photo(LAPTOP, 'full', 'product-photo large'))
+  document.querySelector('[data-product-name]').textContent = LAPTOP.name
+  const colorSelect = document.querySelector('[data-option="Color"]')
+  const storageSelect = document.querySelector('[data-option="Storage"]')
+  for (const [color] of COLORS) colorSelect.add(new Option(color, color, color === 'Silver', color === 'Silver'))
+  for (const [storage] of STORAGE) storageSelect.add(new Option(storage, storage, storage === '512 GB', storage === '512 GB'))
+  const chosen = () => VARIATIONS[`${colorSelect.value}|${storageSelect.value}`]
+  const paint = () => {
+    const variation = chosen()
+    document.querySelector('[data-product-price]').textContent = dollars(minor(variation))
+    document.querySelector('[data-product-sku]').textContent = `SKU ${variation.sku}`
+  }
+  colorSelect.addEventListener('change', paint)
+  storageSelect.addEventListener('change', paint)
+  paint()
   const output = document.querySelector('[data-qty]')
   const quantity = () => Number(output.textContent)
   document.querySelector('[data-qty-up]').addEventListener('click', () => { output.textContent = String(quantity() + 1) })
   document.querySelector('[data-qty-down]').addEventListener('click', () => { output.textContent = String(Math.max(1, quantity() - 1)) })
-  document.querySelector('[data-add-to-cart]').addEventListener('click', () => addToCart('184', quantity()))
+  document.querySelector('[data-add-to-cart]').addEventListener('click', () => addToCart(String(chosen().id), quantity()))
 }
 
 if (page === 'cart') {
@@ -196,8 +269,10 @@ if (page === 'cart') {
       const row = document.createElement('div')
       row.className = 'line'
       const variant = item.variation?.map((entry) => entry.value).join(' / ') || item.categories?.[0]?.name || ''
-      row.innerHTML = `<div class="ph">item</div><div><strong>${item.name}</strong><span class="muted">${variant} · qty ${item.quantity}</span></div>
+      row.innerHTML = `<div><strong></strong><span class="muted">${variant} · qty ${item.quantity}</span></div>
         <span>${dollars(Number(item.totals.line_total))}</span><button type="button" data-remove="${item.id}">Remove</button>`
+      row.querySelector('strong').textContent = item.name
+      row.prepend(photo(item, 'thumbnail', 'line-photo'))
       row.querySelector('button').addEventListener('click', () => { removeFromCart(String(item.id)); paint(); paintCount() })
       list.append(row)
     }
@@ -209,10 +284,10 @@ if (page === 'cart') {
 }
 
 if (page === 'checkout') {
-  const tax = 620
   const shipping = { Ground: 495, Express: 1400 }
   const paint = () => {
     const cart = storeCart()
+    const tax = Math.round(Number(cart.totals.total_price) * TAX_RATE)
     const chosen = demo.state('ship') ?? 'Ground'
     const rows = cart.items.map((item) => `<p>${item.name} × ${item.quantity} <span>${dollars(Number(item.totals.line_total))}</span></p>`)
     const total = Number(cart.totals.total_price) + shipping[chosen] + tax
@@ -244,7 +319,7 @@ if (page === 'thanks') {
   demo.state('cart', {})
   const paymentNames = { paypal: 'PayPal', card: 'Credit card' }
   document.querySelector('[data-order]').innerHTML = `<div><dt>Order</dt><dd>#${order.order.transaction_id.replace(/^wc_/, '')}</dd></div>
-    <div><dt>Total</dt><dd>$${order.order.value.toFixed(2)}</dd></div>
+    <div><dt>Total</dt><dd>${dollars(Math.round(order.order.value * 100))}</dd></div>
     <div><dt>Payment</dt><dd>${paymentNames[order.order.payment_type] ?? order.order.payment_type}</dd></div>`
   // A real reload: a fresh page, a fresh plugin, the same order. The dedupe refuses it.
   document.querySelector('[data-reload]').addEventListener('click', () => demo.reload())
@@ -258,11 +333,11 @@ demo.ready()
 /** One visit through the store, driving the real buttons and links. */
 function visit() {
   return [
-    (d) => d.type('[data-search]', 'red tee medium'),
+    (d) => d.type('[data-search]', 'silver laptop'),
     (d) => d.press('[data-search]', 'Enter'),
     (d) => d.click('[data-add="190"]'),
     (d) => d.click(`[data-add="${CLASSIC_ID}"]`),
-    (d) => d.follow('[data-product="184"]'),
+    (d) => d.follow(`[data-product="${LAPTOP_ID}"]`),
     (d) => d.click('[data-add-to-cart]'),
     (d) => d.follow('[data-cart-link]'),
     (d) => d.click('[data-remove="190"]'),

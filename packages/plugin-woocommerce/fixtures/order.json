@@ -5,24 +5,46 @@
       "name": "order received",
       "event": "order_received",
       "payload": {
-        "store": { "id": "shop.example.com", "currency": "USD", "locale": "en-US" },
-        "customer": { "id": 42, "email": "shopper@example.com", "name": "Jane Shopper", "type": "returning" },
+        "store": {
+          "id": "shop.example.com",
+          "currency": "USD",
+          "locale": "en-US"
+        },
+        "customer": {
+          "id": 42,
+          "email": "shopper@example.com",
+          "name": "Jane Shopper",
+          "type": "returning"
+        },
         "order": {
           "transaction_id": "wc_1042",
-          "value": 100.6,
+          "value": 1676.79,
           "currency": "USD",
-          "tax": 6.2,
+          "tax": 123.84,
           "shipping": 4.95,
           "coupon": "WELCOME10",
           "payment_type": "paypal",
           "shipping_tier": "Ground",
-          "item_count": 3,
+          "item_count": 2,
           "unique_items": 2,
           "card_number": "4242424242424242",
           "billing_address": "1 Market St",
           "items": [
-            { "item_id": "TEE-RED-M", "item_name": "Classic Tee", "price": 28.0, "quantity": 2, "item_variant": "Red / M", "item_category": "Shirts" },
-            { "item_id": "CAP-BLK", "item_name": "Logo Cap", "price": 28.5, "quantity": 1, "item_category": "Hats" }
+            {
+              "item_id": "LAP-14-SLV-512",
+              "item_name": "Lumen 14 Laptop",
+              "price": 1299.0,
+              "quantity": 1,
+              "item_variant": "Silver / 512 GB",
+              "item_category": "Laptops"
+            },
+            {
+              "item_id": "WCH-PLS-44",
+              "item_name": "Pulse Watch",
+              "price": 249.0,
+              "quantity": 1,
+              "item_category": "Watches"
+            }
           ]
         }
       }

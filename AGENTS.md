@@ -93,26 +93,26 @@ Served at `/datadog-rum-community-plugins/demos/<name>/`. Relative paths only (t
 
 ### Demo assets: one standard for every demo
 
-The demos should look like a set: recognisably different stores and sites, built the same way, so a new one takes an afternoon and nobody has to decide anything twice. `npm run lint:demos` enforces the rules marked *(checked)*.
+The demos should look like a set: recognizably different stores and sites, built the same way, so a new one takes an afternoon and nobody has to decide anything twice. `npm run lint:demos` enforces the rules marked *(checked)*.
 
-**Brand.** One fictional brand per demo, recorded here when it is added. Never the platform's own name, theme, logo or colours: a demo is not the platform's storefront and must not look like one.
+**Brand.** One fictional brand per demo, recorded here when it is added. Never the platform's own name, theme, logo or colors: a demo is not the platform's storefront and must not look like one.
 
 | Demo | Brand | Kind | Look |
 | --- | --- | --- | --- |
-| `woocommerce` | Thread & Co. | Clothing store | Warm paper `#fbf9f6`, ink `#1f1b16`, serif headings, 4px radius |
-| `shopify` | Northline | Clothing store | White, deep green `#1e3a2f`, uppercase tracked wordmark, 10px radius |
+| `woocommerce` | Thread & Co. | Gadget store | Warm paper `#fbf9f6`, ink `#1f1b16`, serif headings, 4px radius |
+| `shopify` | Northline | Gadget store | White, deep green `#1e3a2f`, uppercase tracked wordmark, 10px radius |
 | `engagement` | Relay | SaaS (status pages) | `#fbfbfd`, ink `#14161f`, accent `#2f6bff` |
 | `onetrust` | Relay, with a generic consent banner | SaaS | As Relay, banner in neutral white |
 
-A new commerce plugin gets a new clothing brand; a new SaaS-side plugin (login, support, forms) reuses Relay, the way OneTrust does, so its events show up on a page people already know.
+A new commerce plugin gets a new gadget-store brand; a new SaaS-side plugin (login, support, forms) reuses Relay, the way OneTrust does, so its events show up on a page people already know.
 
-**Wordmark, not logo.** The brand is its name set in text, with at most a plain coloured square beside it, as Relay has. No drawn logos, icons or mascots.
+**Wordmark, not logo.** The brand is its name set in text, with at most a plain colored square beside it, as Relay has. No drawn logos, icons or mascots.
 
-**Imagery** *(checked)*. No `<img>` and no image files. Product shots and video frames use the shared `.ph` placeholder from `_shared/demo.css`: a striped block with a short monospace label (`product shot`, `item`, `video · Relay in two minutes`). The stripes take the demo's `--ph-a` and `--ph-b` colours.
+**Imagery** *(checked)*. No `<img>` in a page and no image files in the repo. Product photos are [Lorem Picsum](https://picsum.photos/images) images by fixed ID and size (`https://picsum.photos/id/<id>/<width>/<height>`; the laptop is 0, the phone 3, the watch 4), set in the fixtures where the platform's payload carries an image (Woo's Store API `images[]`, Shopify's `variant.image.src`), and `demo.js` builds the `<img>` from that field. The core never sends them: only GA4 item fields leave the browser. Everything else, video frames included, uses the shared `.ph` placeholder from `_shared/demo.css`: a striped block with a short monospace label (`video · Relay in two minutes`). The stripes take the demo's `--ph-a` and `--ph-b` colors.
 
 **Nothing from outside the site** *(checked)*. No remote scripts, stylesheets, fonts or images, and no `@import` or `@font-face`. Use the system font stacks. The demos load only their own files, `_shared/`, and the generated runtime, plugin bundle and fixtures. Outbound *links* in a page's content are fine (the engagement demo needs them); outbound *loads* are not.
 
-**Tokens** *(checked)*. Each demo's colours are custom properties on `:root`, under these names, in its `style.css` or a shared stylesheet it links (`_shared/relay.css`):
+**Tokens** *(checked)*. Each demo's colors are custom properties on `:root`, under these names, in its `style.css` or a shared stylesheet it links (`_shared/relay.css`):
 
 | Token | For |
 | --- | --- |
@@ -126,7 +126,7 @@ Add others as the brand needs (`--panel`, `--btn`, `--accent`), but these always
 
 **Shared files** *(checked)*. Every page links `../_shared/demo.css`, which holds the placeholder, the scenario highlight and the resets, and its `demo.js` imports `../_shared/bridge.js`. Behaviour two demos share goes in `_shared/` (as `relay.js` does), not into a copy.
 
-**Data comes from the fixtures.** Product names, SKUs, prices, cart totals, order IDs and payloads are read from `DDRumDemoFixtures`, never typed into the page. The commerce demos share one catalogue (Classic Tee, Logo Cap, Crew Socks), because both platforms' fixtures record it. When a demo needs a value no fixture has (a second shipping tier, say), keep it in the recorded shape and next to the fixture data in `demo.js`, so it is easy to replace with a recording later.
+**Data comes from the fixtures.** Product names, SKUs, prices, cart totals, order IDs and payloads are read from `DDRumDemoFixtures`, never typed into the page. The commerce demos share one catalog (Lumen 14 Laptop, Orbit Phone, Pulse Watch), because both platforms' fixtures record it. When a demo needs a value no fixture has (a second shipping tier, or the laptop's other color and storage variants), keep it in the recorded shape and next to the fixture data in `demo.js`, so it is easy to replace with a recording later.
 
 **Marked as a demo** *(checked)*. Every page's `<title>` says it is a demo, e.g. `Cart · Thread & Co. (a demo store)`, so a tab or a shared link can't pass for a real shop.
 

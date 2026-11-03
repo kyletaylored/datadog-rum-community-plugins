@@ -1,37 +1,93 @@
 {
-  "source": "WooCommerce Cart and Checkout block DOM events, recorded from a Woo 9.x store. Money arrives as integer minor units with currency_minor_unit, which is Woo's Store API convention.",
+  "source": "WooCommerce Cart and Checkout block DOM events, in the shape a Woo 9.x store sends them; the product data is the project's demo catalogue (a laptop, a phone, a watch). Money arrives as integer minor units with currency_minor_unit, which is Woo's Store API convention.",
   "fixtures": [
     {
       "name": "added to cart",
       "event": "wc-blocks_added_to_cart",
       "payload": {
         "productId": 184,
-        "quantity": 2,
+        "quantity": 1,
         "cart": {
           "cart_key": "c1-8f2a",
-          "items_count": 3,
-          "totals": { "total_price": "8450", "total_items": "8450", "currency_code": "USD", "currency_minor_unit": 2 },
+          "items_count": 2,
+          "totals": {
+            "total_price": "209800",
+            "total_items": "209800",
+            "currency_code": "USD",
+            "currency_minor_unit": 2
+          },
           "items": [
             {
               "key": "a1b2",
               "id": 184,
-              "name": "Classic Tee",
-              "sku": "TEE-RED-M",
-              "quantity": 2,
-              "prices": { "price": "2800", "regular_price": "2800", "currency_code": "USD", "currency_minor_unit": 2 },
-              "totals": { "line_total": "5600", "currency_code": "USD", "currency_minor_unit": 2 },
-              "variation": [{ "attribute": "Color", "value": "Red" }, { "attribute": "Size", "value": "M" }],
-              "categories": [{ "name": "Shirts" }]
+              "name": "Lumen 14 Laptop",
+              "sku": "LAP-14-SLV-512",
+              "quantity": 1,
+              "prices": {
+                "price": "129900",
+                "regular_price": "129900",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "totals": {
+                "line_total": "129900",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "categories": [
+                {
+                  "name": "Laptops"
+                }
+              ],
+              "images": [
+                {
+                  "id": 9000,
+                  "src": "https://picsum.photos/id/0/800/600",
+                  "thumbnail": "https://picsum.photos/id/0/300/300",
+                  "alt": "Lumen 14 Laptop"
+                }
+              ],
+              "variation": [
+                {
+                  "attribute": "Color",
+                  "value": "Silver"
+                },
+                {
+                  "attribute": "Storage",
+                  "value": "512 GB"
+                }
+              ]
             },
             {
               "key": "c3d4",
               "id": 190,
-              "name": "Logo Cap",
-              "sku": "CAP-BLK",
+              "name": "Orbit Phone",
+              "sku": "PHN-ORB-128",
               "quantity": 1,
-              "prices": { "price": "2850", "currency_code": "USD", "currency_minor_unit": 2 },
-              "totals": { "line_total": "2850", "currency_code": "USD", "currency_minor_unit": 2 },
-              "categories": [{ "name": "Hats" }]
+              "prices": {
+                "price": "79900",
+                "regular_price": "79900",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "totals": {
+                "line_total": "79900",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "categories": [
+                {
+                  "name": "Phones"
+                }
+              ],
+              "images": [
+                {
+                  "id": 9003,
+                  "src": "https://picsum.photos/id/3/800/600",
+                  "thumbnail": "https://picsum.photos/id/3/300/300",
+                  "alt": "Orbit Phone"
+                }
+              ]
             }
           ]
         }
@@ -46,27 +102,84 @@
         "cart": {
           "cart_key": "c1-8f2a",
           "items_count": 2,
-          "totals": { "total_price": "5600", "currency_code": "USD", "currency_minor_unit": 2 },
+          "totals": {
+            "total_price": "129900",
+            "total_items": "129900",
+            "currency_code": "USD",
+            "currency_minor_unit": 2
+          },
           "items": [
             {
               "key": "a1b2",
               "id": 184,
-              "name": "Classic Tee",
-              "sku": "TEE-RED-M",
-              "quantity": 2,
-              "prices": { "price": "2800", "currency_code": "USD", "currency_minor_unit": 2 },
-              "totals": { "line_total": "5600", "currency_code": "USD", "currency_minor_unit": 2 },
-              "categories": [{ "name": "Shirts" }]
+              "name": "Lumen 14 Laptop",
+              "sku": "LAP-14-SLV-512",
+              "quantity": 1,
+              "prices": {
+                "price": "129900",
+                "regular_price": "129900",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "totals": {
+                "line_total": "129900",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "categories": [
+                {
+                  "name": "Laptops"
+                }
+              ],
+              "images": [
+                {
+                  "id": 9000,
+                  "src": "https://picsum.photos/id/0/800/600",
+                  "thumbnail": "https://picsum.photos/id/0/300/300",
+                  "alt": "Lumen 14 Laptop"
+                }
+              ],
+              "variation": [
+                {
+                  "attribute": "Color",
+                  "value": "Silver"
+                },
+                {
+                  "attribute": "Storage",
+                  "value": "512 GB"
+                }
+              ]
             },
             {
               "key": "c3d4",
               "id": 190,
-              "name": "Logo Cap",
-              "sku": "CAP-BLK",
+              "name": "Orbit Phone",
+              "sku": "PHN-ORB-128",
               "quantity": 1,
-              "prices": { "price": "2850", "currency_code": "USD", "currency_minor_unit": 2 },
-              "totals": { "line_total": "2850", "currency_code": "USD", "currency_minor_unit": 2 },
-              "categories": [{ "name": "Hats" }]
+              "prices": {
+                "price": "79900",
+                "regular_price": "79900",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "totals": {
+                "line_total": "79900",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "categories": [
+                {
+                  "name": "Phones"
+                }
+              ],
+              "images": [
+                {
+                  "id": 9003,
+                  "src": "https://picsum.photos/id/3/800/600",
+                  "thumbnail": "https://picsum.photos/id/3/300/300",
+                  "alt": "Orbit Phone"
+                }
+              ]
             }
           ]
         }
@@ -81,9 +194,45 @@
         "quantity": 1,
         "cart": {
           "cart_key": "c1-8f2a",
-          "totals": { "total_price": "6800", "currency_code": "USD", "currency_minor_unit": 2 },
+          "items_count": 1,
+          "totals": {
+            "total_price": "154800",
+            "total_items": "154800",
+            "currency_code": "USD",
+            "currency_minor_unit": 2
+          },
           "items": [
-            { "key": "e5f6", "id": 212, "name": "Crew Socks", "sku": "SOCK-WHT-L", "quantity": 1, "prices": { "price": "1200", "currency_code": "USD", "currency_minor_unit": 2 }, "totals": { "line_total": "1200", "currency_code": "USD", "currency_minor_unit": 2 } }
+            {
+              "key": "e5f6",
+              "id": 212,
+              "name": "Pulse Watch",
+              "sku": "WCH-PLS-44",
+              "quantity": 1,
+              "prices": {
+                "price": "24900",
+                "regular_price": "24900",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "totals": {
+                "line_total": "24900",
+                "currency_code": "USD",
+                "currency_minor_unit": 2
+              },
+              "categories": [
+                {
+                  "name": "Watches"
+                }
+              ],
+              "images": [
+                {
+                  "id": 9004,
+                  "src": "https://picsum.photos/id/4/800/600",
+                  "thumbnail": "https://picsum.photos/id/4/300/300",
+                  "alt": "Pulse Watch"
+                }
+              ]
+            }
           ]
         }
       }

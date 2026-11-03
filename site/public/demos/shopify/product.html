@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Classic Tee · Northline (a demo store)</title>
+  <title>Lumen 14 Laptop · Northline (a demo store)</title>
   <link rel="stylesheet" href="../_shared/demo.css" />
   <link rel="stylesheet" href="style.css" />
   <!-- The sandbox's recorder, the plugin's built CDN bundle, and its recorded fixtures. -->
@@ -20,16 +20,22 @@
     <a class="cart-link" href="cart.html" data-cart-link>Cart (<span data-cart-count>0</span>)</a>
   </header>
   <main>
-    <p class="crumb"><a href="index.html">Collections</a> / Shirts</p>
+    <p class="crumb"><a href="index.html">Collections</a> / Laptops</p>
     <div class="product">
-      <div class="ph">product shot</div>
-      <div>
+      <div data-product-photo></div>
+      <div class="buy">
         <h1 data-product-name></h1>
-        <p class="price" data-product-price></p>
-        <p class="variant" data-product-variant></p>
+        <p class="price large" data-product-price></p>
+        <p class="sku" data-product-sku></p>
+        <div class="options">
+          <label for="option-color">Color</label>
+          <select id="option-color" data-option="Color"></select>
+          <label for="option-storage">Storage</label>
+          <select id="option-storage" data-option="Storage"></select>
+        </div>
         <div class="qty" role="group" aria-label="Quantity">
           <button type="button" data-qty-down aria-label="One fewer">−</button>
-          <output data-qty>2</output>
+          <output data-qty>1</output>
           <button type="button" data-qty-up aria-label="One more">+</button>
         </div>
         <button type="button" class="primary" data-add-to-cart>Add to cart</button>
