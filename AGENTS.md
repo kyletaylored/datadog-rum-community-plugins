@@ -235,7 +235,7 @@ test can stand in for.
 ## General guidelines
 
 - **Measure, don't assert.** Docs and the site show what a plugin actually sends. "Events this plugin sends" is generated from fixture snapshots, never hand-written.
-- **Pin everything.** Exact versions in CDN snippets, SHA-pinned GitHub Actions, a narrow `@datadog/browser-rum` peer range.
+- **Pin everything.** Exact versions in CDN snippets, SHA-pinned GitHub Actions, runner images by version (`ubuntu-24.04`, never `ubuntu-latest`), a narrow `@datadog/browser-rum` peer range.
 - **Relative paths on the site.** It's served from `/datadog-rum-community-plugins/`.
 - **Never commit credentials.** No application IDs, client tokens or npm tokens in the repo. The site's snippet builder never asks for them.
 - **Open PRs without asking; ask before anything that ships.** Push the branch and open the PR as the normal end of a change, from its own worktree (see below). Merging a PR, publishing to npm and changing the Pages setup still need the maintainer's go-ahead.
