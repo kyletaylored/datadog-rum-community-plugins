@@ -7,5 +7,9 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@kyletaylored/datadog-rum-test-harness", "site"]
+  "ignore": ["@kyletaylored/datadog-rum-test-harness", "site"],
+  "snapshot": {
+    "useCalculatedVersion": true,
+    "prereleaseTemplate": "{tag}-{datetime}"
+  }
 }

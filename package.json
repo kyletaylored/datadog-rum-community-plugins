@@ -31,7 +31,9 @@
     "screenshots": "node scripts/site-screenshots.mjs",
     "changeset": "changeset",
     "version-packages": "changeset version && node scripts/sync-manifest-versions.mjs",
-    "release": "changeset publish"
+    "release": "changeset publish",
+    "version-snapshot": "changeset version --snapshot dev && node scripts/sync-manifest-versions.mjs",
+    "release:dev": "changeset publish --tag dev --no-git-tag"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",

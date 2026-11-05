@@ -1,0 +1,98 @@
+name: Dev release
+
+# Publishes a snapshot of every package with a pending changeset, under the npm `dev` dist-tag,
+# so a real store can load an exact build from jsDelivr before it ships as a 0.x release.
+#
+# The version is the one the pending changesets would produce, with a timestamp suffix
+# (0.3.0-dev-20261105210605). Nothing is committed back: the bump exists only on the runner, so
+# the release PR and `latest` are untouched. Run it from Actions → Dev release → Run workflow,
+# on main or on a branch.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Build and pack only; publish nothing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-dev
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    name: Snapshot to npm (dev tag)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - name: Check release prerequisites
+        if: ${{ !inputs.dry_run }}
+        run: |
+          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "::error title=NPM_TOKEN not set::Add the NPM_TOKEN secret, or run with dry_run."
+            exit 1
+          fi
+
+      - run: npm ci
+      - run: npm audit --audit-level=high
+
+      # Version before building: PLUGIN_VERSION is compiled into every bundle and sent as
+      # commerce.plugin_version, so a dev session in Datadog says which snapshot it ran.
+      - name: Apply snapshot versions
+        run: |
+          if [ -z "$(find .changeset -name '*.md' ! -name 'README.md')" ]; then
+            echo "::error title=No pending changesets::Nothing would be released, so there is nothing to snapshot."
+            exit 1
+          fi
+          npm run version-snapshot
+
+      - run: npm run build
+      - run: npx vitest run --project unit
+        env:
+          CI: 'true'
+      - run: npm run lint:manifests
+      - run: npm run size
+      - name: Dry run every package
+        run: npm pack --dry-run --workspaces
+
+      - name: Publish under the dev tag
+        if: ${{ !inputs.dry_run }}
+        run: npm run release:dev
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'
+
+      # The exact-version CDN URLs and SRI hashes to paste into a test store.
+      - name: Summarize the snapshot
+        run: |
+          {
+            echo "## Dev snapshot${{ inputs.dry_run && ' (dry run, not published)' || '' }}"
+            echo
+            echo '| Package | Version |'
+            echo '| --- | --- |'
+            for pkg in packages/*/package.json; do
+              node -e 'const p = require("./" + process.argv[1]); if (!p.private) console.log(`| \`${p.name}\` | \`${p.version}\` |`)' "$pkg"
+            done
+            echo
+            echo 'Install with `npm install <package>@dev`, or load a CDN build:'
+            echo
+            echo '```'
+            node scripts/sri.mjs
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
