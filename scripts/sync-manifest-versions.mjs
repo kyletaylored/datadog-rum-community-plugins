@@ -4,7 +4,8 @@
  *
  *   plugin.json                       `version`, which the site's pinned CDN snippets use
  *   src/index.ts                      `PLUGIN_VERSION`, sent on every event as commerce.plugin_version
- *   fixtures/.generated/events.json   the same attribute, as the fixture run recorded it
+ *   fixtures/.generated/events.json   the same attribute, as the fixture run recorded it, and
+ *                                     the journey's setGlobalContextProperty call that sets it
  *
  * `changeset version` bumps package.json only, so the release PR runs this straight after it
  * (`npm run version-packages`). Without it the 0.2.0 release PR shipped every plugin.json at
@@ -22,6 +23,8 @@ import { fromRoot, repoRoot } from './repo-root.mjs'
 
 const VERSION_CONSTANT = /export const PLUGIN_VERSION = '[^']*'/
 const VERSION_ATTRIBUTE = /("commerce\.plugin_version": )"[^"]*"/g
+// The journey records the setGlobalContextProperty call as a label and a detail, not a key.
+const VERSION_DETAIL = /("label": "commerce\.plugin_version",\s*"detail": )"[^"]*"/g
 // Edits the one field in place rather than re-serializing, so the rest of a hand-written
 // manifest (key order, \u escapes) stays exactly as its author left it.
 const MANIFEST_VERSION = /^(  "version": )"[^"]*"/m
@@ -59,7 +62,8 @@ for (const dir of readdirSync(fromRoot('packages')).sort()) {
 
   const report = fromRoot('packages', dir, 'fixtures/.generated/events.json')
   if (existsSync(report)) {
-    update(report, readFileSync(report, 'utf8').replace(VERSION_ATTRIBUTE, `$1"${version}"`))
+    const recorded = readFileSync(report, 'utf8')
+    update(report, recorded.replace(VERSION_ATTRIBUTE, `$1"${version}"`).replace(VERSION_DETAIL, `$1"${version}"`))
   }
 }
 
