@@ -38,12 +38,6 @@ jobs:
           registry-url: https://registry.npmjs.org
           cache: npm
 
-      - name: Check release prerequisites
-        run: |
-          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
-            echo "::warning title=NPM_TOKEN not set::A release PR can still be opened, but merging it cannot publish. Add the NPM_TOKEN secret before merging."
-          fi
-
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npm run build
@@ -55,6 +49,8 @@ jobs:
 
       # Opens or updates the release PR when changesets are pending; publishes when the release
       # PR is merged. Changesets decides which it is, and bumps only the changed packages.
+      # Publishing authenticates through npm trusted publishing (OIDC, the id-token permission
+      # above): every package trusts this workflow, so no npm token is stored in the repo.
       - name: Create release PR or publish
         id: changesets
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
@@ -64,13 +60,13 @@ jobs:
           publish-script: npm run release
           commit-message: 'chore: version packages'
           pr-title: 'chore: version packages'
-        env:
           # Changesets opens the release PR. The default GITHUB_TOKEN can only do that when the
           # repository allows Actions to create pull requests (Settings → Actions → General →
           # Workflow permissions). Where that is switched off, add a RELEASE_TOKEN secret — a PAT
-          # with `repo` scope — and this picks it up instead, with no workflow change.
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # with `repo` scope — and this picks it up instead, with no workflow change. v2 reads
+          # only this input; a GITHUB_TOKEN env var is ignored.
+          github-token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+        env:
           NPM_CONFIG_PROVENANCE: 'true'
 
       # Merchants paste an exact-version CDN URL with an integrity hash; this is where that hash
