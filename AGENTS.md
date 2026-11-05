@@ -238,7 +238,7 @@ test can stand in for.
 - **Pin everything.** Exact versions in CDN snippets, SHA-pinned GitHub Actions, a narrow `@datadog/browser-rum` peer range.
 - **Relative paths on the site.** It's served from `/datadog-rum-community-plugins/`.
 - **Never commit credentials.** No application IDs, client tokens or npm tokens in the repo. The site's snippet builder never asks for them.
-- **Ask before anything public.** Pushing, opening or merging a PR, publishing to npm and changing the Pages setup all need the maintainer's go-ahead.
+- **Open PRs without asking; ask before anything that ships.** Push the branch and open the PR as the normal end of a change, from its own worktree (see below). Merging a PR, publishing to npm and changing the Pages setup still need the maintainer's go-ahead.
 
 ## Site pages: search and social metadata
 
@@ -262,7 +262,7 @@ The main checkout often holds the maintainer's own uncommitted, in-progress work
 - Without that tool: `git fetch origin && git worktree add .claude/worktrees/<name> -b <branch> origin/main`.
 - Install dependencies once, from the worktree root: `npm ci`. This is an npm-workspaces monorepo (`packages/*`, `site`), so installing inside one package misses hoisted dependencies and the build fails.
 - Run every command from inside the worktree, with paths inside it. Don't `cd` back to the main checkout, and don't use bare `git stash` (the stash is shared with every other worktree and session).
-- Open the PR with `gh pr create --base main`.
+- When the change is done, commit, push and open the PR with `gh pr create --base main`. Don't stop to ask first.
 - Work that depends on an open PR is a stacked PR in that PR's worktree, not a new worktree; see below.
 
 **Stacked PRs: the default for anything bigger than one concern.** Use a GitHub stack whenever you can (`gh stack`, the `github/gh-stack` extension; see the [stacked PRs docs](https://docs.github.com/en/pull-requests/get-started/stacked-prs-quickstart)). Each layer's PR targets the branch below it, the bottom one targets `main`, and reviewers see only their layer's diff, so a large change arrives as several small reviews instead of one long one.
