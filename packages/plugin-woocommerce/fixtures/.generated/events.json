@@ -349,7 +349,7 @@
   ],
   "globalContext": {
     "commerce.platform": "woocommerce",
-    "commerce.plugin_version": "0.2.0",
+    "commerce.plugin_version": "0.3.0",
     "commerce.schema_version": "1.2.0",
     "store.id": "shop.example.com",
     "store.currency": "USD",
@@ -374,7 +374,7 @@
       {
         "api": "setGlobalContextProperty",
         "label": "commerce.plugin_version",
-        "detail": "0.2.0"
+        "detail": "0.3.0"
       },
       {
         "api": "setGlobalContextProperty",
@@ -556,7 +556,7 @@
           {
             "api": "setGlobalContextProperty",
             "label": "commerce.plugin_version",
-            "detail": "0.2.0"
+            "detail": "0.3.0"
           },
           {
             "api": "setGlobalContextProperty",
@@ -624,7 +624,7 @@
           {
             "api": "setGlobalContextProperty",
             "label": "commerce.plugin_version",
-            "detail": "0.2.0"
+            "detail": "0.3.0"
           },
           {
             "api": "setGlobalContextProperty",

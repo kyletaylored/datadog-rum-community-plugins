@@ -184,7 +184,7 @@
   ],
   "globalContext": {
     "commerce.platform": "engagement",
-    "commerce.plugin_version": "0.2.0",
+    "commerce.plugin_version": "0.2.1",
     "commerce.schema_version": "1.2.0"
   },
   "rumApis": [
@@ -204,7 +204,7 @@
       {
         "api": "setGlobalContextProperty",
         "label": "commerce.plugin_version",
-        "detail": "0.2.0"
+        "detail": "0.2.1"
       },
       {
         "api": "setGlobalContextProperty",

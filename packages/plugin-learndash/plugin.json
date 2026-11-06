@@ -2,7 +2,7 @@
   "name": "learndash",
   "package": "@kyletaylored/datadog-rum-plugin-learndash",
   "exportName": "learndashPlugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "family": "learning",
   "title": "LearnDash",
   "description": "Course enrolment, completed lessons and topics, quiz attempts and scores, and course completion from LearnDash, the WordPress LMS. Pair it with the engagement kit for lesson video.",

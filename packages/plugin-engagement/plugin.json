@@ -2,7 +2,7 @@
   "name": "engagement",
   "package": "@kyletaylored/datadog-rum-plugin-engagement",
   "exportName": "engagementPlugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "family": "engagement",
   "title": "Engagement",
   "description": "The events analytics tools capture automatically — scroll depth, outbound and contact clicks, file downloads, video plays and form submissions — with no instrumentation. Works on any site.",

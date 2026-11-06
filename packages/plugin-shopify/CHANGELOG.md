@@ -1,5 +1,39 @@
 # @kyletaylored/datadog-rum-plugin-shopify
 
+## 0.3.0
+
+### Minor Changes
+
+- 7224592: The Shopify plugin can no longer switch RUM off or release it.
+  
+  - **No `analytics`, no harm.** Without the pixel's `analytics` the plugin returned `false` from `onInit`. In Browser SDK v7 that stops init for the whole page, so adding the plugin to a theme, or injecting it, meant no RUM at all. It now warns once in the console (without `debug`) and lets the rest of RUM run.
+  - **Never widens consent.** It used to call `setTrackingConsent('granted')` whenever the Customer Privacy API allowed analytics, and also when the page had no such API, which released RUM that OneTrust was holding. It now records the Customer Privacy API's answer on the page, where a refusal holds every community plugin, and never calls `setTrackingConsent`. With no API on the page it records nothing and follows the page.
+  
+  `setTrackingConsent` is gone from the footprint.
+- f40fd59: Storefront mode: the plugin now reports cart and browsing events when it runs outside a Web Pixel, as it does in a theme snippet, a tag manager or the RUM Injector. Before, every event came from `analytics.subscribe`, which only exists inside a pixel, so such an install collected nothing.
+  
+  With no `analytics` passed (or `mode: 'storefront'`), it reads:
+  
+  - `view_item`, `view_item_list`, `search` (length only) and the signed-in customer ID from `ShopifyAnalytics.meta`, which every Online Store theme prints;
+  - `add_to_cart` and `remove_from_cart` by diffing `cart.js` snapshots. Resource timing notices the theme's cart requests by URL, and the plugin makes one tagged read of its own. `fetch` and XHR are never patched;
+  - `view_cart` on the cart page, and `begin_checkout` on a click on a checkout control.
+  
+  Cart `attributes`, the note, line `properties` and the cart key are never read: on real stores they hold the shopper's email and app tokens. The cart snapshot is kept in `sessionStorage` as `dd_rum_shopify_cart`. Payment and purchase still need the pixel install.
+  
+  The CDN bundle now has a declared 6 KB budget, since it carries both adapters.
+
+### Patch Changes
+
+- 26e9faf: Smaller CDN bundles. They now target ES2020 instead of ES2019, so optional chaining and `??` ship as written instead of downleveled. Every plugin requires Browser SDK v7, whose own CDN bundle uses both untranspiled, so no browser that can run the SDK loses support. Saves 0.25 to 0.36 KB gzip per bundle. The npm builds are unchanged.
+- a01218d: Misconfiguration is no longer silent. Warnings now print without `debug: true`, each distinct one once per page: a missing platform API, OneTrust never reporting, a `beforeTrack` hook that throws. A new one fires when events are being dropped because consent is still pending more than 5 seconds after the plugin started, which usually means a consent plugin that never answers. A refusal by the visitor stays quiet. Per-event lines, every mapped event and every drop, still need `debug: true`.
+- fd76323: Emit schema 1.2.0 (`commerce.schema_version`). Nothing a plugin sends changes otherwise. The CDN bundles are smaller, by about 140 bytes gzipped each: every other family's event names had been leaking into every bundle through the schema spec's prefix reads, and no longer do.
+- Updated dependencies [a01218d]
+- Updated dependencies [b87d9d3]
+- Updated dependencies [f4262ea]
+- Updated dependencies [22551ac]
+- Updated dependencies [fd76323]
+  - @kyletaylored/datadog-rum-community-plugins@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes

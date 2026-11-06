@@ -150,7 +150,7 @@
   ],
   "globalContext": {
     "commerce.platform": "learndash",
-    "commerce.plugin_version": "0.1.0",
+    "commerce.plugin_version": "0.2.0",
     "commerce.schema_version": "1.2.0"
   },
   "rumApis": [
@@ -177,7 +177,7 @@
           {
             "api": "setGlobalContextProperty",
             "label": "commerce.plugin_version",
-            "detail": "0.1.0"
+            "detail": "0.2.0"
           },
           {
             "api": "setGlobalContextProperty",
@@ -216,7 +216,7 @@
           {
             "api": "setGlobalContextProperty",
             "label": "commerce.plugin_version",
-            "detail": "0.1.0"
+            "detail": "0.2.0"
           },
           {
             "api": "setGlobalContextProperty",
@@ -256,7 +256,7 @@
           {
             "api": "setGlobalContextProperty",
             "label": "commerce.plugin_version",
-            "detail": "0.1.0"
+            "detail": "0.2.0"
           },
           {
             "api": "setGlobalContextProperty",
@@ -312,7 +312,7 @@
           {
             "api": "setGlobalContextProperty",
             "label": "commerce.plugin_version",
-            "detail": "0.1.0"
+            "detail": "0.2.0"
           },
           {
             "api": "setGlobalContextProperty",
@@ -354,7 +354,7 @@
           {
             "api": "setGlobalContextProperty",
             "label": "commerce.plugin_version",
-            "detail": "0.1.0"
+            "detail": "0.2.0"
           },
           {
             "api": "setGlobalContextProperty",
@@ -402,7 +402,7 @@
           {
             "api": "setGlobalContextProperty",
             "label": "commerce.plugin_version",
-            "detail": "0.1.0"
+            "detail": "0.2.0"
           },
           {
             "api": "setGlobalContextProperty",
