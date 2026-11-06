@@ -18,6 +18,7 @@ import {
   shippingTierOf,
   toPurchase,
 } from './mapping.js'
+import { CART_STORAGE_KEY, startStorefront } from './storefront.js'
 import type {
   ShopifyAnalyticsApi,
   ShopifyEvent,
@@ -45,9 +46,10 @@ export const SHOPIFY_EVENTS = [
 ] as const
 
 export const FOOTPRINT: PluginFootprint = {
-  globals: ['analytics (Web Pixel sandbox)', 'window.Shopify'],
-  events: [...SHOPIFY_EVENTS],
-  storageKeys: [],
+  globals: ['analytics (Web Pixel sandbox)', 'window.Shopify', 'window.ShopifyAnalytics'],
+  // Storefront mode: resource timing entries for the theme's cart.js traffic, and a click.
+  events: [...SHOPIFY_EVENTS, 'cart.js', 'click'],
+  storageKeys: [CART_STORAGE_KEY],
   rumApis: ['addAction', 'setGlobalContextProperty', 'setUser'],
   consentSource: 'Shopify Customer Privacy API (window.Shopify.customerPrivacy)',
 }
@@ -58,6 +60,12 @@ export interface ShopifyPluginOptions extends CommonPluginOptions {
    * `shopifyAnalytics`. Required inside a custom pixel.
    */
   analytics?: ShopifyAnalyticsApi
+  /**
+   * `pixel` subscribes to `analytics`; `storefront` reads what an Online Store theme exposes to
+   * any script (`ShopifyAnalytics.meta` and the Ajax Cart API). `auto` (default) picks `pixel`
+   * when `analytics` was passed and `storefront` otherwise.
+   */
+  mode?: 'auto' | 'pixel' | 'storefront'
 }
 
 function storefront(): ShopifyStorefrontGlobal | undefined {
@@ -123,12 +131,18 @@ export function shopifyPlugin(options: ShopifyPluginOptions = {}): RumPlugin {
         }
       }
 
-      if (!analytics || typeof analytics.subscribe !== 'function') {
-        // Returning false here would stop the whole SDK, not just this plugin: Browser SDK v7
-        // skips init when any plugin's onInit returns false. Warn, and let the rest of RUM run.
-        tracker.logger.warn('no Shopify analytics API was passed, so no commerce events are subscribed. Pass { analytics } inside a custom pixel.')
+      // Never return false from here: Browser SDK v7 skips init for the whole page when any
+      // plugin does. A page with nothing to read gets a warning instead.
+      const mode = options.mode ?? 'auto'
+      const storefrontMode = mode === 'storefront' || (mode === 'auto' && !analytics)
+      if (storefrontMode ? !(globalThis as { ShopifyAnalytics?: unknown }).ShopifyAnalytics : typeof analytics?.subscribe !== 'function') {
+        tracker.logger.warn('no ShopifyAnalytics, and no pixel analytics passed: no commerce events are reported')
+      }
+      if (storefrontMode) {
+        startStorefront(tracker)
         return
       }
+      if (typeof analytics?.subscribe !== 'function') return
 
       for (const event of SHOPIFY_EVENTS) {
         analytics.subscribe(event, (payload) => handleShopifyEvent(tracker, payload))
@@ -218,4 +232,5 @@ function handleShopifyEvent(tracker: Tracker, event: ShopifyEvent): void {
 }
 
 export type { ShopifyAnalyticsApi, ShopifyCheckout, ShopifyEvent } from './types.js'
+export { CART_STORAGE_KEY } from './storefront.js'
 export default shopifyPlugin

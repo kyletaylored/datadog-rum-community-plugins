@@ -3,7 +3,8 @@
 > A personal community project under [@kyletaylored](https://github.com/kyletaylored), MIT licensed.
 > **Not provided or supported by Datadog.**
 
-Checkout events, order value and customer identity from Shopify Web Pixels.
+Checkout events, order value and customer identity from Shopify Web Pixels, and cart and
+browsing events from the storefront itself when it runs outside a pixel.
 
 ## It composes with the official plugin, it does not replace it
 
@@ -58,11 +59,48 @@ misconfigured install looks misconfigured.
 Shopify events with no GA4 equivalent send no action. `checkout_contact_info_submitted`, for
 instance, only feeds `setUser` when the merchant opts into email.
 
+## Storefront mode: outside the pixel
+
+Installed in a theme, through a tag manager or by an injector, the plugin has no pixel `analytics`
+to subscribe to. With no `analytics` passed it switches to **storefront mode**, which reads what
+every Online Store theme exposes to any script:
+
+| Event | Where it comes from |
+| --- | --- |
+| `view_item` | `ShopifyAnalytics.meta.product` on a product page (the `?variant=` in the URL picks the variant) |
+| `view_item_list` | `ShopifyAnalytics.meta.products` on a collection page |
+| `search` | the length of the `q` URL parameter on the search page, never the text |
+| `add_to_cart` / `remove_from_cart` | the difference between two `cart.js` snapshots |
+| `view_cart` | `cart.js` on the cart page |
+| `begin_checkout` | a click on a control named `checkout` or a link to `/checkout`, valued from the last cart snapshot |
+| `setUser` | `ShopifyAnalytics.meta.page.customerId` when signed in, ID only |
+
+**How cart changes are seen.** A theme reads `cart.js` around every change, but neither response
+names the line that changed; the difference between them does. The plugin watches resource timing
+for the theme's cart requests (`/cart.js`, `/cart/add`, `/cart/change`, `/cart/update`, by URL
+only), waits for the burst to settle, reads `cart.js` once itself (`?dd_rum=1`, so it never counts
+its own read), and compares it with the last snapshot. That works whichever way the theme changes
+the cart. **Nothing on the page is patched:** not `fetch`, not XHR, not the theme. The cost is one
+same-origin GET per cart change, plus one at the start of a session for a baseline. The snapshot
+is kept in `sessionStorage` (`dd_rum_shopify_cart`) so a change on the next page still has one.
+
+**What it never reads.** `cart.js` also carries cart `attributes` (on real stores: the shopper's
+email address and app tokens), the order `note`, line `properties` (personalisation text) and the
+product description. None is read or stored. The cart token is sent as `cart_id` without its
+`?key=` half, which is a credential for the cart.
+
+**What stays pixel-only.** Shipping, payment and the order happen inside Shopify's checkout, which
+a storefront script cannot see. `add_shipping_info`, `add_payment_info` and `purchase` need the
+pixel install above.
+
+Force a mode with `mode: 'pixel'` or `mode: 'storefront'`.
+
 ## Options
 
 | Option | Default | Effect |
 | --- | --- | --- |
-| `analytics` | none | **Required.** The sandbox `analytics` global, the same object the official plugin takes as `shopifyAnalytics` |
+| `analytics` | none | The sandbox `analytics` global, the same object the official plugin takes as `shopifyAnalytics`. Required inside a custom pixel; without it the plugin runs storefront mode |
+| `mode` | `'auto'` | `pixel` subscribes to `analytics`, `storefront` reads the theme; `auto` picks `pixel` when `analytics` is passed |
 | `events` | all | Allow-list of commerce actions |
 | `identifyUsers` | `true` | Call `setUser` with the Shopify customer ID from `checkout_completed` |
 | `includeEmail` / `includeName` | `false` | Add PII to `setUser` |
@@ -86,8 +124,8 @@ The answer is recorded in the page-wide consent record, so a `false` also holds 
 community plugin on the page. The adapter never calls `setTrackingConsent`: it cannot release RUM
 that a consent plugin such as OneTrust is holding.
 
-Without `analytics` the plugin warns once in the console and subscribes to nothing. It does not
-return `false` from `onInit`, which in Browser SDK v7 would stop RUM for the whole page.
+The plugin never returns `false` from `onInit`, which in Browser SDK v7 would stop RUM for the
+whole page. A page with neither `analytics` nor `ShopifyAnalytics` gets a console warning instead.
 
 ## Mapping details worth knowing
 
@@ -101,9 +139,9 @@ return `false` from `onInit`, which in Browser SDK v7 would stop RUM for the who
 
 | | |
 | --- | --- |
-| Platform globals read | `analytics` (Web Pixel sandbox), `window.Shopify` |
-| Platform events subscribed | the ten listed above |
-| Storage keys written | `dd_rum_commerce_seen` (the core's purchase dedupe) |
+| Platform globals read | `analytics` (Web Pixel sandbox), `window.Shopify`, `window.ShopifyAnalytics.meta` (storefront mode) |
+| Platform events subscribed | the ten listed above; in storefront mode, resource timing for cart requests and clicks on a checkout control |
+| Storage keys written | `dd_rum_commerce_seen` (the core's purchase dedupe), `dd_rum_shopify_cart` (storefront mode's cart snapshot, `sessionStorage`) |
 | RUM APIs called | `addAction`, `setGlobalContextProperty`, `setUser` |
 | Consent source | Shopify Customer Privacy API |
 

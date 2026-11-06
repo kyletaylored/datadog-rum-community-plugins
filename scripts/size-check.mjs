@@ -22,6 +22,11 @@ const BUDGET_OVERRIDES_KB = {
   // Five independent trackers (scroll, links, downloads, video, forms) plus the DOM readers that
   // keep URLs, addresses and field values out of what is sent. Not a mapper, a small library.
   '@kyletaylored/datadog-rum-plugin-engagement': 6,
+  // Two adapters in one bundle: the Web Pixel mapper, and the storefront reader for installs
+  // outside the pixel (ShopifyAnalytics.meta, plus a cart.js diff driven by resource timing).
+  // Storefront mode alone is about 1.2 KB, and a merchant cannot know in advance which one the
+  // page needs, so splitting them would mean two snippets for one store.
+  '@kyletaylored/datadog-rum-plugin-shopify': 6,
 }
 
 const packagesDir = fromRoot('packages')

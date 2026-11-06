@@ -97,7 +97,7 @@ describe('composition with the official plugin', () => {
       })
       // Browser SDK v7 skips init for everyone when any plugin returns false.
       expect(outcome).not.toBe(false)
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining('no Shopify analytics API was passed'))
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('no ShopifyAnalytics, and no pixel analytics passed'))
     } finally {
       warn.mockRestore()
     }
