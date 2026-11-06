@@ -1,6 +1,6 @@
 {
   "name": "@kyletaylored/datadog-rum-community-plugins",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Datadog RUM Community Plugins: the shared core, with event schemas, dedupe, consent gate, PII filter and debug log. A personal community project, not provided or supported by Datadog.",
   "author": "Kyle Taylor <kyle.taylor@datadoghq.com>",
   "license": "MIT",

@@ -9,7 +9,7 @@ import {
 } from '@kyletaylored/datadog-rum-community-plugins'
 import type { LearnDashEvent, LearnDashPayload } from './types.js'
 
-export const PLUGIN_VERSION = '0.1.0'
+export const PLUGIN_VERSION = '0.2.0'
 
 /** Where the companion WordPress plugin prints the learner, the page and what just happened. */
 export const DATA_GLOBAL = 'ddRumLearnDash'
