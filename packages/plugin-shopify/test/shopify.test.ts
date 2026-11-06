@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
 import {
@@ -10,7 +10,7 @@ import {
   writeEventReport,
   type Fixture,
 } from '../../test-harness/src/index.js'
-import type { PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
+import { createConsentGate, pageConsentState, type PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
 import { shopifyPlugin } from '../src/index.js'
 import type { ShopifyAnalyticsApi, ShopifyEvent } from '../src/types.js'
 
@@ -87,13 +87,20 @@ describe('composition with the official plugin', () => {
     expect(analytics.subscribedEvents()).not.toContain('ui_extension_errored')
   })
 
-  it('opts out when no analytics global was passed, rather than looking healthy', async () => {
-    const rum = createFakeRum({})
-    const outcome = await shopifyPlugin({}).onInit?.({
-      initConfiguration: rum.initConfiguration,
-      publicApi: rum.publicApi,
-    })
-    expect(outcome).toBe(false)
+  it('warns, without debug, when no analytics global was passed, and never stops the SDK', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      const rum = createFakeRum({})
+      const outcome = await shopifyPlugin({}).onInit?.({
+        initConfiguration: rum.initConfiguration,
+        publicApi: rum.publicApi,
+      })
+      // Browser SDK v7 skips init for everyone when any plugin returns false.
+      expect(outcome).not.toBe(false)
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('no Shopify analytics API was passed'))
+    } finally {
+      warn.mockRestore()
+    }
   })
 })
 
@@ -175,6 +182,36 @@ describe('event mapping', () => {
 })
 
 describe('consent', () => {
+  function withStorefront(customerPrivacy: unknown) {
+    ;(globalThis as Record<string, unknown>).Shopify = { shop: 'acme.myshopify.com', currency: { active: 'USD' }, customerPrivacy }
+  }
+
+  it('never calls setTrackingConsent, so it cannot release RUM a consent plugin is holding', async () => {
+    withStorefront({ analyticsProcessingAllowed: () => true })
+    try {
+      const rum = createFakeRum({})
+      createConsentGate({ mode: 'auto', name: 'onetrust', publicApi: rum.publicApi, initConfiguration: rum.initConfiguration })
+      const analytics = fakeAnalytics()
+      await shopifyPlugin({ analytics: analytics.api }).onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
+      for (const fixture of loadFixtures(fixturesDir).flatMap((entry) => entry.fixtures)) analytics.emit(fixture)
+
+      expect(rum.calls.some((call) => call.api === 'setTrackingConsent')).toBe(false)
+      expect(rum.initConfiguration.trackingConsent).toBe('not-granted')
+      expect(rum.actions()).toHaveLength(0)
+    } finally {
+      delete (globalThis as Record<string, unknown>).Shopify
+    }
+  })
+
+  it('records nothing when the page has no Customer Privacy API, and follows the page', async () => {
+    const rum = createFakeRum({})
+    const analytics = fakeAnalytics()
+    await shopifyPlugin({ analytics: analytics.api }).onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
+    expect(pageConsentState()).toBeUndefined()
+    for (const fixture of loadFixtures(fixturesDir).flatMap((entry) => entry.fixtures)) analytics.emit(fixture)
+    expect(rum.actions().length).toBeGreaterThan(0)
+  })
+
   it('sends nothing while the Customer Privacy API says analytics is not allowed', async () => {
     ;(globalThis as Record<string, unknown>).Shopify = {
       shop: 'acme.myshopify.com',

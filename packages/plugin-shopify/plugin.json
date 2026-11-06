@@ -87,7 +87,7 @@
     "steps": [
       {
         "title": "Reads the storefront and its consent API",
-        "detail": "At init it reads `window.Shopify` for the shop, currency and locale, which become session context. It also asks Shopify's Customer Privacy API whether analytics is allowed: allowed opens the consent gate, denied keeps it shut, and absent (inside the pixel sandbox) defers to the consent Shopify already applied."
+        "detail": "At init it reads `window.Shopify` for the shop, currency and locale, which become session context. It also asks Shopify's Customer Privacy API whether analytics is allowed: the answer is recorded on the page, so denied holds this plugin's events and every other community plugin's, but it never calls `setTrackingConsent`. Absent (inside the pixel sandbox) records nothing and defers to the consent Shopify already applied."
       },
       {
         "title": "Subscribes to Web Pixels events",
@@ -188,8 +188,7 @@
     "rumApis": [
       "addAction",
       "setGlobalContextProperty",
-      "setUser",
-      "setTrackingConsent"
+      "setUser"
     ],
     "consentSource": "Shopify Customer Privacy API (window.Shopify.customerPrivacy)"
   },

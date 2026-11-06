@@ -48,7 +48,7 @@ export const FOOTPRINT: PluginFootprint = {
   globals: ['analytics (Web Pixel sandbox)', 'window.Shopify'],
   events: [...SHOPIFY_EVENTS],
   storageKeys: [],
-  rumApis: ['addAction', 'setGlobalContextProperty', 'setUser', 'setTrackingConsent'],
+  rumApis: ['addAction', 'setGlobalContextProperty', 'setUser'],
   consentSource: 'Shopify Customer Privacy API (window.Shopify.customerPrivacy)',
 }
 
@@ -108,32 +108,26 @@ export function shopifyPlugin(options: ShopifyPluginOptions = {}): RumPlugin {
         tracker.setStore({ id: shop.shop, currency: shop.currency?.active, locale: shop.locale })
       }
 
-      // Shopify's Customer Privacy API is the platform's own consent signal. When it says
-      // analytics is not allowed, nothing is sent; `consent: 'ignore'` defers to the host page
-      // (for example when a consent plugin already holds `trackingConsent`).
-      if (options.consent === 'ignore') {
-        tracker.consent.grant()
-      } else if (typeof options.consent !== 'function') {
+      // Shopify's Customer Privacy API is the platform's own consent signal. Its answer is
+      // recorded on the page, so it gates this plugin and any other, but it never moves the SDK's
+      // tracking consent: only a consent plugin does that. With no API on the page (the pixel
+      // sandbox, where the Pixel Manager applied consent before the pixel ran) there is no signal
+      // to record, and the plugin follows whatever else is on the page.
+      if (options.consent === undefined || options.consent === 'auto') {
         const allowed = shop?.customerPrivacy?.analyticsProcessingAllowed?.()
         if (allowed === true) {
           const categories = shop?.customerPrivacy?.currentVisitorConsent?.()
           tracker.consent.grant(categories ? Object.keys(categories).filter((key) => categories[key] === 'yes') : undefined)
         } else if (allowed === false) {
           tracker.consent.deny()
-        } else {
-          // No Customer Privacy API on the page (the pixel sandbox, for instance): the Pixel
-          // Manager has already applied consent before the pixel runs.
-          tracker.consent.grant()
         }
       }
 
       if (!analytics || typeof analytics.subscribe !== 'function') {
-        tracker.logger.warn(
-          'no Shopify analytics API was passed; pass { analytics } inside a custom pixel. Nothing is subscribed.',
-        )
-        // Opting out keeps a misconfigured install from looking healthy, the same way the
-        // official plugin returns false off a checkout page.
-        return false
+        // Returning false here would stop the whole SDK, not just this plugin: Browser SDK v7
+        // skips init when any plugin's onInit returns false. Warn, and let the rest of RUM run.
+        tracker.logger.warn('no Shopify analytics API was passed, so no commerce events are subscribed. Pass { analytics } inside a custom pixel.')
+        return
       }
 
       for (const event of SHOPIFY_EVENTS) {

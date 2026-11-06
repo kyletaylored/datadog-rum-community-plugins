@@ -68,7 +68,7 @@ instance, only feeds `setUser` when the merchant opts into email.
 | `includeEmail` / `includeName` | `false` | Add PII to `setUser` |
 | `includeItems` | `false` | Attach `items[]`, capped at 20 entries |
 | `actionPrefix` | `'commerce.'` | Rename the commerce prefix |
-| `consent` | `'auto'` | Reads the Shopify Customer Privacy API; `ignore` defers to the host page |
+| `consent` | `'auto'` | Reads the Shopify Customer Privacy API; `ignore` skips the gate |
 | `beforeTrack` | none | Edit or drop an event before it is sent |
 | `debug` | `false` | Log every mapped event to the console |
 
@@ -78,8 +78,16 @@ With `consent: 'auto'` the adapter reads `window.Shopify.customerPrivacy.analyti
 
 - `false` → nothing is sent.
 - `true` → events flow, and the accepted categories are reported.
-- **absent** → events flow. Inside the pixel sandbox there is no Customer Privacy API, because the
-  Pixel Manager has already applied the merchant's consent categories before the pixel runs at all.
+- **absent** → no signal is recorded and the plugin follows the page. Inside the pixel sandbox there
+  is no Customer Privacy API, because the Pixel Manager has already applied the merchant's consent
+  categories before the pixel runs at all.
+
+The answer is recorded in the page-wide consent record, so a `false` also holds every other
+community plugin on the page. The adapter never calls `setTrackingConsent`: it cannot release RUM
+that a consent plugin such as OneTrust is holding.
+
+Without `analytics` the plugin warns once in the console and subscribes to nothing. It does not
+return `false` from `onInit`, which in Browser SDK v7 would stop RUM for the whole page.
 
 ## Mapping details worth knowing
 
@@ -96,7 +104,7 @@ With `consent: 'auto'` the adapter reads `window.Shopify.customerPrivacy.analyti
 | Platform globals read | `analytics` (Web Pixel sandbox), `window.Shopify` |
 | Platform events subscribed | the ten listed above |
 | Storage keys written | `dd_rum_commerce_seen` (the core's purchase dedupe) |
-| RUM APIs called | `addAction`, `setGlobalContextProperty`, `setUser`, `setTrackingConsent` |
+| RUM APIs called | `addAction`, `setGlobalContextProperty`, `setUser` |
 | Consent source | Shopify Customer Privacy API |
 
 ## Events this plugin sends
