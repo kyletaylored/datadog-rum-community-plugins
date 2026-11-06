@@ -1,0 +1,473 @@
+{
+  "source": "Recorded on creations.mattel.com on 2026-11-06. cart.js is the Ajax Cart API response a theme reads around a cart change (two real responses, before and after adding the doll); the meta objects are ShopifyAnalytics.meta as printed by the live theme. Tokens, the shopper's email and the note are replaced with examples, a line property and a note are added to prove they are never read, and descriptions are shortened.",
+  "fixtures": [
+    {
+      "name": "cart before the doll is added",
+      "event": "cart.js",
+      "payload": {
+        "token": "cTokenExample123?key=0123456789abcdef0123456789abcdef",
+        "note": "Leave at the back door",
+        "attributes": {
+          "GE_consentPrefs": "{\"marketing\":\"yes\",\"analytics\":\"yes\"}",
+          "GE_clientId": "00000000-0000-0000-0000-000000000000",
+          "cartToken": "cTokenExample123?key=0123456789abcdef0123456789abcdef",
+          "ftkn": "ftkn_example_token",
+          "consumerEmail": "shopper@example.com"
+        },
+        "original_total_price": 4500,
+        "total_price": 4500,
+        "total_discount": 0,
+        "item_count": 1,
+        "items": [
+          {
+            "id": 48844348522701,
+            "properties": {
+              "_referrer": "Standard",
+              "_productType": "ItemBean",
+              "Engraving": "For Sam, love Mum"
+            },
+            "quantity": 1,
+            "variant_id": 48844348522701,
+            "key": "48844348522701:kjmg42",
+            "title": "Hot Wheels x MoMA 1965 Porsche 911 Coupe",
+            "price": 4500,
+            "original_price": 4500,
+            "presentment_price": 45.0,
+            "discounted_price": 4500,
+            "line_price": 4500,
+            "original_line_price": 4500,
+            "total_discount": 0,
+            "discounts": [],
+            "sku": "JMG42",
+            "grams": 0,
+            "vendor": "Mattel Creations",
+            "taxable": true,
+            "product_id": 9145115541709,
+            "product_has_only_default_variant": true,
+            "gift_card": false,
+            "final_price": 4500,
+            "final_line_price": 4500,
+            "url": "/products/hot-wheels-x-moma-1965-porsche-911-coupe-jmg42?variant=48844348522701",
+            "handle": "hot-wheels-x-moma-1965-porsche-911-coupe-jmg42",
+            "requires_shipping": true,
+            "product_type": "",
+            "product_title": "Hot Wheels x MoMA 1965 Porsche 911 Coupe",
+            "product_description": "A long marketing description the plugin must never send.",
+            "variant_title": null,
+            "variant_options": [
+              "Default Title"
+            ]
+          }
+        ],
+        "requires_shipping": true,
+        "currency": "USD",
+        "items_subtotal_price": 4500,
+        "cart_level_discount_applications": [],
+        "discount_codes": []
+      }
+    },
+    {
+      "name": "cart after the doll is added",
+      "event": "cart.js",
+      "payload": {
+        "token": "cTokenExample123?key=0123456789abcdef0123456789abcdef",
+        "note": "Leave at the back door",
+        "attributes": {
+          "GE_consentPrefs": "{\"marketing\":\"yes\",\"analytics\":\"yes\"}",
+          "GE_clientId": "00000000-0000-0000-0000-000000000000",
+          "cartToken": "cTokenExample123?key=0123456789abcdef0123456789abcdef",
+          "ftkn": "ftkn_example_token",
+          "consumerEmail": "shopper@example.com"
+        },
+        "original_total_price": 19500,
+        "total_price": 19500,
+        "total_discount": 0,
+        "item_count": 2,
+        "items": [
+          {
+            "id": 48830289641677,
+            "properties": {
+              "_referrer": "Standard",
+              "_productType": "ItemBean",
+              "Engraving": "For Sam, love Mum"
+            },
+            "quantity": 1,
+            "variant_id": 48830289641677,
+            "key": "48830289641677:kjlh31",
+            "title": "Barbie x Jean-Charles de Castelbajac Doll",
+            "price": 15000,
+            "original_price": 15000,
+            "presentment_price": 150.0,
+            "discounted_price": 15000,
+            "line_price": 15000,
+            "original_line_price": 15000,
+            "total_discount": 0,
+            "discounts": [],
+            "sku": "JLH31",
+            "grams": 200,
+            "vendor": "Mattel Creations",
+            "taxable": true,
+            "product_id": 9141506179277,
+            "product_has_only_default_variant": true,
+            "gift_card": false,
+            "final_price": 15000,
+            "final_line_price": 15000,
+            "url": "/products/barbie-x-jean-charles-de-castelbajac-doll-jlh31?variant=48830289641677",
+            "handle": "barbie-x-jean-charles-de-castelbajac-doll-jlh31",
+            "requires_shipping": true,
+            "product_type": "",
+            "product_title": "Barbie x Jean-Charles de Castelbajac Doll",
+            "product_description": "A long marketing description the plugin must never send.",
+            "variant_title": null,
+            "variant_options": [
+              "Default Title"
+            ]
+          },
+          {
+            "id": 48844348522701,
+            "properties": {
+              "_referrer": "Standard",
+              "_productType": "ItemBean",
+              "Engraving": "For Sam, love Mum"
+            },
+            "quantity": 1,
+            "variant_id": 48844348522701,
+            "key": "48844348522701:kjmg42",
+            "title": "Hot Wheels x MoMA 1965 Porsche 911 Coupe",
+            "price": 4500,
+            "original_price": 4500,
+            "presentment_price": 45.0,
+            "discounted_price": 4500,
+            "line_price": 4500,
+            "original_line_price": 4500,
+            "total_discount": 0,
+            "discounts": [],
+            "sku": "JMG42",
+            "grams": 0,
+            "vendor": "Mattel Creations",
+            "taxable": true,
+            "product_id": 9145115541709,
+            "product_has_only_default_variant": true,
+            "gift_card": false,
+            "final_price": 4500,
+            "final_line_price": 4500,
+            "url": "/products/hot-wheels-x-moma-1965-porsche-911-coupe-jmg42?variant=48844348522701",
+            "handle": "hot-wheels-x-moma-1965-porsche-911-coupe-jmg42",
+            "requires_shipping": true,
+            "product_type": "",
+            "product_title": "Hot Wheels x MoMA 1965 Porsche 911 Coupe",
+            "product_description": "A long marketing description the plugin must never send.",
+            "variant_title": null,
+            "variant_options": [
+              "Default Title"
+            ]
+          }
+        ],
+        "requires_shipping": true,
+        "currency": "USD",
+        "items_subtotal_price": 19500,
+        "cart_level_discount_applications": [],
+        "discount_codes": []
+      }
+    },
+    {
+      "name": "cart after the car's quantity goes to 2 and the doll is removed",
+      "event": "cart.js",
+      "payload": {
+        "token": "cTokenExample123?key=0123456789abcdef0123456789abcdef",
+        "note": "Leave at the back door",
+        "attributes": {
+          "GE_consentPrefs": "{\"marketing\":\"yes\",\"analytics\":\"yes\"}",
+          "GE_clientId": "00000000-0000-0000-0000-000000000000",
+          "cartToken": "cTokenExample123?key=0123456789abcdef0123456789abcdef",
+          "ftkn": "ftkn_example_token",
+          "consumerEmail": "shopper@example.com"
+        },
+        "original_total_price": 9000,
+        "total_price": 9000,
+        "total_discount": 0,
+        "item_count": 2,
+        "items": [
+          {
+            "id": 48844348522701,
+            "properties": {
+              "_referrer": "Standard",
+              "_productType": "ItemBean",
+              "Engraving": "For Sam, love Mum"
+            },
+            "quantity": 2,
+            "variant_id": 48844348522701,
+            "key": "48844348522701:kjmg42",
+            "title": "Hot Wheels x MoMA 1965 Porsche 911 Coupe",
+            "price": 4500,
+            "original_price": 4500,
+            "presentment_price": 45.0,
+            "discounted_price": 4500,
+            "line_price": 9000,
+            "original_line_price": 9000,
+            "total_discount": 0,
+            "discounts": [],
+            "sku": "JMG42",
+            "grams": 0,
+            "vendor": "Mattel Creations",
+            "taxable": true,
+            "product_id": 9145115541709,
+            "product_has_only_default_variant": true,
+            "gift_card": false,
+            "final_price": 4500,
+            "final_line_price": 9000,
+            "url": "/products/hot-wheels-x-moma-1965-porsche-911-coupe-jmg42?variant=48844348522701",
+            "handle": "hot-wheels-x-moma-1965-porsche-911-coupe-jmg42",
+            "requires_shipping": true,
+            "product_type": "",
+            "product_title": "Hot Wheels x MoMA 1965 Porsche 911 Coupe",
+            "product_description": "A long marketing description the plugin must never send.",
+            "variant_title": null,
+            "variant_options": [
+              "Default Title"
+            ]
+          }
+        ],
+        "requires_shipping": true,
+        "currency": "USD",
+        "items_subtotal_price": 9000,
+        "cart_level_discount_applications": [],
+        "discount_codes": []
+      }
+    },
+    {
+      "name": "product page",
+      "event": "ShopifyAnalytics.meta",
+      "payload": {
+        "product": {
+          "id": 9145115541709,
+          "gid": "gid://shopify/Product/9145115541709",
+          "vendor": "Mattel Creations",
+          "type": "",
+          "handle": "hot-wheels-x-moma-1965-porsche-911-coupe-jmg42",
+          "variants": [
+            {
+              "id": 48844348522701,
+              "price": 4500,
+              "name": "Hot Wheels x MoMA 1965 Porsche 911 Coupe",
+              "public_title": null,
+              "sku": "JMG42"
+            }
+          ],
+          "remote": false,
+          "collective": false
+        },
+        "page": {
+          "pageType": "product",
+          "resourceType": "product",
+          "resourceId": 9145115541709
+        }
+      }
+    },
+    {
+      "name": "collection page",
+      "event": "ShopifyAnalytics.meta",
+      "payload": {
+        "products": [
+          {
+            "id": 6935779279053,
+            "gid": "gid://shopify/Product/6935779279053",
+            "vendor": "Hot Wheels Collectors",
+            "type": "Printful",
+            "handle": "hot-wheels-classic-logo-short-sleeve-black-unisex-t-shirt",
+            "variants": [
+              {
+                "id": 40731885207757,
+                "price": 2500,
+                "name": "Hot Wheels Core Logo Short-Sleeve Black Unisex T-Shirt - S",
+                "public_title": "S",
+                "sku": "9691633_474"
+              },
+              {
+                "id": 40731885240525,
+                "price": 2500,
+                "name": "Hot Wheels Core Logo Short-Sleeve Black Unisex T-Shirt - M",
+                "public_title": "M",
+                "sku": "9691633_505"
+              },
+              {
+                "id": 40731885273293,
+                "price": 2500,
+                "name": "Hot Wheels Core Logo Short-Sleeve Black Unisex T-Shirt - L",
+                "public_title": "L",
+                "sku": "9691633_536"
+              },
+              {
+                "id": 40731885306061,
+                "price": 2500,
+                "name": "Hot Wheels Core Logo Short-Sleeve Black Unisex T-Shirt - XL",
+                "public_title": "XL",
+                "sku": "9691633_567"
+              },
+              {
+                "id": 40731885371597,
+                "price": 2500,
+                "name": "Hot Wheels Core Logo Short-Sleeve Black Unisex T-Shirt - 2XL",
+                "public_title": "2XL",
+                "sku": "9691633_598"
+              }
+            ],
+            "remote": false,
+            "collective": false
+          },
+          {
+            "id": 6935877615821,
+            "gid": "gid://shopify/Product/6935877615821",
+            "vendor": "Hot Wheels Collectors",
+            "type": "Printful",
+            "handle": "hot-wheels-outline-logo-3-4-sleeve-grey-and-black-raglan-shirt",
+            "variants": [
+              {
+                "id": 40732098986189,
+                "price": 2500,
+                "name": "Hot Wheels Outline Logo 3/4 Sleeve Grey and Black Raglan Shirt - XS",
+                "public_title": "XS",
+                "sku": "2456736_8152"
+              },
+              {
+                "id": 40732099018957,
+                "price": 2500,
+                "name": "Hot Wheels Outline Logo 3/4 Sleeve Grey and Black Raglan Shirt - S",
+                "public_title": "S",
+                "sku": "2456736_8153"
+              },
+              {
+                "id": 40732099051725,
+                "price": 2500,
+                "name": "Hot Wheels Outline Logo 3/4 Sleeve Grey and Black Raglan Shirt - M",
+                "public_title": "M",
+                "sku": "2456736_8154"
+              },
+              {
+                "id": 40732099084493,
+                "price": 2500,
+                "name": "Hot Wheels Outline Logo 3/4 Sleeve Grey and Black Raglan Shirt - L",
+                "public_title": "L",
+                "sku": "2456736_8155"
+              },
+              {
+                "id": 40732099117261,
+                "price": 2500,
+                "name": "Hot Wheels Outline Logo 3/4 Sleeve Grey and Black Raglan Shirt - XL",
+                "public_title": "XL",
+                "sku": "2456736_8156"
+              },
+              {
+                "id": 40732099150029,
+                "price": 2500,
+                "name": "Hot Wheels Outline Logo 3/4 Sleeve Grey and Black Raglan Shirt - 2XL",
+                "public_title": "2XL",
+                "sku": "2456736_8157"
+              }
+            ],
+            "remote": false,
+            "collective": false
+          },
+          {
+            "id": 6935878336717,
+            "gid": "gid://shopify/Product/6935878336717",
+            "vendor": "Hot Wheels Collectors",
+            "type": "Printful",
+            "handle": "hot-wheels-japanese-logo-short-sleeve-sport-grey-unisex-t-shirt",
+            "variants": [
+              {
+                "id": 40732103901389,
+                "price": 2500,
+                "name": "Hot Wheels Japanese Logo Short-Sleeve Sport Grey Unisex T-Shirt - S",
+                "public_title": "S",
+                "sku": "9420381_503"
+              },
+              {
+                "id": 40732103934157,
+                "price": 2500,
+                "name": "Hot Wheels Japanese Logo Short-Sleeve Sport Grey Unisex T-Shirt - M",
+                "public_title": "M",
+                "sku": "9420381_534"
+              },
+              {
+                "id": 40732103966925,
+                "price": 2500,
+                "name": "Hot Wheels Japanese Logo Short-Sleeve Sport Grey Unisex T-Shirt - L",
+                "public_title": "L",
+                "sku": "9420381_565"
+              },
+              {
+                "id": 40732103999693,
+                "price": 2500,
+                "name": "Hot Wheels Japanese Logo Short-Sleeve Sport Grey Unisex T-Shirt - XL",
+                "public_title": "XL",
+                "sku": "9420381_596"
+              },
+              {
+                "id": 40732104032461,
+                "price": 2500,
+                "name": "Hot Wheels Japanese Logo Short-Sleeve Sport Grey Unisex T-Shirt - 2XL",
+                "public_title": "2XL",
+                "sku": "9420381_627"
+              }
+            ],
+            "remote": false,
+            "collective": false
+          }
+        ],
+        "page": {
+          "pageType": "collection",
+          "resourceType": "collection",
+          "resourceId": 268718833869
+        }
+      }
+    },
+    {
+      "name": "search results for barbie",
+      "event": "ShopifyAnalytics.meta",
+      "payload": {
+        "products": [
+          {
+            "id": 9141506179277,
+            "gid": "gid://shopify/Product/9141506179277",
+            "vendor": "Mattel Creations",
+            "type": "",
+            "handle": "barbie-x-jean-charles-de-castelbajac-doll-jlh31",
+            "variants": [
+              {
+                "id": 48830289641677,
+                "price": 15000,
+                "name": "Barbie x Jean-Charles de Castelbajac Doll",
+                "public_title": null,
+                "sku": "JLH31"
+              }
+            ],
+            "remote": false,
+            "collective": false
+          },
+          {
+            "id": 9140748026061,
+            "gid": "gid://shopify/Product/9140748026061",
+            "vendor": "Barbie Signature",
+            "type": "",
+            "handle": "totally-hair-dont-care-barbie-brooklyn-doll-jmn04",
+            "variants": [
+              {
+                "id": 48828198158541,
+                "price": 5000,
+                "name": "Totally Hair Don’t Care Barbie “Brooklyn” Doll",
+                "public_title": null,
+                "sku": "JMN04"
+              }
+            ],
+            "remote": false,
+            "collective": false
+          }
+        ],
+        "page": {
+          "pageType": "searchresults"
+        }
+      }
+    }
+  ]
+}

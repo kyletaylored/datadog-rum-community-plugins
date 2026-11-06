@@ -147,7 +147,10 @@ export function clearDedupe(): void {
 
 /** The sandbox's controls, which are not one-to-one with any single plugin's options. */
 export interface SandboxState {
-  /** "Visitor has accepted the cookie banner": `consent: 'ignore'` on the plugin. */
+  /**
+   * "Visitor has accepted the cookie banner". Off puts the OneTrust plugin on the page with its
+   * banner unanswered: a plugin with no consent signal of its own follows it, as on a real site.
+   */
   consent: boolean
   /** Simulates `window.Shopify.customerPrivacy`. `absent` is the pixel sandbox. */
   customerPrivacy: 'absent' | 'allowed' | 'denied'
@@ -188,7 +191,6 @@ export function pluginOptions(plugin: string, state: SandboxState, manifestOptio
   if (plugin === 'onetrust') {
     wanted.category = state.category
   } else {
-    if (plugin !== 'shopify' && state.consent) wanted.consent = 'ignore'
     if (plugin !== 'engagement') {
       wanted.identifyUsers = state.identifyUsers
       wanted.includeEmail = state.includeEmail
@@ -209,7 +211,10 @@ export function pluginOptions(plugin: string, state: SandboxState, manifestOptio
 
 /** Platform doubles the demo stands up, which are not plugin options. */
 export function platformState(plugin: string, state: SandboxState): Record<string, unknown> {
-  return plugin === 'shopify' ? { customerPrivacy: state.customerPrivacy } : {}
+  if (plugin === 'shopify') return { customerPrivacy: state.customerPrivacy }
+  if (plugin === 'onetrust' || state.consent) return {}
+  // The banner is a real consent plugin waiting for an answer, not an option on this plugin.
+  return { cookieBanner: 'unanswered' }
 }
 
 function literal(value: unknown): string {
@@ -217,7 +222,7 @@ function literal(value: unknown): string {
 }
 
 /** The `init()` a merchant would paste for this exact setup. Never holds a real ID or token. */
-export function initSnippet(plugin: string, options: Record<string, unknown>): string {
+export function initSnippet(plugin: string, options: Record<string, unknown>, platform: Record<string, unknown> = {}): string {
   const entries = Object.entries(options).map(([key, value]) => `${key}: ${literal(value)}`)
   const args = entries.length > 0 ? `{ ${entries.join(', ')} }` : ''
   const comment = plugin === 'shopify' ? '\n    // Settings › Customer events › custom pixel' : ''
@@ -227,6 +232,7 @@ export function initSnippet(plugin: string, options: Record<string, unknown>): s
     "  clientToken: 'YOUR_CLIENT_TOKEN',",
     "  site: 'datadoghq.com',",
     `  plugins: [${comment}`,
+    ...(platform.cookieBanner ? ["    window.DD_RUM_PLUGINS['onetrust'](), // the cookie banner"] : []),
     `    window.DD_RUM_PLUGINS['${plugin}'](${args}),`,
     '  ],',
     '})',

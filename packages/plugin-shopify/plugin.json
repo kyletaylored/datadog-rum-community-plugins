@@ -83,11 +83,11 @@
     }
   ],
   "howItWorks": {
-    "summary": "Runs inside a Shopify custom pixel next to the official shopifyPlugin, and subscribes to Shopify's Web Pixels standard events through the analytics object the pixel receives. It never touches the storefront's DOM.",
+    "summary": "In a Shopify custom pixel it runs next to the official shopifyPlugin and subscribes to the Web Pixels standard events. Installed anywhere else (a theme, a tag manager, an injector) it runs storefront mode instead: browsing events from the theme's own data, and cart changes from cart.js.",
     "steps": [
       {
         "title": "Reads the storefront and its consent API",
-        "detail": "At init it reads `window.Shopify` for the shop, currency and locale, which become session context. It also asks Shopify's Customer Privacy API whether analytics is allowed: allowed opens the consent gate, denied keeps it shut, and absent (inside the pixel sandbox) defers to the consent Shopify already applied."
+        "detail": "At init it reads `window.Shopify` for the shop, currency and locale, which become session context. It also asks Shopify's Customer Privacy API whether analytics is allowed: the answer is recorded on the page, so denied holds this plugin's events and every other community plugin's, but it never calls `setTrackingConsent`. Absent (inside the pixel sandbox) records nothing and defers to the consent Shopify already applied."
       },
       {
         "title": "Subscribes to Web Pixels events",
@@ -100,6 +100,14 @@
       {
         "title": "Identifies at checkout, and counts each order once",
         "detail": "On `checkout_completed` it calls `setUser` with the Shopify customer ID before sending the purchase. The core records each order ID in `dd_rum_commerce_seen` in localStorage for 24 hours, so a reloaded thank-you page is not counted twice."
+      },
+      {
+        "title": "Storefront mode: browsing, from the theme",
+        "detail": "With no `analytics` passed it reads `window.ShopifyAnalytics`, the `meta` object every Online Store theme prints: `view_item` on a product page, `view_item_list` on a collection, the length of the search query, and the signed-in customer ID for `setUser`. A `click` on a checkout control sends `begin_checkout`, valued from the cart. No form field is read."
+      },
+      {
+        "title": "Storefront mode: cart changes, from cart.js",
+        "detail": "It watches resource timing for the theme's own requests to `cart.js` and the cart endpoints, then reads `cart.js` once itself and diffs it against the last snapshot, kept in `sessionStorage` as `dd_rum_shopify_cart`. That yields `add_to_cart` and `remove_from_cart` however the theme changed the cart, without patching `fetch` or XHR. Cart attributes, the note, line properties and the cart key are never read. Payment and the order stay pixel-only."
       }
     ]
   },
@@ -108,7 +116,13 @@
       "name": "analytics",
       "type": "function",
       "default": null,
-      "description": "The sandbox analytics global, the same object the official plugin takes as shopifyAnalytics."
+      "description": "The sandbox analytics global from a custom pixel, the same object the official plugin takes as shopifyAnalytics. Without it the plugin runs storefront mode."
+    },
+    {
+      "name": "mode",
+      "type": "string",
+      "default": "auto",
+      "description": "pixel subscribes to analytics; storefront reads the theme (ShopifyAnalytics and cart.js); auto picks pixel when analytics is passed."
     },
     {
       "name": "events",
@@ -168,7 +182,8 @@
   "footprint": {
     "globals": [
       "analytics (Web Pixel sandbox)",
-      "window.Shopify"
+      "window.Shopify",
+      "window.ShopifyAnalytics"
     ],
     "events": [
       "collection_viewed",
@@ -180,16 +195,18 @@
       "checkout_shipping_info_submitted",
       "payment_info_submitted",
       "checkout_completed",
-      "search_submitted"
+      "search_submitted",
+      "cart.js",
+      "click"
     ],
     "storageKeys": [
+      "dd_rum_shopify_cart",
       "dd_rum_commerce_seen"
     ],
     "rumApis": [
       "addAction",
       "setGlobalContextProperty",
-      "setUser",
-      "setTrackingConsent"
+      "setUser"
     ],
     "consentSource": "Shopify Customer Privacy API (window.Shopify.customerPrivacy)"
   },

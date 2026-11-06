@@ -89,7 +89,7 @@ than asserted.
 | `downloadExtensions` | 11 common formats | Extensions treated as a download |
 | `leadFormSelector` | `[data-dd-lead], form[data-lead]` | Forms that also emit `lead.generate_lead` |
 | `trackScroll` / `trackClicks` / `trackDownloads` / `trackVideo` / `trackForms` | `true` | Turn a tracker off |
-| `consent` | `auto` | Holds everything until consent is granted; `ignore` defers to the page |
+| `consent` | `auto` | `auto` follows any consent plugin on the page and sends freely when there is none; `ignore` skips the gate. Never changes `trackingConsent` |
 | `beforeTrack` | none | Edit or drop an event before it is sent |
 | `debug` | `false` | Log every mapped event to the console |
 

@@ -7,7 +7,7 @@
  * not fixture order, because order is the point for a reload: the second "order received" is
  * refused only because the first one was sent.
  */
-import { blockedKeys } from '@kyletaylored/datadog-rum-community-plugins'
+import { blockedKeys, resetPageConsent } from '@kyletaylored/datadog-rum-community-plugins'
 import type { RumInitConfigurationLike, RumPublicApi } from '@kyletaylored/datadog-rum-community-plugins'
 import { createMemoryStorage } from './fakePublicApi.js'
 import type { Fixture } from './fixtureRunner.js'
@@ -112,6 +112,7 @@ export async function recordJourney(input: RecordJourneyInput): Promise<JourneyR
 
   try {
     const initConfiguration: RumInitConfigurationLike = {}
+    resetPageConsent()
     const emit = await input.start({ publicApi, initConfiguration })
     // A consent plugin's whole job at init is to rewrite the init options, which is no RUM call.
     if (initConfiguration.trackingConsent) {

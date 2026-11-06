@@ -1,10 +1,14 @@
 /**
- * The PRD's Phase 0 exit gate: no RUM data leaves the page before consent. Its own file, so it
- * gets its own browser page and its own SDK init.
+ * The PRD's Phase 0 exit gate: no RUM data leaves a OneTrust page before consent. Its own file,
+ * so it gets its own browser page and its own SDK init.
+ *
+ * OneTrust and the adapter are separate plugins with separate gates. The adapter has no consent
+ * signal of its own and follows OneTrust through the page-wide consent record.
  */
 import { afterAll, beforeAll, expect, it } from 'vitest'
 import { initRum, type RumHarness } from './support/initRum.js'
 import { wooCommercePlugin } from '../src/index.js'
+import { oneTrustPlugin } from '../../plugin-onetrust/src/index.js'
 import type { WooGlobalPayload } from '../src/types.js'
 
 const ORDER: WooGlobalPayload = {
@@ -16,9 +20,9 @@ const ORDER: WooGlobalPayload = {
 let rum: RumHarness
 
 beforeAll(async () => {
-  // No `consent` option, so the plugin sets trackingConsent to not-granted in onInit. That stops
-  // the SDK sending anything at all, not just this plugin's actions.
-  rum = await initRum([wooCommercePlugin({ data: ORDER })])
+  // The banner has not been answered: no OnetrustActiveGroups on the page. The adapter comes
+  // first on purpose, to show the order of `plugins` does not matter.
+  rum = await initRum([wooCommercePlugin({ data: ORDER }), oneTrustPlugin({ timeoutMs: 50 })])
   await rum.waitForBatch()
 })
 

@@ -34,7 +34,7 @@ import schema from '../../data/schema.json'
         </tr>
         <tr>
           <th scope="row">Nothing before consent</th>
-          <td>A consent plugin sets <code>trackingConsent</code> to <code>not-granted</code> before the SDK starts, which stops RUM collecting anything. Pending events are dropped, not queued, so a later grant never backfills them.</td>
+          <td>A consent plugin sets <code>trackingConsent</code> to <code>not-granted</code> before the SDK starts, which stops RUM collecting anything. Every other plugin follows that decision, and none can release RUM it is holding. Pending events are dropped, not queued, so a later grant never backfills them.</td>
         </tr>
         <tr>
           <th scope="row">Size caps</th>

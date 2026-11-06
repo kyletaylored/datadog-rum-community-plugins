@@ -163,7 +163,7 @@ These tools get installed in two kinds of places:
 
 - **Naming:** each family has its own prefix, and uses the GA4 name where GA4 has one (`login`, `sign_up`, `generate_lead`). `support.chat_opened` has no GA4 equivalent, and neither does any learning event.
 - **Learning (schema 1.2.0, additive):** course platforms get their own family, because enrolment, completion and quiz results have no home in GA4's events. Names follow GA4's style. `score` is GA4's `post_score` parameter; the rest are extensions: `course_id`, `lesson_id`, `step_type`, `quiz_id`, `score_max`, `passed`, `attempt`, `progress_percent`. A quiz reports its score, never the answers. Video inside a lesson is the engagement kit's job on any platform, not this family's.
-- **Consent runs first:** when a consent manager is detected, the plugin's `onInit` sets `initConfiguration.trackingConsent = 'not-granted'`, the same way `shopifyPlugin` rewrites init options. It then calls `setTrackingConsent('granted')` only after the visitor accepts the analytics category.
+- **Consent runs first:** a consent plugin's `onInit` sets `initConfiguration.trackingConsent = 'not-granted'`, the same way `shopifyPlugin` rewrites init options. It then calls `setTrackingConsent('granted')` only after the visitor accepts the analytics category. Only a consent plugin (or a host-supplied resolver) holds RUM or calls `setTrackingConsent`; every other plugin follows the page-wide consent record (`globalThis.__DD_RUM_COMMUNITY_CONSENT__`, shared across CDN bundles), where the most restrictive decision wins. A plugin with no consent signal and no consent plugin beside it sends freely and leaves `trackingConsent` to the host page, so adding it can never switch RUM off.
 - **Identity:** `usr.id` is the provider's user ID (Auth0 `sub`, Firebase `uid`). Email and name stay opt-in, as in commerce.
 - **Measure what's visible:** a declined visitor sends nothing, so RUM can't report opt-in rate. The consent plugin reports only the categories of sessions that opted in.
 
@@ -229,9 +229,9 @@ DD_RUM.init({
 | `includeEmail` / `includeName` | `false` | Add PII to `setUser` |
 | `includeItems` | `false` | Attach `items[]` (capped at 20) |
 | `actionPrefix` | `commerce.` | Rename actions if the customer has a convention |
-| `consent` | `auto` | Read the platform consent API; `ignore` or a callback to override |
+| `consent` | `auto` | Follow the page's consent decisions (a consent plugin, the platform consent API); send freely when there are none. `ignore` or a callback to override |
 | `beforeTrack` | none | Hook to edit or drop an event before it's sent |
-| `debug` | `false` | Log every mapped event to the console |
+| `debug` | `false` | Log every mapped event and every drop to the console. Configuration warnings (a missing platform API, consent stuck pending) print once per page without it |
 
 The plugin declares what it touches, like a GTM template's permissions screen: the platform globals it reads, the RUM APIs it calls and the storage keys it writes. This list is in each adapter's README and printed in debug mode.
 
@@ -353,7 +353,7 @@ The plugin is installed on checkout pages, so it must be safer than hand-written
 
 - **No payment data, ever.** Adapters read platform event payloads, not DOM inputs. Card fields, CVV and billing addresses are stripped in the core even if a platform payload includes them.
 - **PII off by default.** `usr.id` is the platform customer ID. Email, name, phone and address need explicit opt-in. Search queries are sent as length only.
-- **Consent.** Adapters read the platform's consent signal (Shopify Customer Privacy API, WP Consent API, Adobe and SFCC consent cookies) and map it to the SDK's `trackingConsent`. No events are queued before consent is granted. The Shopify pixel already depends on Pixel Manager consent categories.
+- **Consent.** Adapters read the platform's consent signal (Shopify Customer Privacy API, WP Consent API, Adobe and SFCC consent cookies) and gate their own events on it, recording the decision on the page so other plugins honour it too. Only consent plugins move the SDK's `trackingConsent`; an adapter never widens it. No events are queued before consent is granted. The Shopify pixel already depends on Pixel Manager consent categories.
 - **Size limits.** `items[]` is opt-in and capped at 20 entries; strings are truncated at 256 characters.
 - **Supply chain.** Adapters publish to npm with provenance from CI only; CDN URLs are exact-version jsDelivr links with SRI hashes. Every release passes the conformance suite, and new runtime dependencies need core-maintainer review. Merchants pin a version; there is no auto-updating `latest` URL.
 - **Declared footprint.** Each adapter lists the globals, events, storage keys and RUM APIs it uses (see Packaging).

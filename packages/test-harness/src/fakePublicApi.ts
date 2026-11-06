@@ -1,4 +1,4 @@
-import type { RumInitConfigurationLike, RumPublicApi } from '@kyletaylored/datadog-rum-community-plugins'
+import { resetPageConsent, type RumInitConfigurationLike, type RumPublicApi } from '@kyletaylored/datadog-rum-community-plugins'
 
 /** One recorded call to the RUM public API. */
 export type RecordedCall =
@@ -15,6 +15,8 @@ export type RecordedCall =
 export interface FakeRum {
   publicApi: RumPublicApi
   initConfiguration: RumInitConfigurationLike
+  /** The `trackingConsent` the host page started with, before any plugin's `onInit`. */
+  hostTrackingConsent: RumInitConfigurationLike['trackingConsent']
   /** Every call in order, which is what fixture snapshots assert on. */
   calls: RecordedCall[]
   /** Distinct RUM APIs touched, compared against the manifest's declared footprint. */
@@ -29,6 +31,8 @@ export interface FakeRum {
  * tests and in the conformance suite, so no test needs a real RUM init.
  */
 export function createFakeRum(initConfiguration: RumInitConfigurationLike = {}): FakeRum {
+  // A fresh fake RUM stands for a fresh page, so no consent decision carries over from the last.
+  resetPageConsent()
   const calls: RecordedCall[] = []
 
   const publicApi: RumPublicApi = {
@@ -64,6 +68,7 @@ export function createFakeRum(initConfiguration: RumInitConfigurationLike = {}):
   return {
     publicApi,
     initConfiguration,
+    hostTrackingConsent: initConfiguration.trackingConsent,
     calls,
     apisUsed: () => [...new Set(calls.map((call) => call.api))].sort(),
     actions: () => calls.filter((call): call is Extract<RecordedCall, { api: 'addAction' }> => call.api === 'addAction'),

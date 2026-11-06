@@ -41,6 +41,10 @@ export interface TrackerConfig {
   /** The adapter package version, sent as `commerce.plugin_version`. */
   version: string
   publicApi: RumPublicApi
+  /**
+   * Used only when the host passes a `consent` resolver: the gate then holds RUM until the
+   * resolver answers. Without one, the tracker leaves `trackingConsent` alone.
+   */
   initConfiguration?: RumInitConfigurationLike
   options?: CommonPluginOptions
   /**
@@ -77,6 +81,9 @@ export interface Tracker {
     CommonPluginOptions
 }
 
+/** How long consent may stay pending before dropped events earn a warning. */
+const PENDING_WARNING_MS = 5000
+
 const DEFAULTS = {
   identifyUsers: true,
   includeEmail: false,
@@ -96,14 +103,18 @@ export function createTracker(config: TrackerConfig): Tracker {
   const options = { ...DEFAULTS, ...raw }
   const logger = createLogger(config.platform, options.debug === true)
 
-  const consentMode = typeof raw.consent === 'function' ? 'auto' : (raw.consent ?? 'auto')
+  // A host-supplied resolver owns the decision when one is passed as `consent`, so only then
+  // does the gate hold RUM itself. With `auto` and no resolver the gate follows the page: an
+  // adapter that reads no consent signal must never close RUM for everyone else.
+  const resolver = typeof raw.consent === 'function'
   const consent = createConsentGate({
-    mode: consentMode === 'ignore' ? 'ignore' : 'auto',
+    mode: raw.consent === 'ignore' ? 'ignore' : 'auto',
+    name: config.platform,
     publicApi: config.publicApi,
-    initConfiguration: config.initConfiguration,
+    initConfiguration: resolver ? config.initConfiguration : undefined,
+    pending: resolver,
   })
 
-  // A host-supplied resolver owns the decision when one is passed as `consent`.
   if (typeof raw.consent === 'function') {
     raw.consent((granted, categories) => (granted ? consent.grant(categories) : consent.deny()))
   }
@@ -139,6 +150,23 @@ export function createTracker(config: TrackerConfig): Tracker {
     logger.info(`schema ${SCHEMA_VERSION}, consent ${consent.state()}`)
   }
 
+  const started = Date.now()
+
+  /**
+   * True when consent holds `name` back. A refusal is the visitor's choice and stays quiet; a
+   * decision still pending after a few seconds usually means a consent plugin that never
+   * answers, which would otherwise look like a plugin that does nothing.
+   */
+  function held(name: string): boolean {
+    const state = consent.state()
+    if (state === 'granted') return false
+    logger.dropped(name, `consent ${state}`)
+    if (state === 'pending' && Date.now() - started > PENDING_WARNING_MS) {
+      logger.warn(`dropping events: consent still pending after ${PENDING_WARNING_MS / 1000}s`)
+    }
+    return true
+  }
+
   function track(event: string, attributes: Record<string, unknown> = {}): boolean {
     const bare = bareEvent(event)
     const family = eventFamily.get(bare)
@@ -153,11 +181,7 @@ export function createTracker(config: TrackerConfig): Tracker {
       return false
     }
 
-    if (!consent.isOpen()) {
-      consent.notifyBlocked(bare)
-      logger.dropped(bare, `consent ${consent.state()}`)
-      return false
-    }
+    if (held(bare)) return false
 
     // Commerce keeps the configurable prefix; other families keep their own, so renaming
     // `commerce.` never silently renames `account.login`.
@@ -211,11 +235,7 @@ export function createTracker(config: TrackerConfig): Tracker {
     }
     // Identity is held by the same gate as actions: nothing about the visitor is sent before
     // they accept, and a later grant does not backfill it.
-    if (!consent.isOpen()) {
-      consent.notifyBlocked('setUser')
-      logger.dropped('setUser', `consent ${consent.state()}`)
-      return
-    }
+    if (held('setUser')) return
     const id = text(identity.id)
     if (!id) return
 
@@ -235,11 +255,7 @@ export function createTracker(config: TrackerConfig): Tracker {
 
   function identifyAccount(account: AccountInput): void {
     if (options.identifyUsers === false) return
-    if (!consent.isOpen()) {
-      consent.notifyBlocked('setAccount')
-      logger.dropped('setAccount', `consent ${consent.state()}`)
-      return
-    }
+    if (held('setAccount')) return
     const id = text(account.id)
     if (!id || !config.publicApi.setAccount) return
 

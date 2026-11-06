@@ -63,7 +63,11 @@ export interface CommonPluginOptions {
   includeItems?: boolean
   /** Rename the action family prefix if the site has its own convention. */
   actionPrefix?: string
-  /** `auto` reads the platform consent API, `ignore` skips the gate, or supply a resolver. */
+  /**
+   * `auto` (default) follows the consent decisions on the page, from a consent plugin or the
+   * platform's own consent API, and sends freely when there are none. `ignore` skips the gate.
+   * A resolver hands the decision to the host page, and holds RUM until it answers.
+   */
   consent?: 'auto' | 'ignore' | ConsentResolver
   /** Edit or drop an event before it is sent. Return `false` or `null` to drop it. */
   beforeTrack?: BeforeTrack

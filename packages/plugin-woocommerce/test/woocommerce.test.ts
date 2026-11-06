@@ -9,10 +9,11 @@ import {
   loadFixtures,
   recordJourney,
   writeEventReport,
+  type FakeRum,
   type Fixture,
 } from '../../test-harness/src/index.js'
-import { blockedKeys, type PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
-import { WOO_EVENTS, createCheckoutReporter, wooCommercePlugin } from '../src/index.js'
+import { blockedKeys, createConsentGate, type PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
+import { WOO_EVENTS, WP_CONSENT_EVENT, createCheckoutReporter, wooCommercePlugin } from '../src/index.js'
 import { wooMoney } from '../src/mapping.js'
 import type { WooCart, WooGlobalPayload } from '../src/types.js'
 
@@ -306,7 +307,7 @@ describe('storefront cart events', () => {
   })
 
   it('listens on every event the manifest declares', async () => {
-    expect([...WOO_EVENTS].sort()).toEqual([...manifest.footprint.events].sort())
+    expect([...WOO_EVENTS, WP_CONSENT_EVENT].sort()).toEqual([...manifest.footprint.events].sort())
   })
 })
 
@@ -362,6 +363,7 @@ describe('checkout reporter from a plugin instance, as the CDN build exposes it'
   it('holds a step behind the consent gate like any other event', async () => {
     const { createCheckoutReporter } = await import('../src/index.js')
     const rum = createFakeRum({})
+    createConsentGate({ mode: 'auto', name: 'onetrust', publicApi: rum.publicApi, initConfiguration: rum.initConfiguration })
     const plugin = wooCommercePlugin({ target: new EventTarget() })
     await plugin.onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
     createCheckoutReporter(plugin).search('anything')
@@ -382,16 +384,107 @@ describe('checkout reporter from a plugin instance, as the CDN build exposes it'
 })
 
 describe('consent', () => {
-  it('sends nothing until consent is granted, and holds RUM itself in onInit', async () => {
-    const rum = createFakeRum({})
+  async function visit(rum: FakeRum) {
     const target = new EventTarget()
     await wooCommercePlugin({ data: orderFixture.payload as WooGlobalPayload, target }).onInit?.({
       initConfiguration: rum.initConfiguration,
       publicApi: rum.publicApi,
     })
     for (const fixture of cartFixtures) emitTo(target, fixture)
+  }
 
-    expect(rum.initConfiguration.trackingConsent).toBe('not-granted')
+  it('sends with default options when no consent plugin is on the page, leaving trackingConsent alone', async () => {
+    const rum = createFakeRum({})
+    await visit(rum)
+    expect(rum.initConfiguration.trackingConsent).toBeUndefined()
+    expect(rum.actions().length).toBeGreaterThan(0)
+    expect(formatFindings(checkConformance({ manifest, rum }))).toBe('conformance: ok')
+  })
+
+  describe('WP Consent API', () => {
+    /** Stands in for wp-consent-api.js: the global check, and the change event on `document`. */
+    function wpConsent(statistics: 'allow' | 'deny') {
+      const scope = globalThis as Record<string, unknown>
+      const doc = new EventTarget()
+      const state: Record<string, string> = { statistics }
+      scope.document = doc
+      scope.wp_has_consent = (category: string) => state[category] === 'allow'
+      return {
+        change(category: string, value: 'allow' | 'deny') {
+          state[category] = value
+          doc.dispatchEvent(new CustomEvent('wp_listen_for_consent_change', { detail: { [category]: value } }))
+        },
+        restore() {
+          delete scope.document
+          delete scope.wp_has_consent
+        },
+      }
+    }
+
+    it('holds everything, the customer ID included, while statistics is denied', async () => {
+      const api = wpConsent('deny')
+      try {
+        const rum = createFakeRum({})
+        await visit(rum)
+        expect(rum.actions()).toHaveLength(0)
+        expect(rum.calls.some((call) => call.api === 'setUser')).toBe(false)
+        expect(rum.calls.some((call) => call.api === 'setTrackingConsent')).toBe(false)
+        expect(rum.initConfiguration.trackingConsent).toBeUndefined()
+      } finally {
+        api.restore()
+      }
+    })
+
+    it('starts sending when the visitor allows statistics, without backfilling', async () => {
+      const api = wpConsent('deny')
+      try {
+        const rum = createFakeRum({})
+        const target = new EventTarget()
+        await wooCommercePlugin({ target }).onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
+        emitTo(target, cartFixtures[0]!)
+        api.change('marketing', 'allow')
+        emitTo(target, cartFixtures[0]!)
+        expect(rum.actions()).toHaveLength(0)
+
+        api.change('statistics', 'allow')
+        emitTo(target, cartFixtures[0]!)
+        expect(rum.actions()).toHaveLength(1)
+      } finally {
+        api.restore()
+      }
+    })
+
+    it('reads the category the site asks for', async () => {
+      const api = wpConsent('allow')
+      try {
+        const rum = createFakeRum({})
+        const target = new EventTarget()
+        await wooCommercePlugin({ target, consentCategory: 'marketing' }).onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
+        emitTo(target, cartFixtures[0]!)
+        expect(rum.actions()).toHaveLength(0)
+      } finally {
+        api.restore()
+      }
+    })
+
+    it('is skipped with consent: ignore', async () => {
+      const api = wpConsent('deny')
+      try {
+        const rum = createFakeRum({})
+        const target = new EventTarget()
+        await wooCommercePlugin({ target, consent: 'ignore' }).onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
+        emitTo(target, cartFixtures[0]!)
+        expect(rum.actions()).toHaveLength(1)
+      } finally {
+        api.restore()
+      }
+    })
+  })
+
+  it('sends nothing while a consent plugin on the page is waiting for the visitor', async () => {
+    const rum = createFakeRum({})
+    createConsentGate({ mode: 'auto', name: 'onetrust', publicApi: rum.publicApi, initConfiguration: rum.initConfiguration })
+    await visit(rum)
     expect(rum.actions()).toHaveLength(0)
     expect(rum.calls.some((call) => call.api === 'setUser')).toBe(false)
   })

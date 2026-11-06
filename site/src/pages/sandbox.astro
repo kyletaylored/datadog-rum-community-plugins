@@ -763,7 +763,7 @@ const chevron = 'M5 7.5 10 12.5 15 7.5'
       | { kind: 'text'; key: keyof SandboxState; label: string }
 
     function controlsFor(name: string): { title: string; items: Control[] }[] {
-      const accepted: Control = { kind: 'toggle', key: 'consent', label: 'Visitor has accepted the cookie banner', code: "consent: 'ignore'" }
+      const accepted: Control = { kind: 'toggle', key: 'consent', label: 'Visitor has accepted the cookie banner', code: 'onetrust' }
       if (name === 'onetrust') {
         return [{
           title: 'Consent',
@@ -872,7 +872,7 @@ const chevron = 'M5 7.5 10 12.5 15 7.5'
         }
         container.append(section)
       }
-      $('[data-init]').textContent = initSnippet(plugin, pluginOptions(plugin, state, byName.get(plugin)!.options))
+      $('[data-init]').textContent = initSnippet(plugin, pluginOptions(plugin, state, byName.get(plugin)!.options), platformState(plugin, state))
     }
 
     paintPlugin()

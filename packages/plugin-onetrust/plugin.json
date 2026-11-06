@@ -52,7 +52,7 @@
     "steps": [
       {
         "title": "Holds RUM before the SDK starts",
-        "detail": "In `onInit` it sets `trackingConsent` to not-granted in the init options, so the SDK collects nothing on a page where the banner hasn't been answered. Put it first in `plugins`."
+        "detail": "In `onInit` it sets `trackingConsent` to not-granted in the init options, so the SDK collects nothing on a page where the banner hasn't been answered. Every other community plugin on the page follows its decision, in any order in `plugins` and even from a separate CDN bundle."
       },
       {
         "title": "Reads the visitor's answer",

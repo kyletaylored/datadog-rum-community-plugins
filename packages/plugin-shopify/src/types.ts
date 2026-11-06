@@ -76,8 +76,51 @@ export interface ShopifyStorefrontGlobal {
   shop?: string
   currency?: { active?: string }
   locale?: string
+  /** The storefront's root path, `/fr/` on a translated store. */
+  routes?: { root?: string }
   customerPrivacy?: {
     analyticsProcessingAllowed?: () => boolean
     currentVisitorConsent?: () => Record<string, string>
   }
+}
+
+/** One line of the Ajax Cart API's `cart.js`. Money is in minor units. Only these fields are read. */
+export interface AjaxCartLine {
+  id?: number
+  key?: string
+  variant_id?: number
+  quantity?: number
+  sku?: string | null
+  title?: string
+  product_title?: string
+  variant_title?: string | null
+  product_type?: string
+  price?: number
+  final_price?: number
+}
+
+/**
+ * The Ajax Cart API's `cart.js`. `attributes`, `note` and line `properties` exist too and are
+ * deliberately absent here: on real stores they carry the shopper's email and app tokens.
+ */
+export interface AjaxCart {
+  token?: string
+  currency?: string
+  total_price?: number
+  item_count?: number
+  items?: AjaxCartLine[]
+}
+
+/** A product in `ShopifyAnalytics.meta`, which every Online Store theme prints. Money in minor units. */
+export interface StorefrontMetaProduct {
+  id?: number
+  vendor?: string
+  type?: string
+  variants?: { id?: number; price?: number; name?: string; public_title?: string | null; sku?: string | null }[]
+}
+
+export interface StorefrontMeta {
+  page?: { pageType?: string; customerId?: number | string | null }
+  product?: StorefrontMetaProduct
+  products?: StorefrontMetaProduct[]
 }
