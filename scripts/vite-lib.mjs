@@ -56,7 +56,10 @@ export function cdnConfig(options) {
   const entry = options.entry ?? 'src/cdn.ts'
   return () => ({
     build: {
-      target: 'es2019',
+      // Every plugin requires Browser SDK v7, whose own CDN bundle ships optional chaining and
+      // `??` untranspiled, so no browser that can run the SDK needs them downleveled here. Doing
+      // it anyway cost about 0.3 KB gzip per bundle against a 5 KB budget.
+      target: 'es2020',
       minify: true,
       sourcemap: true,
       emptyOutDir: false,
