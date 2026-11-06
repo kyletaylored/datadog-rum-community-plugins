@@ -83,7 +83,7 @@ never reaches a distribution metric.
 | `includeEmail` / `includeName` | `false` | Add PII to `setUser` |
 | `includeItems` | `false` | Attach `items[]`, capped at 20 entries |
 | `actionPrefix` | `'commerce.'` | Rename the commerce prefix. Other families keep their own |
-| `consent` | `'auto'` | `ignore` when the host page already owns `trackingConsent`, or pass a resolver |
+| `consent` | `'auto'` | `auto` follows any consent plugin on the page and sends freely when there is none; `ignore` skips the gate; or pass a resolver, which holds RUM until it answers |
 | `beforeTrack` | none | Edit or drop an event before it is sent |
 | `dataGlobal` | `'ddRumWooCommerce'` | Where to read the server-rendered payload |
 | `data` | none | Supply the payload directly, for headless setups and tests |

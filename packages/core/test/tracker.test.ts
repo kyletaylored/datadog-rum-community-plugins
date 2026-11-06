@@ -4,8 +4,11 @@ import {
   COMMERCE_FAMILY,
   GLOBAL_CONTEXT_KEYS,
   SCHEMA_VERSION,
+  createConsentGate,
   createDedupe,
   createTracker,
+  pageConsent,
+  pageConsentState,
 } from '../src/index.js'
 import { createFakeRum, createMemoryStorage } from '../../test-harness/src/index.js'
 import type { CommonPluginOptions } from '../src/index.js'
@@ -123,78 +126,128 @@ describe('purchase dedupe', () => {
 })
 
 describe('consent gate', () => {
-  it('sets trackingConsent to not-granted in onInit and drops events until granted', () => {
-    const rum = createFakeRum({})
-    const tracker = createTracker({
-      platform: 'test',
+  function adapter(rum: ReturnType<typeof createFakeRum>, options: CommonPluginOptions = {}, platform = 'test') {
+    return createTracker({
+      platform,
       version: '0.1.0',
       publicApi: rum.publicApi,
       families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
-    families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
       initConfiguration: rum.initConfiguration,
-      options: {},
+      options,
       footprint: FOOTPRINT,
-      dedupe: createDedupe({ namespace: 'test', storage: createMemoryStorage() }),
+      dedupe: createDedupe({ namespace: platform, storage: createMemoryStorage() }),
     })
+  }
+
+  /** What a consent plugin such as OneTrust creates: a gate that owns the SDK's consent. */
+  function consentPlugin(rum: ReturnType<typeof createFakeRum>) {
+    return createConsentGate({ mode: 'auto', name: 'cmp', publicApi: rum.publicApi, initConfiguration: rum.initConfiguration })
+  }
+
+  it('sends with default options when nothing on the page reads consent, and leaves trackingConsent alone', () => {
+    const rum = createFakeRum({})
+    const tracker = adapter(rum)
+
+    expect(tracker.track('add_to_cart', { value: 28 })).toBe(true)
+    expect(rum.initConfiguration.trackingConsent).toBeUndefined()
+    expect(rum.calls.some((call) => call.api === 'setTrackingConsent')).toBe(false)
+  })
+
+  it('follows a consent plugin on the page, whichever order they were added in', () => {
+    const rum = createFakeRum({})
+    const tracker = adapter(rum)
+    const cmp = consentPlugin(rum)
 
     expect(rum.initConfiguration.trackingConsent).toBe('not-granted')
     expect(tracker.track('add_to_cart', { value: 28 })).toBe(false)
 
-    tracker.consent.grant(['C0001', 'C0002'])
+    cmp.grant(['C0001', 'C0002'])
     expect(tracker.track('add_to_cart', { value: 28 })).toBe(true)
     expect(rum.calls).toContainEqual({ api: 'setTrackingConsent', consent: 'granted' })
     expect(rum.globalContext()[GLOBAL_CONTEXT_KEYS.consentCategories]).toEqual(['C0001', 'C0002'])
   })
 
+  it('reads decisions another copy of the core recorded, as a second CDN bundle would', () => {
+    const rum = createFakeRum({})
+    const tracker = adapter(rum)
+    ;(globalThis as Record<string, unknown>).__DD_RUM_COMMUNITY_CONSENT__ = { sources: { onetrust: 'pending' }, listeners: [] }
+
+    expect(tracker.track('add_to_cart', { value: 28 })).toBe(false)
+    pageConsent().sources.onetrust = 'granted'
+    expect(tracker.track('add_to_cart', { value: 28 })).toBe(true)
+  })
+
   it('does not backfill events that happened while consent was pending', () => {
     const rum = createFakeRum({})
-    const tracker = createTracker({
-      platform: 'test',
-      version: '0.1.0',
-      publicApi: rum.publicApi,
-      families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
-    families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
-      initConfiguration: rum.initConfiguration,
-      options: {},
-      footprint: FOOTPRINT,
-    })
+    const tracker = adapter(rum)
+    const cmp = consentPlugin(rum)
     tracker.track('add_to_cart', { value: 28 })
-    tracker.consent.grant()
+    cmp.grant()
     expect(rum.actions()).toHaveLength(0)
   })
 
-  it('leaves the host page in charge when consent is ignore', () => {
-    const rum = createFakeRum({ trackingConsent: 'granted' })
-    createTracker({
-      platform: 'test',
-      version: '0.1.0',
-      publicApi: rum.publicApi,
-      families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
-    families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
-      initConfiguration: rum.initConfiguration,
-      options: { consent: 'ignore' },
-      footprint: FOOTPRINT,
-    })
-    expect(rum.initConfiguration.trackingConsent).toBe('granted')
+  it('never lets an adapter widen the SDK consent a consent plugin is holding', () => {
+    const rum = createFakeRum({})
+    consentPlugin(rum)
+    const shopify = adapter(rum, {}, 'shopify')
+
+    shopify.consent.grant()
+
+    expect(rum.calls.some((call) => call.api === 'setTrackingConsent')).toBe(false)
+    expect(shopify.track('add_to_cart', { value: 28 })).toBe(false)
   })
 
-  it('hands the decision to a resolver when one is supplied', () => {
+  it('lets the most restrictive decision win', () => {
+    const rum = createFakeRum({})
+    const cmp = consentPlugin(rum)
+    const shopify = adapter(rum, {}, 'shopify')
+    const engagement = adapter(rum, {}, 'engagement')
+
+    shopify.consent.deny()
+    cmp.grant()
+
+    expect(pageConsentState()).toBe('not-granted')
+    expect(rum.calls).toContainEqual({ api: 'setTrackingConsent', consent: 'not-granted' })
+    expect(rum.calls).not.toContainEqual({ api: 'setTrackingConsent', consent: 'granted' })
+    expect(engagement.track('add_to_cart', { value: 28 })).toBe(false)
+  })
+
+  it('leaves the host page in charge when consent is ignore, even while a consent plugin is pending', () => {
+    const rum = createFakeRum({ trackingConsent: 'granted' })
+    consentPlugin(rum)
+    const tracker = adapter(rum, { consent: 'ignore' })
+    expect(rum.initConfiguration.trackingConsent).toBe('granted')
+    expect(tracker.track('add_to_cart', { value: 28 })).toBe(true)
+  })
+
+  it('hands the decision to a resolver, which holds RUM until it answers', () => {
     const rum = createFakeRum({})
     let notify: ((granted: boolean, categories?: string[]) => void) | undefined
+    const tracker = adapter(rum, { consent: (cb) => void (notify = cb) })
+
+    expect(rum.initConfiguration.trackingConsent).toBe('not-granted')
+    expect(tracker.track('view_cart', { value: 10 })).toBe(false)
+    notify?.(true, ['analytics'])
+    expect(tracker.track('view_cart', { value: 10 })).toBe(true)
+    expect(rum.calls).toContainEqual({ api: 'setTrackingConsent', consent: 'granted' })
+  })
+
+  it('holds the events of a resolver even when the adapter passes no initConfiguration', () => {
+    const rum = createFakeRum({})
+    let notify: ((granted: boolean) => void) | undefined
     const tracker = createTracker({
       platform: 'test',
       version: '0.1.0',
       publicApi: rum.publicApi,
-      families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
-    families: [COMMERCE_FAMILY, ACCOUNT_FAMILY],
-      initConfiguration: rum.initConfiguration,
+      families: [COMMERCE_FAMILY],
       options: { consent: (cb) => void (notify = cb) },
       footprint: FOOTPRINT,
     })
 
     expect(tracker.track('view_cart', { value: 10 })).toBe(false)
-    notify?.(true, ['analytics'])
+    notify?.(true)
     expect(tracker.track('view_cart', { value: 10 })).toBe(true)
+    expect(rum.calls.some((call) => call.api === 'setTrackingConsent')).toBe(false)
   })
 })
 

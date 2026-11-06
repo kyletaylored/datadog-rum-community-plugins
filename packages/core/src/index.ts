@@ -16,8 +16,8 @@ export type {
   TrackerConfig,
 } from './runtime/tracker.js'
 
-export { createConsentGate } from './runtime/consentGate.js'
-export type { ConsentGate, ConsentGateOptions } from './runtime/consentGate.js'
+export { createConsentGate, pageConsent, pageConsentState, resetPageConsent } from './runtime/consentGate.js'
+export type { ConsentGate, ConsentGateOptions, PageConsent } from './runtime/consentGate.js'
 
 export { DEDUPE_STORAGE_KEY, DEDUPE_TTL_MS, createDedupe } from './runtime/dedupe.js'
 export type { Dedupe, DedupeOptions } from './runtime/dedupe.js'

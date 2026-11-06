@@ -114,7 +114,7 @@
       },
       {
         "title": "Consent",
-        "detail": "It has no consent source of its own. Pair it with a consent plugin, or pass `consent: 'ignore'` when the page already holds RUM's tracking consent."
+        "detail": "It has no consent source of its own, so it never touches RUM's tracking consent. On its own it sends freely and leaves consent to the host page; next to a consent plugin it sends nothing until that plugin reports a grant."
       }
     ]
   },
@@ -193,7 +193,7 @@
       "name": "consent",
       "type": "string",
       "default": "auto",
-      "description": "auto holds events until consent is granted, ignore defers to the host page."
+      "description": "auto follows any consent plugin on the page and sends freely when there is none; ignore skips the gate."
     },
     {
       "name": "beforeTrack",

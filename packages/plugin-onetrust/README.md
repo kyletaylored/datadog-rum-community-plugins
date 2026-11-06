@@ -12,7 +12,9 @@ the banner has not been answered — not just this plugin's events. It calls
 `setTrackingConsent('granted')` only once the required category is active, and `'not-granted'`
 again if the visitor later withdraws.
 
-**Put it first in `plugins: [...]`**, before any adapter that sends events.
+Every other community plugin on the page follows its decision, whatever their order in
+`plugins: [...]` and even when each is loaded from its own CDN bundle. An adapter never calls
+`setTrackingConsent` itself, so none can release RUM that OneTrust is holding.
 
 ## Install
 

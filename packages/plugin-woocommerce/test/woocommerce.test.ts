@@ -9,9 +9,10 @@ import {
   loadFixtures,
   recordJourney,
   writeEventReport,
+  type FakeRum,
   type Fixture,
 } from '../../test-harness/src/index.js'
-import { blockedKeys, type PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
+import { blockedKeys, createConsentGate, type PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
 import { WOO_EVENTS, createCheckoutReporter, wooCommercePlugin } from '../src/index.js'
 import { wooMoney } from '../src/mapping.js'
 import type { WooCart, WooGlobalPayload } from '../src/types.js'
@@ -362,6 +363,7 @@ describe('checkout reporter from a plugin instance, as the CDN build exposes it'
   it('holds a step behind the consent gate like any other event', async () => {
     const { createCheckoutReporter } = await import('../src/index.js')
     const rum = createFakeRum({})
+    createConsentGate({ mode: 'auto', name: 'onetrust', publicApi: rum.publicApi, initConfiguration: rum.initConfiguration })
     const plugin = wooCommercePlugin({ target: new EventTarget() })
     await plugin.onInit?.({ initConfiguration: rum.initConfiguration, publicApi: rum.publicApi })
     createCheckoutReporter(plugin).search('anything')
@@ -382,16 +384,27 @@ describe('checkout reporter from a plugin instance, as the CDN build exposes it'
 })
 
 describe('consent', () => {
-  it('sends nothing until consent is granted, and holds RUM itself in onInit', async () => {
-    const rum = createFakeRum({})
+  async function visit(rum: FakeRum) {
     const target = new EventTarget()
     await wooCommercePlugin({ data: orderFixture.payload as WooGlobalPayload, target }).onInit?.({
       initConfiguration: rum.initConfiguration,
       publicApi: rum.publicApi,
     })
     for (const fixture of cartFixtures) emitTo(target, fixture)
+  }
 
-    expect(rum.initConfiguration.trackingConsent).toBe('not-granted')
+  it('sends with default options when no consent plugin is on the page, leaving trackingConsent alone', async () => {
+    const rum = createFakeRum({})
+    await visit(rum)
+    expect(rum.initConfiguration.trackingConsent).toBeUndefined()
+    expect(rum.actions().length).toBeGreaterThan(0)
+    expect(formatFindings(checkConformance({ manifest, rum }))).toBe('conformance: ok')
+  })
+
+  it('sends nothing while a consent plugin on the page is waiting for the visitor', async () => {
+    const rum = createFakeRum({})
+    createConsentGate({ mode: 'auto', name: 'onetrust', publicApi: rum.publicApi, initConfiguration: rum.initConfiguration })
+    await visit(rum)
     expect(rum.actions()).toHaveLength(0)
     expect(rum.calls.some((call) => call.api === 'setUser')).toBe(false)
   })

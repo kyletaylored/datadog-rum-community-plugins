@@ -41,6 +41,10 @@ export interface TrackerConfig {
   /** The adapter package version, sent as `commerce.plugin_version`. */
   version: string
   publicApi: RumPublicApi
+  /**
+   * Used only when the host passes a `consent` resolver: the gate then holds RUM until the
+   * resolver answers. Without one, the tracker leaves `trackingConsent` alone.
+   */
   initConfiguration?: RumInitConfigurationLike
   options?: CommonPluginOptions
   /**
@@ -96,14 +100,18 @@ export function createTracker(config: TrackerConfig): Tracker {
   const options = { ...DEFAULTS, ...raw }
   const logger = createLogger(config.platform, options.debug === true)
 
-  const consentMode = typeof raw.consent === 'function' ? 'auto' : (raw.consent ?? 'auto')
+  // A host-supplied resolver owns the decision when one is passed as `consent`, so only then
+  // does the gate hold RUM itself. With `auto` and no resolver the gate follows the page: an
+  // adapter that reads no consent signal must never close RUM for everyone else.
+  const resolver = typeof raw.consent === 'function'
   const consent = createConsentGate({
-    mode: consentMode === 'ignore' ? 'ignore' : 'auto',
+    mode: raw.consent === 'ignore' ? 'ignore' : 'auto',
+    name: config.platform,
     publicApi: config.publicApi,
-    initConfiguration: config.initConfiguration,
+    initConfiguration: resolver ? config.initConfiguration : undefined,
+    pending: resolver,
   })
 
-  // A host-supplied resolver owns the decision when one is passed as `consent`.
   if (typeof raw.consent === 'function') {
     raw.consent((granted, categories) => (granted ? consent.grant(categories) : consent.deny()))
   }
@@ -154,7 +162,6 @@ export function createTracker(config: TrackerConfig): Tracker {
     }
 
     if (!consent.isOpen()) {
-      consent.notifyBlocked(bare)
       logger.dropped(bare, `consent ${consent.state()}`)
       return false
     }
@@ -212,7 +219,6 @@ export function createTracker(config: TrackerConfig): Tracker {
     // Identity is held by the same gate as actions: nothing about the visitor is sent before
     // they accept, and a later grant does not backfill it.
     if (!consent.isOpen()) {
-      consent.notifyBlocked('setUser')
       logger.dropped('setUser', `consent ${consent.state()}`)
       return
     }
@@ -236,7 +242,6 @@ export function createTracker(config: TrackerConfig): Tracker {
   function identifyAccount(account: AccountInput): void {
     if (options.identifyUsers === false) return
     if (!consent.isOpen()) {
-      consent.notifyBlocked('setAccount')
       logger.dropped('setAccount', `consent ${consent.state()}`)
       return
     }

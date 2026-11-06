@@ -83,7 +83,7 @@ import { url } from '../../lib/url'
         <tr><td><code>includeEmail</code> / <code>includeName</code></td><td class="muted"><code>false</code></td><td>You have a lawful basis for the session to carry them</td></tr>
         <tr><td><code>includeItems</code></td><td class="muted"><code>false</code></td><td>You want line items, up to 20 per action</td></tr>
         <tr><td><code>actionPrefix</code></td><td class="muted"><code>commerce.</code></td><td>You have your own naming convention</td></tr>
-        <tr><td><code>consent</code></td><td class="muted"><code>auto</code></td><td><code>ignore</code> when the page already owns <code>trackingConsent</code></td></tr>
+        <tr><td><code>consent</code></td><td class="muted"><code>auto</code></td><td>Follows a consent plugin on the page by default, and sends freely when there is none. <code>ignore</code> skips the gate</td></tr>
         <tr><td><code>beforeTrack</code></td><td class="muted">none</td><td>You need to edit or drop an event</td></tr>
         <tr><td><code>debug</code></td><td class="muted"><code>false</code></td><td>Working out why an event isn't arriving</td></tr>
       </tbody>

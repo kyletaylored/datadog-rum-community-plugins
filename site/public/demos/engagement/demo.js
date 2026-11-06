@@ -19,7 +19,6 @@ export const scenarios = {
 const demo = startDemo({
   plugin: 'engagement',
   page: 'Home',
-  defaults: { consent: 'ignore' },
   scenarios,
   // Scroll depth is measured a frame after the scroll, outside any handler the demo can see.
   sourceFor: (call) => (call.label === 'engagement.scroll' ? 'scroll depth, measured on scroll' : undefined),

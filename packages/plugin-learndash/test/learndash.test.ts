@@ -14,7 +14,7 @@ import {
   type FakeRum,
   type Fixture,
 } from '../../test-harness/src/index.js'
-import type { PluginManifest, RumInitConfigurationLike, RumPublicApi } from '@kyletaylored/datadog-rum-community-plugins'
+import { createConsentGate, type PluginManifest, type RumInitConfigurationLike, type RumPublicApi } from '@kyletaylored/datadog-rum-community-plugins'
 import { FOOTPRINT, learndashPlugin, type LearnDashPayload } from '../src/index.js'
 
 // jsdom replaces import.meta.url, so paths resolve from the repo root (vitest's cwd).
@@ -154,11 +154,19 @@ describe('identity and privacy', () => {
     expect(JSON.stringify(rum.calls)).not.toContain('Sam Learner')
   })
 
-  it('sends nothing until consent is granted', async () => {
+  it('sends with default options when no consent plugin is on the page, leaving trackingConsent alone', async () => {
     const rum = createFakeRum({})
     const visit = browser({}, rum)
     for (const fixture of fixtures) await visit(fixture)
-    expect(rum.initConfiguration.trackingConsent).toBe('not-granted')
+    expect(rum.initConfiguration.trackingConsent).toBeUndefined()
+    expect(rum.actions().length).toBeGreaterThan(0)
+  })
+
+  it('sends nothing while a consent plugin on the page is waiting for the visitor', async () => {
+    const rum = createFakeRum({})
+    createConsentGate({ mode: 'auto', name: 'onetrust', publicApi: rum.publicApi, initConfiguration: rum.initConfiguration })
+    const visit = browser({}, rum)
+    for (const fixture of fixtures) await visit(fixture)
     expect(rum.actions()).toHaveLength(0)
     expect(rum.calls.some((call) => call.api === 'setUser')).toBe(false)
   })

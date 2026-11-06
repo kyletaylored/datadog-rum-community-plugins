@@ -64,7 +64,7 @@ A quiz reports its score, never the answers. The learner is identified by WordPr
 | Option | Default | Effect |
 | --- | --- | --- |
 | `identifyUsers` | `true` | Call `setUser` with the WordPress user ID. |
-| `consent` | `'auto'` | `auto` waits for a consent plugin, `ignore` skips the gate, or pass a resolver. |
+| `consent` | `'auto'` | `auto` follows any consent plugin on the page and sends freely when there is none; `ignore` skips the gate; or pass a resolver. |
 | `quizStartSelector` | `'[name="startQuiz"]'` | The element that starts a quiz attempt. WP Pro Quiz's start button by default. |
 | `dataGlobal` | `'ddRumLearnDash'` | Where the server-printed payload lives. |
 | `events` | all | Allow-list of learning actions. |

@@ -54,7 +54,6 @@ export const scenarios = {
 const demo = startDemo({
   plugin: 'learndash',
   page: PAGE_NAMES[file],
-  defaults: { consent: 'ignore' },
   scenarios,
   alsoCapture: ['engagement'],
 })
@@ -74,10 +73,8 @@ window.ddRumLearnDash = pending
 demo.init(window.DD_RUM_PLUGINS.learndash(demo.options), { source: 'window.ddRumLearnDash' })
 
 if (file === 'lesson.html') {
-  const options = demo.options
   demo.init(
     window.DD_RUM_PLUGINS.engagement({
-      consent: options.consent,
       debug: true,
       // Video only: the academy adds the kit for its lesson video.
       trackScroll: false,

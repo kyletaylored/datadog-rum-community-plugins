@@ -121,6 +121,19 @@ export function startDemo(config) {
     }, 0)
   }
 
+  /**
+   * "Cookie banner unanswered" is the real OneTrust plugin on the page with no answer yet, started
+   * once before the demo's own plugin. A plugin with no consent signal of its own follows it,
+   * through the page-wide consent record, even though each bundle carries its own copy of the core.
+   */
+  let bannerStarted = false
+  function startCookieBanner() {
+    if (bannerStarted || platform.cookieBanner !== 'unanswered') return
+    bannerStarted = true
+    const oneTrust = window.DD_RUM_PLUGINS?.onetrust
+    if (oneTrust) demo.init(oneTrust({ debug: true }), { source: 'OneTrust banner, unanswered' })
+  }
+
   const demo = {
     plugin,
     page,
@@ -133,6 +146,7 @@ export function startDemo(config) {
     during,
     /** Start a built plugin against the recorder, the way `datadogRum.init` would. */
     init(instance, { source, payload } = {}) {
+      startCookieBanner()
       const initConfiguration = {}
       const outcome = as(source ?? 'onInit', () => instance.onInit?.({ initConfiguration, publicApi }), { payload })
       // A consent plugin's whole effect at init is to rewrite the init options: no RUM call.

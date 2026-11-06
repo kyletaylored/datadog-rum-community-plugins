@@ -28,7 +28,14 @@ export interface ConformanceInput {
   /** The recorded run to inspect: every call the adapter made across all its fixtures. */
   rum: FakeRum
   /** Options the adapter ran with, so opt-in rules are judged against what was asked for. */
-  options?: { includeEmail?: boolean; includeName?: boolean; includeItems?: boolean; actionPrefix?: string }
+  options?: {
+    includeEmail?: boolean
+    includeName?: boolean
+    includeItems?: boolean
+    actionPrefix?: string
+    /** The run passed a `consent` resolver, which hands the page's consent to the host. */
+    consentResolver?: boolean
+  }
 }
 
 const PII_USER_KEYS = ['email', 'name', 'phone', 'address'] as const
@@ -174,6 +181,22 @@ export function checkConformance(input: ConformanceInput): ConformanceResult {
         'consent-gate',
         `${early.length} call(s) were made before consent was granted: ${early.map(describe).join(', ')}`,
       )
+    }
+  }
+
+  // ---- Consent ownership --------------------------------------------------
+  // Only a consent plugin, or a host resolver, may hold RUM or move the SDK's tracking consent.
+  // An adapter that closed it would stop all RUM on a page with nothing to reopen it; one that
+  // opened it would release RUM a consent plugin is holding.
+  if (manifest.family !== 'consent' && !options.consentResolver) {
+    if (rum.initConfiguration.trackingConsent !== rum.hostTrackingConsent) {
+      fail(
+        'consent-owner',
+        `onInit changed trackingConsent from ${String(rum.hostTrackingConsent)} to ${String(rum.initConfiguration.trackingConsent)}; only a consent plugin may`,
+      )
+    }
+    if (rum.calls.some((call) => call.api === 'setTrackingConsent')) {
+      fail('consent-owner', 'the run called setTrackingConsent; only a consent plugin may')
     }
   }
 

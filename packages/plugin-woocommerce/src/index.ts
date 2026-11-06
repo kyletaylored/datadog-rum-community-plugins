@@ -33,7 +33,7 @@ export const FOOTPRINT: PluginFootprint = {
   events: [...WOO_EVENTS],
   storageKeys: [],
   rumApis: ['addAction', 'setGlobalContextProperty', 'setUser', 'clearUser'],
-  consentSource: 'WP Consent API (via the consent option or a consent plugin)',
+  consentSource: null,
 }
 
 export interface WooCommercePluginOptions extends CommonPluginOptions {

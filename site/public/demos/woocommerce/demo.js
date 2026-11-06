@@ -109,7 +109,6 @@ const PAGE_NAMES = { shop: 'Shop', product: 'Product', cart: 'Cart', checkout: '
 const demo = startDemo({
   plugin: 'woocommerce',
   page: PAGE_NAMES[page],
-  defaults: { consent: 'ignore' },
   scenarios,
 })
 

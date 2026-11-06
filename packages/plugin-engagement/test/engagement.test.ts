@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { checkConformance, createFakeRum, formatFindings, recordJourney, writeEventReport } from '../../test-harness/src/index.js'
 import type { FakeRum, Fixture } from '../../test-harness/src/index.js'
-import type { PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
+import { createConsentGate, type PluginManifest } from '@kyletaylored/datadog-rum-community-plugins'
 import { engagementPlugin } from '../src/index.js'
 import { readLink, scrollDepth } from '../src/dom.js'
 
@@ -379,16 +379,26 @@ async function journey() {
 }
 
 describe('consent', () => {
-  it('sends nothing before consent is granted', () => {
-    const rum = createFakeRum({})
+  function clickOutbound(rum: FakeRum) {
     engagementPlugin({ trackScroll: false }).onInit?.({
       initConfiguration: rum.initConfiguration,
       publicApi: rum.publicApi,
     })
     document.body.innerHTML = '<a href="https://partner.example.org/x">Out</a>'
     document.querySelector('a')!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  }
 
-    expect(rum.initConfiguration.trackingConsent).toBe('not-granted')
+  it('sends with default options when no consent plugin is on the page, leaving trackingConsent alone', () => {
+    const rum = createFakeRum({})
+    clickOutbound(rum)
+    expect(rum.initConfiguration.trackingConsent).toBeUndefined()
+    expect(rum.actions().map((action) => action.name)).toEqual(['engagement.click'])
+  })
+
+  it('sends nothing while a consent plugin on the page is waiting for the visitor', () => {
+    const rum = createFakeRum({})
+    createConsentGate({ mode: 'auto', name: 'onetrust', publicApi: rum.publicApi, initConfiguration: rum.initConfiguration })
+    clickOutbound(rum)
     expect(rum.actions()).toHaveLength(0)
   })
 })

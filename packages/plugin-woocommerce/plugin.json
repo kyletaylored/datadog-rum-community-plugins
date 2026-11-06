@@ -148,7 +148,7 @@
       "name": "consent",
       "type": "string",
       "default": "auto",
-      "description": "auto reads the consent signal, ignore skips the gate, or supply a resolver callback."
+      "description": "auto follows any consent plugin on the page and sends freely when there is none; ignore skips the gate; or supply a resolver callback."
     },
     {
       "name": "beforeTrack",
@@ -191,7 +191,7 @@
       "setUser",
       "clearUser"
     ],
-    "consentSource": "WP Consent API (via the consent option or a consent plugin)"
+    "consentSource": null
   },
   "docs": "https://kyletaylored.github.io/datadog-rum-community-plugins/plugins/woocommerce/"
 }

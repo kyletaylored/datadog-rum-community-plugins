@@ -68,7 +68,9 @@ export function hasConsent(active: string[], required: string[]): boolean {
  * banner has not been answered. It calls `setTrackingConsent('granted')` only once the required
  * category is active, and `'not-granted'` again if the visitor later withdraws.
  *
- * Put this first in `plugins: [...]`, before any adapter that sends events.
+ * Every other community plugin on the page follows this decision through the page-wide consent
+ * record, whatever their order in `plugins: [...]`, so an adapter can never release RUM this
+ * plugin is holding.
  *
  * OneTrust's callback names (`OptanonWrapper`, `Optanon.OnConsentChanged`, the
  * `OneTrustGroupsUpdated` event) are not all covered by public vendor docs; this adapter listens
@@ -93,7 +95,7 @@ export function oneTrustPlugin(options: OneTrustPluginOptions = {}): RumPlugin {
         return false
       }
 
-      const gate = createConsentGate({ mode: 'auto', publicApi, initConfiguration })
+      const gate = createConsentGate({ mode: 'auto', name: 'onetrust', publicApi, initConfiguration })
       logger.info(`holding RUM until ${required.join(' + ')} is active`)
 
       let settled = false

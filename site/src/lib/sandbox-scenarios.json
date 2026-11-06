@@ -104,7 +104,7 @@
           "state": {
             "consent": false
           },
-          "note": "Nothing is sent, not even the customer ID, and RUM itself is held at not-granted. Pending events are dropped rather than queued, so accepting later does not backfill them."
+          "note": "OneTrust is on the page and its banner is unanswered, so OneTrust holds RUM at not-granted and the plugin follows it: nothing is sent, not even the customer ID. Pending events are dropped rather than queued, so accepting later does not backfill them."
         },
         {
           "id": "send-the-email-address",
