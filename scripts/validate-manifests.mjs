@@ -146,6 +146,11 @@ if (sdkMajors.size !== 1) {
           problems.push(`${file}:${index + 1}: CDN snippet loads SDK v${found[1]}, but plugin.json declares rumSdk ${major}.x`)
         }
       }
+      // v7 loads Session Replay and the profiler as ESM chunks through import(), which a
+      // cross-origin script tag without crossorigin may not be allowed to do.
+      if (/<script[^>]*datadoghq-browser-agent\.com/.test(line) && !/crossorigin="anonymous"/.test(line)) {
+        problems.push(`${file}:${index + 1}: the SDK <script> tag needs crossorigin="anonymous"`)
+      }
     })
   }
 }
