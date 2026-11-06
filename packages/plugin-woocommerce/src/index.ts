@@ -28,12 +28,15 @@ export const WOO_EVENTS = [
   'removed_from_cart',
 ] as const
 
+/** Dispatched on `document` by the WP Consent API when the visitor changes a category. */
+export const WP_CONSENT_EVENT = 'wp_listen_for_consent_change'
+
 export const FOOTPRINT: PluginFootprint = {
-  globals: [`window.${DATA_GLOBAL}`, 'window.jQuery', 'document.body'],
-  events: [...WOO_EVENTS],
+  globals: [`window.${DATA_GLOBAL}`, 'window.jQuery', 'document.body', 'window.wp_has_consent'],
+  events: [...WOO_EVENTS, WP_CONSENT_EVENT],
   storageKeys: [],
   rumApis: ['addAction', 'setGlobalContextProperty', 'setUser', 'clearUser'],
-  consentSource: null,
+  consentSource: 'WP Consent API (wp_has_consent)',
 }
 
 export interface WooCommercePluginOptions extends CommonPluginOptions {
@@ -46,6 +49,8 @@ export interface WooCommercePluginOptions extends CommonPluginOptions {
   data?: WooGlobalPayload
   /** Element the Woo block events are dispatched on. Defaults to `document.body`. */
   target?: EventTarget
+  /** The WP Consent API category that must be allowed. Defaults to `statistics`. */
+  consentCategory?: string
 }
 
 interface WooEventDetail {
@@ -95,6 +100,20 @@ export function wooCommercePlugin(options: WooCommercePluginOptions = {}): RumPl
       })
 
       trackers.set(plugin, tracker)
+
+      // The WP Consent API is WordPress's shared consent signal, which consent plugins such as
+      // Complianz and CookieYes feed. Read before anything is sent, so a refusal holds even the
+      // customer ID. With no API on the page there is no signal, and the plugin follows the page.
+      const hasConsent = (globalThis as { wp_has_consent?: (category: string) => boolean }).wp_has_consent
+      if ((options.consent ?? 'auto') === 'auto' && typeof hasConsent === 'function') {
+        const category = options.consentCategory ?? 'statistics'
+        const apply = (allowed: unknown) =>
+          allowed === true || allowed === 'allow' ? tracker.consent.grant() : allowed === false || allowed === 'deny' ? tracker.consent.deny() : undefined
+        apply(hasConsent(category))
+        ;(globalThis as { document?: Document }).document?.addEventListener(WP_CONSENT_EVENT, (event) =>
+          apply(((event as CustomEvent<Record<string, string>>).detail ?? {})[category]),
+        )
+      }
 
       const data = options.data ?? readGlobal(options.dataGlobal ?? DATA_GLOBAL)
 

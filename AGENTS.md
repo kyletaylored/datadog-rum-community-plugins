@@ -223,7 +223,7 @@ test can stand in for.
 
 ### Watch items
 
-- **Shopify (4.73 KB) and WooCommerce (4.80 KB) are close to their 5 KB budget.** Removing the schema's leaked family names (schema 1.2.0) bought back about 140 bytes each, and targeting ES2020 in the CDN build about 300 more, which the page-wide consent record and always-on warnings then spent most of. Neither trick repeats. The next mapping added to either needs a trim or a declared budget.
+- **Shopify (4.73 KB) and WooCommerce (4.93 KB, with the WP Consent API) are close to their 5 KB budget.** Removing the schema's leaked family names (schema 1.2.0) bought back about 140 bytes each, and targeting ES2020 in the CDN build about 300 more, which the page-wide consent record and always-on warnings then spent most of. Neither trick repeats. The next mapping added to either needs a trim or a declared budget.
 - **Engagement video is HTML5 only.** YouTube and Vimeo are iframes needing their player APIs; `video_provider` exists so they can be added without a schema change.
 - **Engagement scroll thresholds reset on `popstate`, not on a `pushState` route change.** Observing that means patching `history`, which the plugin will not do to a merchant's page.
 - **OneTrust's callback names are still unconfirmed against vendor docs**, as the PRD flagged. The adapter listens on all four known signals and reads the state directly as a fallback, so one firing is enough — but this should still be checked against OneTrust's own documentation.

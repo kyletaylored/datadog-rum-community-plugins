@@ -83,12 +83,28 @@ never reaches a distribution metric.
 | `includeEmail` / `includeName` | `false` | Add PII to `setUser` |
 | `includeItems` | `false` | Attach `items[]`, capped at 20 entries |
 | `actionPrefix` | `'commerce.'` | Rename the commerce prefix. Other families keep their own |
-| `consent` | `'auto'` | `auto` follows any consent plugin on the page and sends freely when there is none; `ignore` skips the gate; or pass a resolver, which holds RUM until it answers |
+| `consent` | `'auto'` | `auto` reads the WP Consent API when the page has it, follows any consent plugin on the page, and sends freely when there is neither; `ignore` skips the gate; or pass a resolver, which holds RUM until it answers |
+| `consentCategory` | `'statistics'` | The WP Consent API category that must be allowed |
 | `beforeTrack` | none | Edit or drop an event before it is sent |
 | `dataGlobal` | `'ddRumWooCommerce'` | Where to read the server-rendered payload |
 | `data` | none | Supply the payload directly, for headless setups and tests |
 | `target` | `document.body` | Element the Woo block events are dispatched on |
 | `debug` | `false` | Log every mapped event to the console |
+
+## Consent
+
+With the default `consent: 'auto'`, when the page has the [WP Consent API](https://wordpress.org/plugins/wp-consent-api/)
+(fed by Complianz, CookieYes and other WordPress consent plugins), the plugin calls
+`wp_has_consent('statistics')` before sending anything, and listens for
+`wp_listen_for_consent_change` on the document:
+
+- denied → nothing is sent, not even the customer ID, and every other community plugin on the
+  page holds too;
+- allowed → events flow from then on. Nothing from before is backfilled.
+
+It never calls `setTrackingConsent`, so it neither stops the rest of RUM nor releases it. Pair it
+with a consent plugin, or set `trackingConsent` yourself, if RUM's own views and resources must
+wait for consent too. Without the WP Consent API the plugin records nothing and follows the page.
 
 ## The checkout funnel
 
@@ -109,11 +125,11 @@ reporter.search(term) // sends search_term_length only; the text never leaves th
 
 | | |
 | --- | --- |
-| Platform globals read | `window.ddRumWooCommerce`, `window.jQuery`, `document.body` |
-| Platform events subscribed | `wc-blocks_added_to_cart`, `wc-blocks_removed_from_cart`, `wc-blocks_product_list_rendered`, `added_to_cart`, `removed_from_cart` |
+| Platform globals read | `window.ddRumWooCommerce`, `window.jQuery`, `document.body`, `window.wp_has_consent` |
+| Platform events subscribed | `wc-blocks_added_to_cart`, `wc-blocks_removed_from_cart`, `wc-blocks_product_list_rendered`, `added_to_cart`, `removed_from_cart`, `wp_listen_for_consent_change` |
 | Storage keys written | `dd_rum_commerce_seen` (the core's purchase dedupe) |
 | RUM APIs called | `addAction`, `setGlobalContextProperty`, `setUser`, `clearUser` |
-| Consent source | WP Consent API, via the `consent` option or a consent plugin |
+| Consent source | WP Consent API (`wp_has_consent`, `wp_listen_for_consent_change`) |
 
 Classic (non-block) themes are covered through the jQuery `added_to_cart` event, which carries no
 cart object; the adapter falls back to the cart in `event.detail` where one is present.

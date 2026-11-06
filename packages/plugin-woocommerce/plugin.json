@@ -86,6 +86,10 @@
     "summary": "Listens for the DOM events WooCommerce's Cart and Checkout blocks already dispatch, and reads the order the companion WordPress plugin prints on the order-received page. Nothing is added to your theme.",
     "steps": [
       {
+        "title": "Asks the WP Consent API first",
+        "detail": "When the page has the WP Consent API (which Complianz, CookieYes and other WordPress consent plugins feed), it calls `window.wp_has_consent('statistics')` before sending anything, and listens for `wp_listen_for_consent_change` on the document. A refusal holds every event, the customer ID included, and every other community plugin on the page; it never calls `setTrackingConsent`. Without the API it records nothing and follows the page."
+      },
+      {
         "title": "Reads the store, the customer and the order",
         "detail": "At init it reads `window.ddRumWooCommerce`, which the companion WordPress plugin prints: store and customer on every page, plus the order on the order-received page. The store becomes session context, the WordPress user ID goes to `setUser`, and the order becomes `commerce.purchase`."
       },
@@ -148,7 +152,13 @@
       "name": "consent",
       "type": "string",
       "default": "auto",
-      "description": "auto follows any consent plugin on the page and sends freely when there is none; ignore skips the gate; or supply a resolver callback."
+      "description": "auto reads the WP Consent API when the page has it, follows any consent plugin on the page, and sends freely when there is neither; ignore skips the gate; or supply a resolver callback."
+    },
+    {
+      "name": "consentCategory",
+      "type": "string",
+      "default": "statistics",
+      "description": "The WP Consent API category that must be allowed before anything is sent."
     },
     {
       "name": "beforeTrack",
@@ -173,14 +183,16 @@
     "globals": [
       "window.ddRumWooCommerce",
       "window.jQuery",
-      "document.body"
+      "document.body",
+      "window.wp_has_consent"
     ],
     "events": [
       "wc-blocks_added_to_cart",
       "wc-blocks_removed_from_cart",
       "wc-blocks_product_list_rendered",
       "added_to_cart",
-      "removed_from_cart"
+      "removed_from_cart",
+      "wp_listen_for_consent_change"
     ],
     "storageKeys": [
       "dd_rum_commerce_seen"
@@ -191,7 +203,7 @@
       "setUser",
       "clearUser"
     ],
-    "consentSource": null
+    "consentSource": "WP Consent API (wp_has_consent)"
   },
   "docs": "https://kyletaylored.github.io/datadog-rum-community-plugins/plugins/woocommerce/"
 }
