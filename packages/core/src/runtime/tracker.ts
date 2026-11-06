@@ -81,6 +81,9 @@ export interface Tracker {
     CommonPluginOptions
 }
 
+/** How long consent may stay pending before dropped events earn a warning. */
+const PENDING_WARNING_MS = 5000
+
 const DEFAULTS = {
   identifyUsers: true,
   includeEmail: false,
@@ -147,6 +150,23 @@ export function createTracker(config: TrackerConfig): Tracker {
     logger.info(`schema ${SCHEMA_VERSION}, consent ${consent.state()}`)
   }
 
+  const started = Date.now()
+
+  /**
+   * True when consent holds `name` back. A refusal is the visitor's choice and stays quiet; a
+   * decision still pending after a few seconds usually means a consent plugin that never
+   * answers, which would otherwise look like a plugin that does nothing.
+   */
+  function held(name: string): boolean {
+    const state = consent.state()
+    if (state === 'granted') return false
+    logger.dropped(name, `consent ${state}`)
+    if (state === 'pending' && Date.now() - started > PENDING_WARNING_MS) {
+      logger.warn(`dropping events: consent still pending after ${PENDING_WARNING_MS / 1000}s`)
+    }
+    return true
+  }
+
   function track(event: string, attributes: Record<string, unknown> = {}): boolean {
     const bare = bareEvent(event)
     const family = eventFamily.get(bare)
@@ -161,10 +181,7 @@ export function createTracker(config: TrackerConfig): Tracker {
       return false
     }
 
-    if (!consent.isOpen()) {
-      logger.dropped(bare, `consent ${consent.state()}`)
-      return false
-    }
+    if (held(bare)) return false
 
     // Commerce keeps the configurable prefix; other families keep their own, so renaming
     // `commerce.` never silently renames `account.login`.
@@ -218,10 +235,7 @@ export function createTracker(config: TrackerConfig): Tracker {
     }
     // Identity is held by the same gate as actions: nothing about the visitor is sent before
     // they accept, and a later grant does not backfill it.
-    if (!consent.isOpen()) {
-      logger.dropped('setUser', `consent ${consent.state()}`)
-      return
-    }
+    if (held('setUser')) return
     const id = text(identity.id)
     if (!id) return
 
@@ -241,10 +255,7 @@ export function createTracker(config: TrackerConfig): Tracker {
 
   function identifyAccount(account: AccountInput): void {
     if (options.identifyUsers === false) return
-    if (!consent.isOpen()) {
-      logger.dropped('setAccount', `consent ${consent.state()}`)
-      return
-    }
+    if (held('setAccount')) return
     const id = text(account.id)
     if (!id || !config.publicApi.setAccount) return
 

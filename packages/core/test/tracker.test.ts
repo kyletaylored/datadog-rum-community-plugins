@@ -329,3 +329,67 @@ describe('beforeTrack', () => {
     warn.mockRestore()
   })
 })
+
+describe('warnings without debug', () => {
+  function consentPending(rum: ReturnType<typeof createFakeRum>) {
+    createConsentGate({ mode: 'auto', name: 'cmp', publicApi: rum.publicApi, initConfiguration: rum.initConfiguration })
+  }
+
+  it('prints a configuration warning with debug off, once per message', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const { tracker } = setup({
+      beforeTrack: () => {
+        throw new Error('oops')
+      },
+    })
+    tracker.track('add_to_cart', { value: 1 })
+    tracker.track('add_to_cart', { value: 2 })
+
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]![0]).toBe('[dd-rum:test] beforeTrack threw, sending the event unchanged')
+    // Per-event lines still need debug.
+    expect(log).not.toHaveBeenCalled()
+    warn.mockRestore()
+    log.mockRestore()
+  })
+
+  it('warns once when consent is still pending after a few seconds and events are being dropped', () => {
+    vi.useFakeTimers()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      const rum = createFakeRum({})
+      consentPending(rum)
+      const tracker = createTracker({ platform: 'test', version: '0.1.0', publicApi: rum.publicApi, families: [COMMERCE_FAMILY], footprint: FOOTPRINT })
+
+      tracker.track('add_to_cart', { value: 1 })
+      expect(warn).not.toHaveBeenCalled()
+
+      vi.advanceTimersByTime(6000)
+      tracker.track('add_to_cart', { value: 1 })
+      tracker.track('view_cart', { value: 1 })
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(warn.mock.calls[0]![0]).toMatch(/consent still pending after 5s/)
+    } finally {
+      warn.mockRestore()
+      vi.useRealTimers()
+    }
+  })
+
+  it('stays quiet when the visitor refused, since that is their choice', () => {
+    vi.useFakeTimers()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      const rum = createFakeRum({})
+      const cmp = createConsentGate({ mode: 'auto', name: 'cmp', publicApi: rum.publicApi, initConfiguration: rum.initConfiguration })
+      const tracker = createTracker({ platform: 'test', version: '0.1.0', publicApi: rum.publicApi, families: [COMMERCE_FAMILY], footprint: FOOTPRINT })
+      cmp.deny()
+      vi.advanceTimersByTime(6000)
+      expect(tracker.track('add_to_cart', { value: 1 })).toBe(false)
+      expect(warn).not.toHaveBeenCalled()
+    } finally {
+      warn.mockRestore()
+      vi.useRealTimers()
+    }
+  })
+})

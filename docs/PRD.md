@@ -231,7 +231,7 @@ DD_RUM.init({
 | `actionPrefix` | `commerce.` | Rename actions if the customer has a convention |
 | `consent` | `auto` | Follow the page's consent decisions (a consent plugin, the platform consent API); send freely when there are none. `ignore` or a callback to override |
 | `beforeTrack` | none | Hook to edit or drop an event before it's sent |
-| `debug` | `false` | Log every mapped event to the console |
+| `debug` | `false` | Log every mapped event and every drop to the console. Configuration warnings (a missing platform API, consent stuck pending) print once per page without it |
 
 The plugin declares what it touches, like a GTM template's permissions screen: the platform globals it reads, the RUM APIs it calls and the storage keys it writes. This list is in each adapter's README and printed in debug mode.
 
